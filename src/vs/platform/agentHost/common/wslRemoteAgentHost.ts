@@ -13,7 +13,7 @@ import type { IRelayMessage } from './relayTransport.js';
  */
 export const WSL_REMOTE_AGENT_HOST_CHANNEL = 'wslRemoteAgentHost';
 
-export const WSL_INSTALL_DOCS_URL = 'https://aka.ms/vscode-remote/wsl/install-wsl';
+export const WSL_INSTALL_DOCS_URL = 'https://aka.ms/vscode-agent-wsl';
 
 /**
  * Prefix for WSL display addresses (`wsl:<distro>`). This is NOT a `ws://`
@@ -98,8 +98,17 @@ export interface IWSLRemoteAgentHostService {
 	isWSLAvailable(): Promise<boolean>;
 	listDistros(): Promise<IWSLDistro[]>;
 	listRunningDistros(): Promise<string[]>;
+	/** Stops every process in a distribution, like `wsl --terminate`, so its next connection starts it again. */
+	terminateDistro(distro: string): Promise<void>;
 	connect(config: IWSLAgentHostConfig): Promise<IWSLAgentHostConnection>;
-	disconnect(distro: string): Promise<void>;
+	/**
+	 * Disconnect a distro. Forgets the cached distro unless `keepEntry` is set,
+	 * in which case the distro stays cached but marked as disconnected and is
+	 * not dialed until the user connects again.
+	 */
+	disconnect(distro: string, options?: { readonly keepEntry?: boolean }): Promise<void>;
+	/** Whether the user disconnected a cached distro and has not connected it again. */
+	isDisconnected(distro: string): boolean;
 	/** Reconnect a cached distro, optionally as an automatic recovery attempt. */
 	reconnect(distro: string, name: string, userInitiated?: boolean): Promise<IWSLAgentHostConnection>;
 	/**
@@ -136,6 +145,8 @@ export interface IWSLRemoteAgentHostMainService {
 	isWSLAvailable(): Promise<boolean>;
 	listDistros(): Promise<IWSLDistro[]>;
 	listRunningDistros(): Promise<string[]>;
+	/** Closes the distribution's connections, then stops every process in it, like `wsl --terminate`. */
+	terminateDistro(distro: string): Promise<void>;
 	connect(config: IWSLAgentHostConfig): Promise<IWSLConnectResult>;
 	disconnect(distro: string): Promise<void>;
 	reconnect(distro: string, name: string, remoteAgentHostCommand?: string, userInitiated?: boolean, expectedConnectionId?: string): Promise<IWSLConnectResult>;

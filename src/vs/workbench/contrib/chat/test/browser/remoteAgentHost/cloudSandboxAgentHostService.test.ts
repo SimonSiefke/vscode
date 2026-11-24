@@ -9,7 +9,9 @@ import { DeferredPromise, raceCancellationError, timeout } from '../../../../../
 import { CancellationToken, CancellationTokenSource } from '../../../../../../base/common/cancellation.js';
 import { CancellationError, isCancellationError } from '../../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
+import { autorun } from '../../../../../../base/common/observable.js';
 import { URI } from '../../../../../../base/common/uri.js';
+import { generateUuid } from '../../../../../../base/common/uuid.js';
 import { mock } from '../../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { runWithFakedTimers } from '../../../../../../base/test/common/timeTravelScheduler.js';
@@ -17,6 +19,9 @@ import { AgentHostProtocolClient, InitialAuthenticationError, type IAgentHostPro
 import { toDisposable } from '../../../../../../base/common/lifecycle.js';
 import { WebPubSubRelayTransport, type IWebPubSubRelayTransportOptions } from '../../../../../../platform/agentHost/browser/webPubSubRelayTransport.js';
 import { AgentHostTransportFailureReason, NonReconnectableTransportError, type IProtocolTransport } from '../../../../../../platform/agentHost/common/state/sessionTransport.js';
+import { ActionType, type ActionEnvelope } from '../../../../../../platform/agentHost/common/state/sessionActions.js';
+import type { IActiveSubscriptionInfo } from '../../../../../../platform/agentHost/common/state/agentSubscription.js';
+import { StateComponents } from '../../../../../../platform/agentHost/common/state/sessionState.js';
 import { AgentHostAhpJsonlLoggingSettingId, IAgentConnection, IAgentHostService } from '../../../../../../platform/agentHost/common/agentService.js';
 import { AgentHostClientConnectionKind } from '../../../../../../platform/agentHost/common/agentHostTelemetry.js';
 import {
@@ -79,11 +84,12 @@ class TestCloudSandboxAgentHostService extends CloudSandboxAgentHostService {
 type ScriptedConnectResult = CloudSandboxConnectResult | Error | (() => Promise<CloudSandboxConnectResult>);
 
 const connectionDetails = {
+	suspendCount: 0, suspendedMs: 0,
 	environmentOperation: 'resume', provisioningMs: 0, readinessMs: 0,
 	taskCreationPath: 'unknown', reservationWaitMs: 0,
 	preparationMs: 0, connectionMs: 0,
 	environmentKind: 'cloud',
-	surface: isWeb ? 'editorWeb' : 'editorDesktop', source: 'existing', credentialRequests: 0, wakingResponses: 0, transportAttempts: 0,
+	surface: isWeb ? 'editorWeb' : 'editorDesktop', source: 'existing', credentialRequests: undefined, credentialOperations: 0, wakingResponses: 0, transportAttempts: 0,
 	credentialsMs: 0, relayMs: 0, protocolMs: 0, authenticationMs: 0, restorationMs: 0,
 	firstFailurePhase: undefined, firstFailureCode: undefined,
 	credentialFailures: 0, relayFailures: 0, protocolFailures: 0, authenticationFailures: 0, restorationFailures: 0,
@@ -98,6 +104,7 @@ function createService(store: Pick<{ add<T extends { dispose(): void }>(t: T): T
 	const started = new DeferredPromise<void>();
 	let ready = new DeferredPromise<IRemoteAgentHostConnectionInfo>();
 	const events: { eventName: string; data?: ITelemetryData }[] = [];
+	const lifecycleEvents: { eventName: string; data?: ITelemetryData }[] = [];
 	const warnings: string[] = [];
 	const removed: string[] = [];
 	const instantiationService = store.add(new TestInstantiationService());
@@ -110,7 +117,9 @@ function createService(store: Pick<{ add<T extends { dispose(): void }>(t: T): T
 	let environmentKeys: readonly IHostEncryptionKey[] | undefined;
 	let environmentReads = 0;
 	const telemetry = store.add(new CloudSandboxTelemetryService(new class extends mock<ITelemetryService>() {
-		override publicLog2(eventName: string, data?: ITelemetryData): void { events.push({ eventName, data }); }
+		override publicLog2(eventName: string, data?: ITelemetryData): void {
+			(eventName === 'cloudSandboxLifecycle' ? lifecycleEvents : events).push({ eventName, data });
+		}
 	}()));
 	instantiationService.stub(ICloudSandboxTelemetryService, telemetry);
 	const powerSuspend = store.add(new Emitter<void>());
@@ -225,6 +234,7 @@ function createService(store: Pick<{ add<T extends { dispose(): void }>(t: T): T
 		environmentReads: () => environmentReads,
 		setEnvironmentKeys: (keys: readonly IHostEncryptionKey[] | undefined) => { environmentKeys = keys; },
 		events,
+		lifecycleEvents,
 		powerSuspend,
 		powerResume,
 		setReconnectResult: (value: CloudSandboxConnectResult | Error | Promise<CloudSandboxConnectResult>) => { reconnectResult = value; },
@@ -257,6 +267,76 @@ suite('CloudSandboxAgentHostService', () => {
 
 	teardown(() => sinon.restore());
 
+	test('disconnecting an unstaged cached inventory does not republish connection entries', async () => {
+		const fixture = createService(store, []);
+		const entries: number[] = [];
+		store.add(autorun(reader => entries.push(fixture.getFactory().entries.read(reader).length)));
+		for (let i = 0; i < 150; i++) {
+			await fixture.service.disconnect(cloudSandboxAddress(`offline-${i}`));
+		}
+		assert.deepStrictEqual(entries, [0]);
+	});
+
+	test('disconnecting a staged environment withdraws it only once', async () => {
+		const fixture = createService(store, [{ kind: 'token', token: clientToken('sealed') }]);
+		fixture.service.connectThroughFactory = true;
+		const entries: number[] = [];
+		store.add(autorun(reader => entries.push(fixture.getFactory().entries.read(reader).length)));
+		const connecting = fixture.service.connect({ environmentId: 'staged', name: 'Sandbox' }, CancellationToken.None);
+		await fixture.started;
+		fixture.settle();
+		await connecting;
+		await fixture.service.disconnect(cloudSandboxAddress('staged'));
+		await fixture.service.disconnect(cloudSandboxAddress('staged'));
+		assert.deepStrictEqual(entries, [0, 1, 0]);
+	});
+
+	test('forwards user-local reporting scope through initial credentials and factory recovery', () => runWithFakedTimers({}, async () => {
+		const environmentId = generateUuid();
+		const sessionId = generateUuid();
+		const connectionId = generateUuid();
+		const fixture = createService(store, [{ kind: 'token', token: clientToken(undefined, connectionId) }]);
+		fixture.service.connectThroughFactory = true;
+		const connecting = fixture.service.connect({ environmentId, sessionId, name: 'private host name', environmentKind: 'user-local' }, CancellationToken.None);
+		await fixture.started;
+		fixture.settle();
+		await connecting;
+		fixture.instantiationService.stubInstance(AgentHostProtocolClient, new class extends mock<AgentHostProtocolClient>() {
+			override readonly onDidConnectionDiagnostic = Event.None;
+			override readonly onDidAction = Event.None;
+			override getConnectionDiagnosticState() { return {}; }
+			override getActiveSubscriptions(): readonly IActiveSubscriptionInfo[] {
+				return [{ resource: URI.parse('other-host:/session'), kind: StateComponents.Session, status: 'snapshot', refCount: 1, holders: [] }];
+			}
+		}());
+		const spy = sinon.spy(fixture.instantiationService, 'createInstance');
+		const created = await fixture.getFactory().createConnection(fixture.entries()[0], { userInitiated: true });
+		assert.ok(created.transportDisposable);
+		store.add(created.transportDisposable);
+		const options = spy.getCalls().find(call => call.args[0] === AgentHostProtocolClient)?.args[3] as IAgentHostProtocolClientOptions;
+		assert.ok(options.prepareReconnect);
+		await options.prepareReconnect();
+		const makeTransport = spy.getCalls().find(call => call.args[0] === AgentHostProtocolClient)?.args[2] as () => IProtocolTransport;
+		store.add(makeTransport());
+		const transportOptions = spy.getCalls().find(call => call.args[0] === WebPubSubRelayTransport)?.args[1] as IWebPubSubRelayTransportOptions;
+		fixture.setState('reconnecting');
+		transportOptions.onHandshakeProgress?.('reconnect', 'waiting');
+		transportOptions.onHandshakeProgress?.('reconnect', 'responseReceived');
+		fixture.setState('connected');
+		created.transportDisposable.dispose();
+		fixture.service.dispose();
+		assert.deepStrictEqual({
+			requests: fixture.requests.map(entry => [entry.method, entry.request.environmentId, entry.request.sessionId, entry.request.environmentKind]),
+			lifecycle: fixture.lifecycleEvents,
+			userLocalOutcome: fixture.events.filter(event => event.eventName === 'userLocalRelayConnectionOutcome').map(event => event.data?.outcome),
+			recoveryHandshake: fixture.events.find(event => event.data?.operation === 'recover')?.data?.lastHandshakeState,
+			sessionRecovery: fixture.events.find(event => event.data?.operation === 'recover')?.data?.sessionRecoveryOutcome,
+		}, {
+			requests: [['connect', environmentId, sessionId, 'user-local'], ['reconnect', environmentId, sessionId, 'user-local']],
+			lifecycle: [], userLocalOutcome: ['success', 'success'], recoveryHandshake: 'responseReceived', sessionRecovery: 'restored',
+		});
+	}));
+
 	test('user-local hosts seal identity credentials after the handshake without requiring a broker envelope', async () => {
 		const key = { key_id: 'GpLyOFLckI0', public_key: 'pOCSkrZRwni5dyxWn1+puxPZBrRqtoyd+dwrRAn4ogk=', algorithm: 'x25519-sealedbox', use: 'auth-token' as const };
 		const fixture = createService(store, [{ kind: 'token', token: clientToken(undefined) }]);
@@ -269,6 +349,8 @@ suite('CloudSandboxAgentHostService', () => {
 		await connecting;
 		fixture.instantiationService.stubInstance(AgentHostProtocolClient, new class extends mock<AgentHostProtocolClient>() {
 			override readonly onDidConnectionDiagnostic = Event.None;
+			override readonly onDidAction = Event.None;
+			override getConnectionDiagnosticState() { return {}; }
 		}());
 		const spy = sinon.spy(fixture.instantiationService, 'createInstance');
 		const created = await fixture.getFactory().createConnection(fixture.entries()[0], { userInitiated: true });
@@ -278,6 +360,12 @@ suite('CloudSandboxAgentHostService', () => {
 		assert.ok(options.resolveInitialAuthentication && options.sealAuthenticationToken);
 		const identity = await options.resolveInitialAuthentication();
 		assert.ok(identity);
+		const unavailable = new Error('network unavailable');
+		fixture.setIdentityResult(async () => { throw unavailable; });
+		await assert.rejects(options.resolveInitialAuthentication(), error => error === unavailable);
+		fixture.setIdentityResult(async () => { throw new CloudSandboxRequestError(401, 'sign in required'); });
+		await assert.rejects(options.resolveInitialAuthentication(), InitialAuthenticationError);
+		fixture.setIdentityResult(async () => ({ token: 'identity-only-token' }));
 		const token = await options.sealAuthenticationToken({ ...identity, key, challenge: 'a'.repeat(32) });
 		fixture.setEnvironmentKeys([key]);
 		await assert.rejects(options.sealAuthenticationToken({ ...identity, key: { ...key, public_key: 'substituted' } }), /does not match/);
@@ -288,7 +376,10 @@ suite('CloudSandboxAgentHostService', () => {
 		}, {
 			identity: { resource: 'https://api.github.com', token: 'identity-only-token' },
 			renewed: { resource: 'https://api.github.com', token: 'identity-only-token' },
-			sealed: true, identityRequests: [{ account: 'account-a', forceRefresh: false }, { account: 'account-a', forceRefresh: true }],
+			sealed: true, identityRequests: [
+				{ account: 'account-a', forceRefresh: false }, { account: 'account-a', forceRefresh: false },
+				{ account: 'account-a', forceRefresh: false }, { account: 'account-a', forceRefresh: true },
+			],
 			controlPlaneRequests: 1, environmentReads: 1,
 		});
 	});
@@ -306,6 +397,8 @@ suite('CloudSandboxAgentHostService', () => {
 				await connecting;
 				fixture.instantiationService.stubInstance(AgentHostProtocolClient, new class extends mock<AgentHostProtocolClient>() {
 					override readonly onDidConnectionDiagnostic = Event.None;
+					override readonly onDidAction = Event.None;
+					override getConnectionDiagnosticState() { return {}; }
 				}());
 				const spy = sinon.spy(fixture.instantiationService, 'createInstance');
 				const factory = fixture.getFactory();
@@ -366,6 +459,8 @@ suite('CloudSandboxAgentHostService', () => {
 				override dispose(): void { }
 				override readonly onDidChangeConnectionState = Event.None;
 				override readonly onDidConnectionDiagnostic = Event.None;
+				override readonly onDidAction = Event.None;
+				override getConnectionDiagnosticState() { return {}; }
 			}());
 			const spy = sinon.spy(fixture.instantiationService, 'createInstance');
 			const created = await fixture.getFactory().createConnection(fixture.entries()[0], { userInitiated: true });
@@ -430,6 +525,8 @@ suite('CloudSandboxAgentHostService', () => {
 		fixture.instantiationService.stubInstance(AgentHostProtocolClient, new class extends mock<AgentHostProtocolClient>() {
 			override readonly onDidChangeConnectionState = Event.None;
 			override readonly onDidConnectionDiagnostic = Event.None;
+			override readonly onDidAction = Event.None;
+			override getConnectionDiagnosticState() { return {}; }
 		}());
 		const spy = sinon.spy(fixture.instantiationService, 'createInstance');
 		store.add(toDisposable(() => spy.restore()));
@@ -495,17 +592,23 @@ suite('CloudSandboxAgentHostService', () => {
 
 	for (const isSessionsWindow of [false, true]) {
 		test(`wires protocol diagnostics and real window identity for ${isSessionsWindow ? 'Agents' : 'Editor'}`, () => runWithFakedTimers({}, async () => {
-			const fixture = createService(store, [{ kind: 'token', token: clientToken('copilot-sealed.v1.key.payload') }], undefined, isSessionsWindow);
+			const connectionId = generateUuid();
+			const environmentId = generateUuid();
+			const sessionId = generateUuid();
+			const fixture = createService(store, [{ kind: 'token', token: clientToken('copilot-sealed.v1.key.payload', connectionId) }], undefined, isSessionsWindow);
 			fixture.service.connectThroughFactory = true;
 			const diagnostics = store.add(new Emitter<IConnectionDiagnosticEvent>());
+			const actions = store.add(new Emitter<ActionEnvelope>());
 			fixture.instantiationService.stubInstance(AgentHostProtocolClient, {
 				dispose: () => { },
 				onDidConnectionDiagnostic: diagnostics.event,
+				onDidAction: actions.event,
+				getConnectionDiagnosticState: () => ({ connectionState: 'connected', authenticationRestorePending: false, lastSuccessfulResponseAgeMs: 25 }),
 			});
 			const createInstance = sinon.spy(fixture.instantiationService, 'createInstance');
 			const provisioningStartedAt = Date.now();
 			await timeout(100);
-			const connecting = fixture.service.connect({ environmentId: 'env-1', name: 'Sandbox', connectionSource: 'created', provisioningStartedAt }, CancellationToken.None);
+			const connecting = fixture.service.connect({ environmentId, name: 'Sandbox', connectionSource: 'created', provisioningStartedAt }, CancellationToken.None);
 			await fixture.started;
 			const factory = fixture.getFactory();
 			const created = await factory.createConnection(factory.entries.get()[0], { userInitiated: true });
@@ -520,10 +623,17 @@ suite('CloudSandboxAgentHostService', () => {
 			await timeout(30);
 			fixture.settle();
 			await connecting;
+			await options.prepareReconnect?.();
+			actions.fire({ serverSeq: 1, channel: `ahp-session:/${sessionId}`, origin: undefined, action: { type: ActionType.SessionReady } });
 			created.transportDisposable.dispose();
 			created.connection.dispose();
 			fixture.service.dispose();
-			assert.deepStrictEqual({ client: options.clientInfo?.name, events: fixture.events, listening: diagnostics.hasListeners() }, {
+			assert.deepStrictEqual({
+				client: options.clientInfo?.name, events: fixture.events, listening: diagnostics.hasListeners() || actions.hasListeners(),
+				sessionObservations: fixture.lifecycleEvents.filter(event => event.data?.phase === 'session.ready').map(event => [event.data?.environmentId, event.data?.agentSessionId, event.data?.connectionId, event.data?.connectionState, event.data?.lastSuccessfulResponseAgeMs]),
+				protocolStates: fixture.lifecycleEvents.filter(event => event.data?.phase === 'protocol.authentication').map(event => [event.data?.connectionState, event.data?.authenticationRestorePending]),
+				credentialStates: fixture.lifecycleEvents.filter(event => event.data?.phase === 'credentials').map(event => [event.data?.outcome, event.data?.connectionState]),
+			}, {
 				client: isSessionsWindow ? 'vscode-agents-window' : 'vscode-editor-window',
 				events: [{
 					eventName: 'cloudSandboxConnectionOutcome', data: {
@@ -532,10 +642,13 @@ suite('CloudSandboxAgentHostService', () => {
 						reservationWaitMs: undefined,
 						connectionMs: 50,
 						surface: isSessionsWindow ? (isWeb ? 'agentsWeb' : 'agentsDesktop') : connectionDetails.surface, source: 'created',
-						credentialRequests: 1, transportAttempts: 1, relayMs: 20, authenticationMs: 30,
+						credentialOperations: 1, transportAttempts: 1, relayMs: 20, authenticationMs: 30,
 					},
 				}],
 				listening: false,
+				sessionObservations: [[environmentId, sessionId, connectionId, 'connected', 25]],
+				protocolStates: [['connected', false]],
+				credentialStates: [['started', undefined], ['succeeded', undefined], ['started', undefined], ['succeeded', undefined], ['started', 'connected'], ['succeeded', 'connected']],
 			});
 		}));
 	}
@@ -564,7 +677,7 @@ suite('CloudSandboxAgentHostService', () => {
 				outcomes: fixture.events.filter(event => event.eventName === 'cloudSandboxConnectionOutcome').map(event => event.data),
 			}, {
 				entries: [], sealed: undefined,
-				outcomes: [{ ...connectionDetails, operation: 'connect', outcome: 'failure', stage, durationMs: 600_000, readinessMs: 600_000, preparationMs: stage === 'credentials' ? 600_000 : 0, connectionMs: stage === 'connection' ? 600_000 : 0, credentialRequests: 1, credentialsMs: stage === 'credentials' ? 600_000 : 0 }],
+				outcomes: [{ ...connectionDetails, operation: 'connect', outcome: 'failure', stage, durationMs: 600_000, readinessMs: 600_000, preparationMs: stage === 'credentials' ? 600_000 : 0, connectionMs: stage === 'connection' ? 600_000 : 0, credentialOperations: 1, credentialsMs: stage === 'credentials' ? 600_000 : 0 }],
 			});
 		}));
 	}
@@ -870,6 +983,8 @@ suite('CloudSandboxAgentHostService', () => {
 			dispose: () => { },
 			onDidChangeConnectionState: Event.None,
 			onDidConnectionDiagnostic: Event.None,
+			onDidAction: Event.None,
+			getConnectionDiagnosticState: () => ({}),
 		});
 		const createInstance = sinon.spy(fixture.instantiationService, 'createInstance');
 		const factory = fixture.getFactory();
@@ -1021,6 +1136,8 @@ suite('CloudSandboxAgentHostService', () => {
 			}());
 			fixture.instantiationService.stubInstance(AgentHostProtocolClient, new class extends mock<AgentHostProtocolClient>() {
 				override readonly onDidConnectionDiagnostic = Event.None;
+				override readonly onDidAction = Event.None;
+				override getConnectionDiagnosticState() { return {}; }
 				override dispose(): void { }
 			}());
 			const start = Date.now();
@@ -1482,7 +1599,7 @@ suite('CloudSandboxAgentHostService', () => {
 						...connectionDetails, operation: 'connect', source: 'created', outcome: 'success', stage: 'connection',
 						environmentOperation: 'provision', provisioningMs: 1000, readinessMs: 1100,
 						taskCreationPath: taskCreationPath ?? 'unknown', reservationWaitMs,
-						durationMs: 100, connectionMs: 100, credentialRequests: 1,
+						durationMs: 100, connectionMs: 100, credentialOperations: 1,
 					},
 					{
 						...connectionDetails, operation: 'connect', outcome: 'success', stage: 'connection',
@@ -1508,7 +1625,7 @@ suite('CloudSandboxAgentHostService', () => {
 				eventName: 'cloudSandboxConnectionOutcome', data: {
 					...connectionDetails, operation: 'connect', outcome: 'success', stage: 'connection', durationMs: 7000,
 					readinessMs: 7000,
-					preparationMs: 2000, connectionMs: 5000, credentialRequests: 1, credentialsMs: 2000,
+					preparationMs: 2000, connectionMs: 5000, credentialOperations: 1, credentialsMs: 2000,
 				},
 			}]);
 		}));
@@ -1537,7 +1654,7 @@ suite('CloudSandboxAgentHostService', () => {
 			fixture.service.dispose();
 			assert.deepStrictEqual({ calls: fixture.requestCalls(), events: fixture.events, withinExpectedWindow: durationMs >= 9_000 && durationMs < 9_400 }, {
 				calls: 3,
-				events: [{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'success', stage: 'connection', durationMs, readinessMs: durationMs, preparationMs: durationMs - 5000, connectionMs: 5000, credentialRequests: 3, wakingResponses: 1, credentialsMs: durationMs - 5000 } }],
+				events: [{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'success', stage: 'connection', durationMs, readinessMs: durationMs, preparationMs: durationMs - 5000, connectionMs: 5000, credentialOperations: 3, wakingResponses: 1, credentialsMs: durationMs - 5000 } }],
 				withinExpectedWindow: true,
 			});
 		}));
@@ -1553,7 +1670,7 @@ suite('CloudSandboxAgentHostService', () => {
 			await Promise.all([first, second]);
 			fixture.service.dispose();
 			assert.deepStrictEqual(fixture.events, [
-				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'success', stage: 'connection', durationMs: 3000, readinessMs: 3000, connectionMs: 3000, credentialRequests: 2 } },
+				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'success', stage: 'connection', durationMs: 3000, readinessMs: 3000, connectionMs: 3000, credentialOperations: 2 } },
 			]);
 		}));
 
@@ -1573,8 +1690,8 @@ suite('CloudSandboxAgentHostService', () => {
 			await timeout(1000);
 			fixture.service.dispose();
 			assert.deepStrictEqual(fixture.events, [
-				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'success', stage: 'connection', durationMs: 0, credentialRequests: 1 } },
-				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'recover', environmentOperation: 'recover', outcome: 'success', stage: 'credentials', durationMs: 3000, readinessMs: 3000, preparationMs: 2000, connectionMs: 1000, credentialRequests: 1, firstFailurePhase: 'credentials', firstFailureCategory: 'unknown', credentialFailures: 1 } },
+				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'success', stage: 'connection', durationMs: 0, credentialOperations: 1 } },
+				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'recover', environmentOperation: 'recover', outcome: 'success', stage: 'credentials', durationMs: 3000, readinessMs: 3000, preparationMs: 2000, connectionMs: 1000, credentialOperations: 1, firstFailurePhase: 'credentials', firstFailureCategory: 'unknown', credentialFailures: 1 } },
 				{ eventName: 'cloudSandboxConnectionHealth', data: { environmentKind: 'cloud', connectedMs: 2000, unexpectedDisconnects: 1, receivedFrames: 0 } },
 			]);
 		}));
@@ -1595,8 +1712,8 @@ suite('CloudSandboxAgentHostService', () => {
 			await redial;
 			fixture.service.dispose();
 			assert.deepStrictEqual(fixture.events, [
-				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'success', stage: 'connection', durationMs: 0, credentialRequests: 1 } },
-				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'recover', environmentOperation: 'recover', outcome: 'failure', stage: 'connection', durationMs: 2000, readinessMs: 2000, connectionMs: 2000, credentialRequests: 1 } },
+				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'success', stage: 'connection', durationMs: 0, credentialOperations: 1 } },
+				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'recover', environmentOperation: 'recover', outcome: 'failure', stage: 'connection', durationMs: 2000, readinessMs: 2000, connectionMs: 2000, credentialOperations: 1 } },
 				{ eventName: 'cloudSandboxConnectionHealth', data: { environmentKind: 'cloud', connectedMs: 1000, unexpectedDisconnects: 1, receivedFrames: 0 } },
 			]);
 		}));
@@ -1609,7 +1726,7 @@ suite('CloudSandboxAgentHostService', () => {
 			await assert.rejects(fixture.service.connect(options, CancellationToken.None));
 			fixture.service.dispose();
 			assert.deepStrictEqual(fixture.events, [
-				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'failure', stage: 'credentials', durationMs: 1700, readinessMs: 1700, preparationMs: 1700, credentialRequests: 1, credentialsMs: 1700, firstFailurePhase: 'credentials', firstFailureCategory: 'unknown', credentialFailures: 1 } },
+				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'failure', stage: 'credentials', durationMs: 1700, readinessMs: 1700, preparationMs: 1700, credentialOperations: 1, credentialsMs: 1700, firstFailurePhase: 'credentials', firstFailureCategory: 'unknown', credentialFailures: 1 } },
 			]);
 		}));
 
@@ -1623,7 +1740,7 @@ suite('CloudSandboxAgentHostService', () => {
 			await connecting;
 			fixture.service.dispose();
 			assert.deepStrictEqual(fixture.events, [
-				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'failure', stage: 'connection', durationMs: 2400, readinessMs: 2400, connectionMs: 2400, credentialRequests: 1 } },
+				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'failure', stage: 'connection', durationMs: 2400, readinessMs: 2400, connectionMs: 2400, credentialOperations: 1 } },
 			]);
 		}));
 
@@ -1640,7 +1757,7 @@ suite('CloudSandboxAgentHostService', () => {
 			await connecting;
 			fixture.service.dispose();
 			assert.deepStrictEqual(fixture.events, [
-				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'cancelled', stage: 'credentials', durationMs: 1100, readinessMs: 1100, preparationMs: 1100, credentialRequests: 1, credentialsMs: 1100 } },
+				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'cancelled', stage: 'credentials', durationMs: 1100, readinessMs: 1100, preparationMs: 1100, credentialOperations: 1, credentialsMs: 1100 } },
 			]);
 		}));
 
@@ -1656,7 +1773,7 @@ suite('CloudSandboxAgentHostService', () => {
 			await connecting;
 			fixture.service.dispose();
 			assert.deepStrictEqual(fixture.events, [
-				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'cancelled', stage: 'connection', durationMs: 1200, readinessMs: 1200, connectionMs: 1200, credentialRequests: 1 } },
+				{ eventName: 'cloudSandboxConnectionOutcome', data: { ...connectionDetails, operation: 'connect', outcome: 'cancelled', stage: 'connection', durationMs: 1200, readinessMs: 1200, connectionMs: 1200, credentialOperations: 1 } },
 			]);
 		}));
 	});

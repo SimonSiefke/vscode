@@ -14,8 +14,6 @@ import { mock } from '../../../../../base/test/common/mock.js';
 import { IAccessibleViewService } from '../../../../../platform/accessibility/browser/accessibleView.js';
 import { IMenuService, isIMenuItem, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { MenuService } from '../../../../../platform/actions/common/menuService.js';
-import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
-import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { ContextKeyService } from '../../../../../platform/contextkey/browser/contextKeyService.js';
 import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IFileService } from '../../../../../platform/files/common/files.js';
@@ -54,15 +52,14 @@ import { ITextFileService } from '../../../../../workbench/services/textfile/com
 import { IWorkingCopyService } from '../../../../../workbench/services/workingCopy/common/workingCopyService.js';
 import { ComponentFixtureContext, createEditorServices, defineComponentFixture, defineThemedFixtureGroup, registerWorkbenchServices, waitForFixtureCondition } from '../../../../../workbench/test/browser/componentFixtures/fixtureUtils.js';
 
-import { Menus } from '../../../../../sessions/browser/menus.js';
+import { AgentsWindowMenus } from '../../../../browser/agentsWindowMenus.js';
 import { EmptyFileEditor } from '../../../../../sessions/contrib/editor/browser/emptyFileEditor.js';
 import '../../../../../sessions/contrib/editor/browser/emptyFileEditor.contribution.js';
-import { EmptyFileEditorInput } from '../../../../../sessions/contrib/editor/browser/emptyFileEditorInput.js';
-import { SESSIONS_EMPTY_FILE_EDITOR_ACTIONS_SETTING } from '../../../../../sessions/common/sessionConfig.js';
-import { ChangesEmptyState } from '../../../../../sessions/contrib/changes/browser/changesEmptyState.js';
+import { EmptyFileEditorInput } from '../../../../../workbench/contrib/sessions/browser/emptyFileEditorInput.js';
+import { ChangesEmptyState } from '../../../../../workbench/contrib/sessionChanges/browser/changesEmptyState.js';
 import '../../../../../sessions/contrib/editor/electron-browser/browserEmptyState.contribution.js';
 import { FixtureKeybindingService } from '../../../../../sessions/test/browser/addTabFixtureUtils.js';
-import { NEW_FILE_TAB_COMMAND_ID } from '../../../../../sessions/common/sessionCommands.js';
+import { NEW_FILE_TAB_COMMAND_ID } from '../../../../../workbench/contrib/sessions/common/sessionCommands.js';
 import { OpenEditorCommandId } from '../../../../../workbench/contrib/searchEditor/browser/constants.js';
 import '../../../../../sessions/browser/parts/media/editorPart.css';
 
@@ -108,10 +105,10 @@ function prepareContainer(container: HTMLElement, width = FIXTURE_WIDTH): HTMLEl
 }
 
 function ensureEmptyFileEditorActionRegistration(): void {
-	if (MenuRegistry.getMenuItems(Menus.EmptyFileEditorActions).some(item => isIMenuItem(item) && item.command.id === NEW_UNTITLED_FILE_COMMAND_ID)) {
+	if (MenuRegistry.getMenuItems(AgentsWindowMenus.EmptyFileEditorActions).some(item => isIMenuItem(item) && item.command.id === NEW_UNTITLED_FILE_COMMAND_ID)) {
 		return;
 	}
-	MenuRegistry.appendMenuItem(Menus.EmptyFileEditorActions, {
+	MenuRegistry.appendMenuItem(AgentsWindowMenus.EmptyFileEditorActions, {
 		command: {
 			id: NEW_UNTITLED_FILE_COMMAND_ID,
 			title: 'New File',
@@ -159,7 +156,6 @@ async function renderFilesEmptyState(context: ComponentFixtureContext, searchVal
 		colorTheme: theme,
 		additionalServices: registration => {
 			registerWorkbenchServices(registration);
-			registration.defineInstance(IConfigurationService, new TestConfigurationService({ [SESSIONS_EMPTY_FILE_EDITOR_ACTIONS_SETTING]: true }));
 			registration.define(IContextKeyService, ContextKeyService);
 			registration.define(IMenuService, MenuService);
 			registration.defineInstance(IAccessibleViewService, new class extends mock<IAccessibleViewService>() {
@@ -244,7 +240,7 @@ async function renderFilesEmptyState(context: ComponentFixtureContext, searchVal
 			}],
 			requiresWorkspaceTrust: false,
 			isVirtualWorkspace: false,
-		}, layoutService));
+		}, layoutService, new class extends mock<IEditorGroupsService>() { override readonly parts = []; }()));
 		await editor.setInput(input, undefined, {}, CancellationToken.None);
 		const searchInput = container.querySelector<HTMLInputElement>('.empty-file-editor-search input');
 		if (!searchInput) {
