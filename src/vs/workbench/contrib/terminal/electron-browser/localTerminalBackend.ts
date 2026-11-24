@@ -41,6 +41,7 @@ import { INativeWorkbenchEnvironmentService } from '../../../services/environmen
 import { shouldUseEnvironmentVariableCollection } from '../../../../platform/terminal/common/terminalEnvironment.js';
 import { DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { serializeEnvironmentVariableCollections } from '../../../../platform/terminal/common/environmentVariableShared.js';
+import { generateUuid } from '../../../../base/common/uuid.js';
 
 export class LocalTerminalBackendContribution implements IWorkbenchContribution {
 
@@ -173,12 +174,12 @@ export class LocalTerminalBackend extends BaseTerminalBackend implements ITermin
 		return this._proxy.requestDetachInstance(workspaceId, instanceId);
 	}
 
-	async acceptDetachInstanceReply(requestId: number, persistentProcessId?: number): Promise<void> {
+	async acceptDetachInstanceReply(requestId: number, persistentProcessId?: number, expectedCreationId?: string): Promise<void> {
 		if (!persistentProcessId) {
 			this._logService.warn('Cannot attach to feature terminals, custom pty terminals, or those without a persistentProcessId');
 			return;
 		}
-		return this._proxy.acceptDetachInstanceReply(requestId, persistentProcessId);
+		return this._proxy.acceptDetachInstanceReply(requestId, persistentProcessId, expectedCreationId);
 	}
 
 	async persistTerminalState(): Promise<void> {
@@ -215,17 +216,21 @@ export class LocalTerminalBackend extends BaseTerminalBackend implements ITermin
 	): Promise<ITerminalChildProcess> {
 		await this._connectToDirectProxy();
 		const executableEnv = await this._shellEnvironmentService.getShellEnv();
-		const id = await this._proxy.createProcess(shellLaunchConfig, cwd, cols, rows, unicodeVersion, env, executableEnv, options, shouldPersist, this._getWorkspaceId(), this._getWorkspaceName());
-		const pty = new LocalPty(id, shouldPersist, this._proxy);
+		const proxy = this._proxy;
+		const creationId = generateUuid();
+		const id = await proxy.createProcess(shellLaunchConfig, cwd, cols, rows, unicodeVersion, env, executableEnv, { ...options, creationId }, shouldPersist, this._getWorkspaceId(), this._getWorkspaceName());
+		const pty = new LocalPty(id, shouldPersist, proxy, creationId);
 		this._ptys.set(id, pty);
 		return pty;
 	}
 
-	async attachToProcess(id: number, pid?: number, isRevived: boolean = false): Promise<ITerminalChildProcess | undefined> {
+	async attachToProcess(id: number, pid?: number, expectedCreationId?: string, isRevived: boolean = false): Promise<ITerminalChildProcess | undefined> {
 		await this._connectToDirectProxy();
 		try {
-			await this._proxy.attachToProcess(id, pid);
-			const pty = new LocalPty(id, true, this._proxy, isRevived);
+			const proxy = this._proxy;
+			const creationId = generateUuid();
+			await proxy.attachToProcess(id, pid, this._configurationService.getValue<Record<string, string | null>>('terminal.integrated.autoReplies') ?? {}, creationId, expectedCreationId);
+			const pty = new LocalPty(id, true, proxy, creationId, isRevived);
 			this._ptys.set(id, pty);
 			return pty;
 		} catch (e) {
@@ -234,15 +239,15 @@ export class LocalTerminalBackend extends BaseTerminalBackend implements ITermin
 		return undefined;
 	}
 
-	async attachToRevivedProcess(id: number, pid: number): Promise<ITerminalChildProcess | undefined> {
+	async attachToRevivedProcess(id: number, pid: number, expectedCreationId?: string): Promise<ITerminalChildProcess | undefined> {
 		await this._connectToDirectProxy();
 		try {
-			const newId = await this._proxy.getRevivedPtyNewId(this._getWorkspaceId(), id);
-			if (newId !== undefined) {
-				return await this.attachToProcess(newId, undefined, true);
+			const revived = await this._proxy.getRevivedPtyProcessIdentity(this._getWorkspaceId(), id, expectedCreationId);
+			if (revived !== undefined) {
+				return await this.attachToProcess(revived.id, undefined, revived.creationId, true);
 			}
 			// The original ID may belong to another window's process after a pty host restart
-			return await this.attachToProcess(id, pid > 0 ? pid : undefined);
+			return await this.attachToProcess(id, pid > 0 ? pid : undefined, expectedCreationId);
 		} catch (e) {
 			this._logService.warn(`Couldn't attach to process ${e.message}`);
 		}
@@ -393,11 +398,8 @@ export class LocalTerminalBackend extends BaseTerminalBackend implements ITermin
 
 	// #region Pty service contribution RPC calls
 
-	installAutoReply(match: string, reply: string, ownerId: string): Promise<void> {
-		return this._proxy.installAutoReply(match, reply, ownerId);
-	}
-	uninstallAllAutoReplies(ownerId: string): Promise<void> {
-		return this._proxy.uninstallAllAutoReplies(ownerId);
+	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>, creationId?: string): Promise<void> {
+		return this._proxy.setAutoReplies(id, replies, creationId);
 	}
 
 	// #endregion

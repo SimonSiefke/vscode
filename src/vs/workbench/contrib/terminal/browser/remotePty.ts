@@ -13,11 +13,14 @@ import { hasKey } from '../../../../base/common/types.js';
 export class RemotePty extends BasePty implements ITerminalChildProcess {
 	private readonly _startBarrier: Barrier;
 	private _startRequested = false;
+	private _isShutdown = false;
+	private _isDetached = false;
 
 	constructor(
 		id: number,
 		shouldPersist: boolean,
 		private readonly _remoteTerminalChannel: RemoteTerminalChannelClient,
+		readonly creationId: string | undefined,
 		@IRemoteAgentService private readonly _remoteAgentService: IRemoteAgentService,
 		@ITerminalLogService private readonly _logService: ITerminalLogService
 	) {
@@ -26,6 +29,9 @@ export class RemotePty extends BasePty implements ITerminalChildProcess {
 	}
 
 	async start(): Promise<ITerminalLaunchError | ITerminalLaunchResult | undefined> {
+		if (this._isShutdown || this._isDetached) {
+			return undefined;
+		}
 		this._startRequested = true;
 		// Fetch the environment to check shell permissions
 		const env = await this._remoteAgentService.getEnvironment();
@@ -48,6 +54,7 @@ export class RemotePty extends BasePty implements ITerminalChildProcess {
 	}
 
 	async detach(forcePersist?: boolean): Promise<void> {
+		this._isDetached = true;
 		if (this._startRequested) {
 			await this._startBarrier.wait();
 		}
@@ -55,13 +62,16 @@ export class RemotePty extends BasePty implements ITerminalChildProcess {
 	}
 
 	cancelBeforeStart(): Promise<void> {
-		return this._remoteTerminalChannel.shutdown(this.id, true);
+		return this.shutdown(true);
 	}
 
-	shutdown(immediate: boolean): void {
-		this._startBarrier.wait().then(_ => {
-			this._remoteTerminalChannel.shutdown(this.id, immediate);
-		});
+	async shutdown(immediate: boolean): Promise<void> {
+		this._isShutdown = true;
+		// The host already owns the process allocation before start() is called.
+		if (this._startRequested) {
+			await this._startBarrier.wait();
+		}
+		return this._remoteTerminalChannel.shutdown(this.id, immediate, this.creationId);
 	}
 
 	input(data: string): void {

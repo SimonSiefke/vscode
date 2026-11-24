@@ -9,7 +9,7 @@ import { IProcessEnvironment, OperatingSystem } from '../../../base/common/platf
 import { URI, UriComponents } from '../../../base/common/uri.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { IPtyHostProcessReplayEvent, ISerializedCommandDetectionCapability, ITerminalCapabilityStore, type ITerminalCommand } from './capabilities/capabilities.js';
-import { IGetTerminalLayoutInfoArgs, IProcessDetails, ISetTerminalLayoutInfoArgs } from './terminalProcess.js';
+import { IGetTerminalLayoutInfoArgs, IProcessDetails, IPtyProcessIdentity, ISetTerminalLayoutInfoArgs, TerminalProcessReference } from './terminalProcess.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
 import { ISerializableEnvironmentVariableCollections } from './environmentVariable.js';
 import { IWorkspaceFolder } from '../../workspace/common/workspace.js';
@@ -175,7 +175,7 @@ export interface IRawTerminalInstanceLayoutInfo<T> {
 	relativeSize: number;
 	terminal: T;
 }
-export type ITerminalInstanceLayoutInfoById = IRawTerminalInstanceLayoutInfo<number>;
+export type ITerminalInstanceLayoutInfoById = IRawTerminalInstanceLayoutInfo<TerminalProcessReference>;
 export type ITerminalInstanceLayoutInfo = IRawTerminalInstanceLayoutInfo<IPtyHostAttachTarget>;
 
 export interface IRawTerminalTabLayoutInfo<T> {
@@ -184,15 +184,14 @@ export interface IRawTerminalTabLayoutInfo<T> {
 	terminals: IRawTerminalInstanceLayoutInfo<T>[];
 }
 
-export type ITerminalTabLayoutInfoById = IRawTerminalTabLayoutInfo<number>;
+export type ITerminalTabLayoutInfoById = IRawTerminalTabLayoutInfo<TerminalProcessReference>;
 
 export interface IRawTerminalsLayoutInfo<T> {
 	tabs: IRawTerminalTabLayoutInfo<T>[];
 	background: T[] | null;
 }
 
-export interface IPtyHostAttachTarget {
-	id: number;
+export interface IPtyHostAttachTarget extends IPtyProcessIdentity {
 	pid: number;
 	title: string;
 	titleSource: TitleEventSource;
@@ -232,7 +231,7 @@ export enum TitleEventSource {
 }
 
 export type ITerminalsLayoutInfo = IRawTerminalsLayoutInfo<IPtyHostAttachTarget | null>;
-export type ITerminalsLayoutInfoById = IRawTerminalsLayoutInfo<number>;
+export type ITerminalsLayoutInfoById = IRawTerminalsLayoutInfo<TerminalProcessReference>;
 
 export enum TerminalIpcChannels {
 	/**
@@ -337,7 +336,7 @@ export interface IPtyService {
 	 * Attaches to a persistent process, failing if `pid` is provided and differs from its process ID.
 	 * Persistent process IDs restart with the pty host, so a saved ID can later belong to another process.
 	 */
-	attachToProcess(id: number, pid?: number): Promise<void>;
+	attachToProcess(id: number, pid?: number, autoReplies?: Readonly<Record<string, string | null>>, creationId?: string, expectedCreationId?: string): Promise<void>;
 	detachFromProcess(id: number, forcePersist?: boolean): Promise<void>;
 	shutdownAll(): Promise<void>;
 
@@ -352,7 +351,7 @@ export interface IPtyService {
 	getLatency(): Promise<IPtyHostLatencyMeasurement[]>;
 
 	start(id: number): Promise<ITerminalLaunchError | ITerminalLaunchResult | undefined>;
-	shutdown(id: number, immediate: boolean): Promise<void>;
+	shutdown(id: number, immediate: boolean, creationId?: string): Promise<void>;
 	input(id: number, data: string): Promise<void>;
 	sendSignal(id: number, signal: string): Promise<void>;
 	resize(id: number, cols: number, rows: number, pixelWidth?: number, pixelHeight?: number): Promise<void>;
@@ -375,12 +374,12 @@ export interface IPtyService {
 	getDefaultSystemShell(osOverride?: OperatingSystem): Promise<string>;
 	getEnvironment(): Promise<IProcessEnvironment>;
 	getWslPath(original: string, direction: 'unix-to-win' | 'win-to-unix'): Promise<string>;
-	getRevivedPtyNewId(workspaceId: string, id: number): Promise<number | undefined>;
+	getRevivedPtyProcessIdentity(workspaceId: string, id: number, expectedCreationId?: string): Promise<IPtyProcessIdentity | undefined>;
 	setTerminalLayoutInfo(args: ISetTerminalLayoutInfoArgs): Promise<void>;
 	getTerminalLayoutInfo(args: IGetTerminalLayoutInfoArgs): Promise<ITerminalsLayoutInfo | undefined>;
 	reduceConnectionGraceTime(): Promise<void>;
 	requestDetachInstance(workspaceId: string, instanceId: number): Promise<IProcessDetails | undefined>;
-	acceptDetachInstanceReply(requestId: number, persistentProcessId?: number): Promise<void>;
+	acceptDetachInstanceReply(requestId: number, persistentProcessId?: number, expectedCreationId?: string): Promise<void>;
 	freePortKillProcess(port: string): Promise<{ port: string; processId: string }>;
 	/**
 	 * Serializes and returns terminal state.
@@ -400,8 +399,7 @@ export interface IPtyService {
 
 	// #region Pty service contribution RPC calls
 
-	installAutoReply(match: string, reply: string, ownerId: string): Promise<void>;
-	uninstallAllAutoReplies(ownerId: string): Promise<void>;
+	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>, creationId?: string): Promise<void>;
 
 	// #endregion
 }
@@ -416,7 +414,7 @@ export interface IPtyServiceContribution {
 
 export interface IPtyHostController {
 	readonly onPtyHostExit: Event<number>;
-	readonly onPtyHostStart: Event<void>;
+	readonly onPtyHostStart: Event<{ isRestart: boolean }>;
 	readonly onPtyHostUnresponsive: Event<void>;
 	readonly onPtyHostResponsive: Event<void>;
 	readonly onPtyHostRequestResolveVariables: Event<IRequestResolveVariablesEvent>;
@@ -590,6 +588,7 @@ export interface IShellLaunchConfig {
 	 */
 	attachPersistentProcess?: {
 		id: number;
+		creationId?: string;
 		findRevivedId?: boolean;
 		pid: number;
 		title: string;
@@ -767,6 +766,8 @@ export interface IShellLaunchConfigDto {
  * are set internally to the terminal component, not from the outside.
  */
 export interface ITerminalProcessOptions {
+	/** Identifies the owning create or attach request so delayed messages cannot affect a different owner. */
+	creationId?: string;
 	shellIntegration: {
 		enabled: boolean;
 		suggestEnabled: boolean;
@@ -820,6 +821,9 @@ export interface ITerminalChildProcess {
 	 * Whether the process should be persisted across reloads.
 	 */
 	shouldPersist: boolean;
+
+	/** Identity of the owning host allocation or attachment request. */
+	readonly creationId?: string;
 
 	/**
 	 * Whether this attachment resolves to a revived process that still needs to start.
@@ -1203,12 +1207,12 @@ export interface ITerminalBackend extends ITerminalBackendPtyServiceContribution
 
 	readonly onDidRequestDetach: Event<{ requestId: number; workspaceId: string; instanceId: number }>;
 
-	attachToProcess(id: number): Promise<ITerminalChildProcess | undefined>;
+	attachToProcess(id: number, pid?: number, expectedCreationId?: string): Promise<ITerminalChildProcess | undefined>;
 	/**
-	 * Attaches to the process revived for a restored terminal, otherwise to its original process. The
-	 * local backend refuses an original process whose pid differs from `pid`, unless `pid` is 0 (unknown).
+	 * Attaches to the revived allocation, otherwise validates the original allocation identity and any
+	 * positive saved pid before attaching.
 	 */
-	attachToRevivedProcess(id: number, pid: number): Promise<ITerminalChildProcess | undefined>;
+	attachToRevivedProcess(id: number, pid: number, expectedCreationId?: string): Promise<ITerminalChildProcess | undefined>;
 	listProcesses(): Promise<IProcessDetails[]>;
 	getLatency(): Promise<IPtyHostLatencyMeasurement[]>;
 	getDefaultSystemShell(osOverride?: OperatingSystem): Promise<string>;
@@ -1224,7 +1228,7 @@ export interface ITerminalBackend extends ITerminalBackendPtyServiceContribution
 	getPerformanceMarks(): Promise<performance.PerformanceMark[]>;
 	reduceConnectionGraceTime(): Promise<void>;
 	requestDetachInstance(workspaceId: string, instanceId: number): Promise<IProcessDetails | undefined>;
-	acceptDetachInstanceReply(requestId: number, persistentProcessId?: number): Promise<void>;
+	acceptDetachInstanceReply(requestId: number, persistentProcessId?: number, expectedCreationId?: string): Promise<void>;
 	persistTerminalState(): Promise<void>;
 
 	createProcess(
@@ -1242,8 +1246,7 @@ export interface ITerminalBackend extends ITerminalBackendPtyServiceContribution
 }
 
 export interface ITerminalBackendPtyServiceContributions {
-	installAutoReply(match: string, reply: string, ownerId: string): Promise<void>;
-	uninstallAllAutoReplies(ownerId: string): Promise<void>;
+	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>, creationId?: string): Promise<void>;
 }
 
 export const TerminalExtensions = {

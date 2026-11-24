@@ -31,6 +31,7 @@ import { IHistoryService } from '../../../services/history/common/history.js';
 import { getWorkspaceForTerminal } from '../common/terminalEnvironment.js';
 import { IRemoteAgentService } from '../../../services/remote/common/remoteAgentService.js';
 import { IStatusbarService } from '../../../services/statusbar/browser/statusbar.js';
+import { generateUuid } from '../../../../base/common/uuid.js';
 
 export class RemoteTerminalBackendContribution implements IWorkbenchContribution {
 	static ID = 'remoteTerminalBackend';
@@ -50,7 +51,7 @@ export class RemoteTerminalBackendContribution implements IWorkbenchContribution
 	}
 }
 
-class RemoteTerminalBackend extends BaseTerminalBackend implements ITerminalBackend {
+export class RemoteTerminalBackend extends BaseTerminalBackend implements ITerminalBackend {
 	private readonly _ptys: Map<number, RemotePty> = new Map();
 
 	private readonly _whenConnected = new DeferredPromise<void>();
@@ -131,7 +132,7 @@ class RemoteTerminalBackend extends BaseTerminalBackend implements ITerminalBack
 		return this._remoteTerminalChannel.requestDetachInstance(workspaceId, instanceId);
 	}
 
-	async acceptDetachInstanceReply(requestId: number, persistentProcessId?: number): Promise<void> {
+	async acceptDetachInstanceReply(requestId: number, persistentProcessId?: number, expectedCreationId?: string): Promise<void> {
 		if (!this._remoteTerminalChannel) {
 			throw new Error(`Cannot accept detached instance when there is no remote!`);
 		} else if (!persistentProcessId) {
@@ -139,7 +140,7 @@ class RemoteTerminalBackend extends BaseTerminalBackend implements ITerminalBack
 			return;
 		}
 
-		return this._remoteTerminalChannel.acceptDetachInstanceReply(requestId, persistentProcessId);
+		return this._remoteTerminalChannel.acceptDetachInstanceReply(requestId, persistentProcessId, expectedCreationId);
 	}
 
 	async persistTerminalState(): Promise<void> {
@@ -197,30 +198,32 @@ class RemoteTerminalBackend extends BaseTerminalBackend implements ITerminalBack
 		};
 		const activeWorkspaceRootUri = getWorkspaceForTerminal(shellLaunchConfig.cwd, this._workspaceContextService, this._historyService)?.uri;
 
+		const creationId = generateUuid();
 		const result = await this._remoteTerminalChannel.createProcess(
 			shellLaunchConfigDto,
 			configuration,
 			activeWorkspaceRootUri,
-			options,
+			{ ...options, creationId },
 			shouldPersist,
 			cols,
 			rows,
 			unicodeVersion,
 			remoteEnv.os
 		);
-		const pty = this._instantiationService.createInstance(RemotePty, result.persistentTerminalId, shouldPersist, this._remoteTerminalChannel);
+		const pty = this._instantiationService.createInstance(RemotePty, result.persistentTerminalId, shouldPersist, this._remoteTerminalChannel, creationId);
 		this._ptys.set(result.persistentTerminalId, pty);
 		return pty;
 	}
 
-	async attachToProcess(id: number): Promise<ITerminalChildProcess | undefined> {
+	async attachToProcess(id: number, pid?: number, expectedCreationId?: string): Promise<ITerminalChildProcess | undefined> {
 		if (!this._remoteTerminalChannel) {
 			throw new Error(`Cannot create remote terminal when there is no remote!`);
 		}
 
 		try {
-			await this._remoteTerminalChannel.attachToProcess(id);
-			const pty = this._instantiationService.createInstance(RemotePty, id, true, this._remoteTerminalChannel);
+			const creationId = generateUuid();
+			await this._remoteTerminalChannel.attachToProcess(id, this._configurationService.getValue<Record<string, string | null>>('terminal.integrated.autoReplies') ?? {}, creationId, expectedCreationId, pid);
+			const pty = this._instantiationService.createInstance(RemotePty, id, true, this._remoteTerminalChannel, creationId);
 			this._ptys.set(id, pty);
 			return pty;
 		} catch (e) {
@@ -229,14 +232,17 @@ class RemoteTerminalBackend extends BaseTerminalBackend implements ITerminalBack
 		return undefined;
 	}
 
-	async attachToRevivedProcess(id: number): Promise<ITerminalChildProcess | undefined> {
+	async attachToRevivedProcess(id: number, pid: number, expectedCreationId?: string): Promise<ITerminalChildProcess | undefined> {
 		if (!this._remoteTerminalChannel) {
 			throw new Error(`Cannot create remote terminal when there is no remote!`);
 		}
 
 		try {
-			const newId = await this._remoteTerminalChannel.getRevivedPtyNewId(id) ?? id;
-			return await this.attachToProcess(newId);
+			await this.whenReady;
+			const revived = await this._remoteTerminalChannel.getRevivedPtyProcessIdentity(id, expectedCreationId);
+			return revived !== undefined
+				? await this.attachToProcess(revived.id, undefined, revived.creationId)
+				: await this.attachToProcess(id, pid > 0 ? pid : undefined, expectedCreationId);
 		} catch (e) {
 			this._logService.trace(`Couldn't attach to process ${e.message}`);
 		}
@@ -367,11 +373,7 @@ class RemoteTerminalBackend extends BaseTerminalBackend implements ITerminalBack
 		return this._remoteTerminalChannel.getPerformanceMarks();
 	}
 
-	installAutoReply(match: string, reply: string, ownerId: string): Promise<void> {
-		return this._remoteTerminalChannel.installAutoReply(match, reply, ownerId);
-	}
-
-	uninstallAllAutoReplies(ownerId: string): Promise<void> {
-		return this._remoteTerminalChannel.uninstallAllAutoReplies(ownerId);
+	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>, creationId?: string): Promise<void> {
+		return this._remoteTerminalChannel.setAutoReplies(id, replies, creationId);
 	}
 }
