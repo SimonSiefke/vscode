@@ -57,6 +57,22 @@ suite('ToolBar', () => {
 		container.remove();
 	});
 
+	for (const replacement of ['empty', 'primary', 'dispose'] as const) {
+		test(`releases secondary menu actions on ${replacement}`, () => {
+			const toolbar = store.add(new ToolBar(container, contextMenuProvider));
+			const secondary = store.add(new Action('secondary', 'Secondary'));
+			toolbar.setActions([], [secondary]);
+			const overflow = toolbar.getItemAction(0) as ToggleMenuAction;
+			assert.deepStrictEqual(overflow.menuActions, [secondary]);
+			if (replacement === 'dispose') {
+				toolbar.dispose();
+			} else {
+				toolbar.setActions(replacement === 'primary' ? [store.add(new Action('primary', 'Primary'))] : []);
+			}
+			assert.deepStrictEqual(overflow.menuActions, []);
+		});
+	}
+
 	test('only updates current dropdown contexts after repeated responsive overflow', () => {
 		let availableWidth = 400;
 		const actions = [

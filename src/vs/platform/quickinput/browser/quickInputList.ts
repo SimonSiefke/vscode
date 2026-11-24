@@ -80,7 +80,7 @@ interface IQuickInputItemTemplateData {
 	detail: IconLabel;
 	separator: HTMLDivElement;
 	toolBar: ToolBar;
-	element: IQuickPickElement;
+	element: IQuickPickElement | undefined;
 	toDisposeElement: DisposableStore;
 	toDisposeTemplate: DisposableStore;
 }
@@ -357,10 +357,10 @@ abstract class BaseQuickInputListRenderer<T extends IQuickPickElement> extends D
 		data.checkbox = data.toDisposeTemplate.add(new MutableDisposable());
 		data.toDisposeTemplate.add(dom.addStandardDisposableListener(label, dom.EventType.CLICK, e => {
 			// `label` elements with role=checkboxes don't automatically toggle them like normal <checkbox> elements
-			if (data.checkbox.value && !e.defaultPrevented && data.checkbox.value.enabled) {
+			if (data.checkbox.value && !e.defaultPrevented && data.checkbox.value.enabled && data.element instanceof QuickPickItemElement) {
 				const checked = !data.checkbox.value.checked;
 				data.checkbox.value.checked = checked;
-				(data.element as QuickPickItemElement).checked = checked;
+				data.element.checked = checked;
 			}
 		}));
 
@@ -410,6 +410,7 @@ abstract class BaseQuickInputListRenderer<T extends IQuickPickElement> extends D
 		if (dom.isAncestorOfActiveElement(data.entry)) {
 			this._onDidDisposeFocusedElement.fire();
 		}
+		data.element = undefined;
 		data.toDisposeElement.clear();
 		data.toolBar.setActions([]);
 	}
