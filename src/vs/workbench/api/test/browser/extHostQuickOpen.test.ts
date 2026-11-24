@@ -19,7 +19,7 @@ import { SingleProxyRPCProtocol } from '../common/testRPCProtocol.js';
 
 suite('Extension host quick input callback lifetime', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	function createService() {
 		const picks: DeferredPromise<number | number[] | undefined>[] = [];
@@ -48,7 +48,7 @@ suite('Extension host quick input callback lifetime', () => {
 				return Promise.resolve();
 			}
 		};
-		const service = createExtHostQuickOpen(SingleProxyRPCProtocol(proxy), new class extends mock<IExtHostWorkspaceProvider>() { }, new class extends mock<ExtHostCommands>() { });
+		const service = store.add(createExtHostQuickOpen(SingleProxyRPCProtocol(proxy), new class extends mock<IExtHostWorkspaceProvider>() { }, new class extends mock<ExtHostCommands>() { }));
 		const observe = () => ({
 			selection: typeof Reflect.get(service, '_onDidSelectItem') === 'function',
 			validation: typeof Reflect.get(service, '_validateInput') === 'function'
