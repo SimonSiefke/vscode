@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { basename, isEqual } from '../../../../base/common/resources.js';
+import { IDecorationsService } from '../../../services/decorations/common/decorations.js';
 import { IMarkdownString } from '../../../../base/common/htmlContent.js';
 import { IReference, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -74,6 +75,7 @@ export class CustomEditorDiffInput extends LazilyResolvedWebviewEditorInput impl
 		private readonly init: CustomEditorDiffInputInitInfo,
 		webview: IOverlayWebview,
 		@IThemeService themeService: IThemeService,
+		@IDecorationsService decorationsService: IDecorationsService,
 		@IWebviewWorkbenchService webviewWorkbenchService: IWebviewWorkbenchService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@ICustomEditorService private readonly customEditorService: ICustomEditorService,
@@ -81,7 +83,7 @@ export class CustomEditorDiffInput extends LazilyResolvedWebviewEditorInput impl
 		@IFileDialogService private readonly fileDialogService: IFileDialogService,
 		@IUndoRedoService private readonly undoRedoService: IUndoRedoService,
 	) {
-		super({ providedId: init.viewType, viewType: init.viewType, name: init.label ?? '', iconPath: init.iconPath }, webview, themeService, webviewWorkbenchService);
+		super({ providedId: init.viewType, viewType: init.viewType, name: init.label ?? '', iconPath: init.iconPath }, webview, themeService, webviewWorkbenchService, decorationsService);
 		this._register(this.filesConfigurationService.onDidChangeReadonly(() => this._onDidChangeCapabilities.fire()));
 	}
 
@@ -307,6 +309,7 @@ export class CustomEditorSideBySideDiffInput extends LazilyResolvedWebviewEditor
 		private readonly init: CustomEditorSideBySideDiffInputInitInfo,
 		webview: IOverlayWebview,
 		@IThemeService themeService: IThemeService,
+		@IDecorationsService decorationsService: IDecorationsService,
 		@IWebviewWorkbenchService webviewWorkbenchService: IWebviewWorkbenchService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@ICustomEditorService private readonly customEditorService: ICustomEditorService,
@@ -314,7 +317,7 @@ export class CustomEditorSideBySideDiffInput extends LazilyResolvedWebviewEditor
 		@IFileDialogService private readonly fileDialogService: IFileDialogService,
 		@IUndoRedoService private readonly undoRedoService: IUndoRedoService,
 	) {
-		super({ providedId: init.viewType, viewType: init.viewType, name: basename(getCustomEditorSideBySideDiffInputResource(init)), iconPath: init.iconPath }, webview, themeService, webviewWorkbenchService);
+		super({ providedId: init.viewType, viewType: init.viewType, name: basename(getCustomEditorSideBySideDiffInputResource(init)), iconPath: init.iconPath }, webview, themeService, webviewWorkbenchService, decorationsService);
 		this._register(this.filesConfigurationService.onDidChangeReadonly(() => this._onDidChangeCapabilities.fire()));
 	}
 

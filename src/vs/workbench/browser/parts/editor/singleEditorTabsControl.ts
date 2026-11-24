@@ -15,10 +15,11 @@ import { CLOSE_EDITOR_COMMAND_ID, UNLOCK_GROUP_COMMAND_ID } from './editorComman
 import { Color } from '../../../../base/common/color.js';
 import { assertReturnsDefined, assertReturnsAllDefined } from '../../../../base/common/types.js';
 import { equals } from '../../../../base/common/objects.js';
-import { toDisposable } from '../../../../base/common/lifecycle.js';
+import { IDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { defaultBreadcrumbsWidgetStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IEditorTitleControlDimensions } from './editorTitleControl.js';
 import { BreadcrumbsControlFactory } from './breadcrumbsControl.js';
+import { Event as EventUtils } from '../../../../base/common/event.js';
 
 interface IRenderedEditorLabel {
 	readonly editor?: EditorInput;
@@ -30,6 +31,7 @@ export class SingleEditorTabsControl extends EditorTabsControl {
 	private titleContainer: HTMLElement | undefined;
 	private editorLabel: IResourceLabel | undefined;
 	private activeLabel: IRenderedEditorLabel = Object.create(null);
+	private readonly editorLabelDisposables = this._register(new MutableDisposable<IDisposable>());
 
 	private breadcrumbsControlFactory: BreadcrumbsControlFactory | undefined;
 	private get breadcrumbsControl() { return this.breadcrumbsControlFactory?.control; }
@@ -276,7 +278,9 @@ export class SingleEditorTabsControl extends EditorTabsControl {
 	}
 
 	private redraw(): void {
-		const editor = this.tabsModel.activeEditor ?? undefined;
+		this.editorLabelDisposables.clear();
+		const activeEditor = this.tabsModel.activeEditor;
+		const editor = activeEditor?.isDisposed() ? undefined : activeEditor ?? undefined;
 		const options = this.groupsView.partOptions;
 
 		const isEditorPinned = editor ? this.tabsModel.isPinned(editor) : false;
@@ -304,6 +308,7 @@ export class SingleEditorTabsControl extends EditorTabsControl {
 
 		// Otherwise render it
 		else {
+			this.editorLabelDisposables.value = EventUtils.once(editor.onWillDispose)(() => editorLabel.clear());
 
 			// Dirty state
 			this.updateEditorDirty(editor);

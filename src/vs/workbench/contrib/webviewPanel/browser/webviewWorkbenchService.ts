@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancelablePromise, createCancelablePromise, DeferredPromise } from '../../../../base/common/async.js';
+import { IDecorationsService } from '../../../services/decorations/common/decorations.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { isCancellationError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
@@ -120,8 +121,9 @@ export class LazilyResolvedWebviewEditorInput extends WebviewInput {
 		webview: IOverlayWebview,
 		@IThemeService themeService: IThemeService,
 		@IWebviewWorkbenchService private readonly _webviewWorkbenchService: IWebviewWorkbenchService,
+		@IDecorationsService decorationsService: IDecorationsService,
 	) {
-		super(init, webview, themeService);
+		super(init, webview, themeService, decorationsService);
 	}
 
 	override dispose() {

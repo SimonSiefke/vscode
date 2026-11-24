@@ -7,6 +7,7 @@ import { $, addDisposableListener, append, EventType, getWindow, prepend } from 
 import { findOverlayAnchorOf } from '../../../../base/browser/overlayLayoutElement.js';
 import { CodeWindow, isAuxiliaryWindow } from '../../../../base/browser/window.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
+import { IDecorationsService } from '../../../services/decorations/common/decorations.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { DisposableStore, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
@@ -121,6 +122,7 @@ export class MediaPlayerEditorInput extends WebviewInput implements ICustomEdito
 		private readonly _resource: URI,
 		webview: IOverlayWebview,
 		@IThemeService themeService: IThemeService,
+		@IDecorationsService decorationsService: IDecorationsService,
 		@ILabelService private readonly _labelService: ILabelService,
 		@IFileService private readonly _fileService: IFileService,
 		@IConfigurationService private readonly _configurationService: IConfigurationService,
@@ -130,7 +132,7 @@ export class MediaPlayerEditorInput extends WebviewInput implements ICustomEdito
 		@IOpenerService private readonly _openerService: IOpenerService,
 		@IEditorGroupsService private readonly _editorGroupsService: IEditorGroupsService,
 	) {
-		super({ viewType: getMediaPlayerEditorId(kind), providedId: undefined, name: basename(_resource), iconPath: undefined }, webview, themeService);
+		super({ viewType: getMediaPlayerEditorId(kind), providedId: undefined, name: basename(_resource), iconPath: undefined }, webview, themeService, decorationsService);
 
 		this._register(webview.onMessage(e => {
 			if (e.message?.type === 'reopen-as-text') {
