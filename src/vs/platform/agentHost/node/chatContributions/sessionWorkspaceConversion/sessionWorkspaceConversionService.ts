@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { raceTimeout } from '../../../../../base/common/async.js';
-import { createAgentChatContext } from '../../agentChatContext.js';
+import { createAgentChatContext, inheritedChatFolders, isChatWorkspaceless } from '../../agentChatContext.js';
 import { withMessageRequestHiddenFromTranscript, withMessageSystemInitiatedLabel } from '../../../common/meta/agentMessageMeta.js';
 import { toErrorMessage } from '../../../../../base/common/errorMessage.js';
 import { Emitter, type Event } from '../../../../../base/common/event.js';
@@ -24,7 +24,7 @@ import { ISessionDatabase, ISessionDataService } from '../../../common/sessionDa
 import { SessionConfigKey } from '../../../common/sessionConfigKeys.js';
 import { AgentSystemNotificationKind, AgentSystemNotificationWorkspaceKind, serializeAgentWorkspaceTransition, type IAgentSystemNotificationMeta, type IAgentWorkspaceTransitionRecord, toAgentSystemNotificationMeta } from '../../../common/meta/agentSystemNotificationMeta.js';
 import { ActionType } from '../../../common/state/sessionActions.js';
-import { AH_META_HAS_WORKSPACE_TRANSITIONS_DB_KEY, AH_META_WORKSPACE_CONVERSION_QUARANTINED_DB_KEY, AH_META_WORKSPACELESS_DB_KEY, ChatInteractivity, isAhpChatChannel, ChatOriginKind, isSubagentSession, MessageKind, parseSubagentSessionUri, readSessionExternal, readSessionWorkspaceless, ResponsePartKind, SessionLifecycle, SessionStatus, withSessionHasWorkspaceTransitions, withSessionWorkspaceless, type ISessionWithDefaultChat, type SessionConfigState, type URI as ProtocolURI } from '../../../common/state/sessionState.js';
+import { AH_META_HAS_WORKSPACE_TRANSITIONS_DB_KEY, AH_META_WORKSPACE_CONVERSION_QUARANTINED_DB_KEY, AH_META_WORKSPACELESS_DB_KEY, ChatInteractivity, isAhpChatChannel, ChatOriginKind, isSubagentSession, MessageKind, parseSubagentSessionUri, readSessionExternal, readSessionWorkspaceless, ResponsePartKind, SessionLifecycle, SessionStatus, withSessionHasWorkspaceTransitions, withSessionIsolatedChatWorktrees, withSessionWorkspaceless, type ISessionWithDefaultChat, type SessionConfigState, type URI as ProtocolURI } from '../../../common/state/sessionState.js';
 import { AgentHostStateManager, ChatRemovalReason, IAgentHostStateManager } from '../../agentHostStateManager.js';
 import { IAgentHostClientConnectionService } from '../../agentHostClientConnectionService.js';
 import { IAgentConfigurationService } from '../../agentConfigurationService.js';
@@ -46,6 +46,13 @@ export interface IChatIsolationHost {
 	readonly prepareChatWorkingDirectory: IAgentServiceSessionServerToolAccessor['prepareChatWorkingDirectory'];
 	setChatWorkingDirectory(session: URI, chat: URI, directory: URI, replaceSessionWorkspace: boolean, expectedSessionDirectories?: readonly string[]): Promise<void>;
 	runWithChatCatalogLock<T>(session: URI, operation: () => Promise<T>): Promise<T>;
+}
+
+/** Where an isolated chat works, its session, and, once resolved with git, the repository the worktree is of. */
+interface IIsolationDirectory {
+	session: string;
+	readonly directory: string;
+	repository: URI | undefined;
 }
 
 interface IPendingSessionWorkspaceConversion {
@@ -82,6 +89,11 @@ interface IResolvedWorkspace {
 
 /** Upper bound for restoring sibling chats before a multi-chat workspace change; the chat cannot be cancelled while it waits. */
 const SIBLING_RESTORE_TIMEOUT_MS = 30_000;
+
+/** Whether a user chat records a primary folder other than the session's own. */
+function hasChatWithOwnFolder(chats: readonly { readonly origin?: { readonly kind: ChatOriginKind }; readonly workingDirectories?: readonly string[] }[], sessionFolder: string | undefined): boolean {
+	return chats.some(chat => chat.origin?.kind !== ChatOriginKind.Tool && chat.workingDirectories?.[0] !== undefined && chat.workingDirectories[0] !== sessionFolder);
+}
 
 /** Whether the session has exactly one chat the user works in; transient subagent chats never count as siblings. */
 export function hasSingleUserChat(chats: readonly { readonly origin?: { readonly kind: ChatOriginKind } }[]): boolean {
@@ -128,6 +140,11 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 	private readonly _quarantinedChats = new Set<string>();
 	private readonly _restoringChats = new Map<string, symbol>();
 	private readonly _isolatedChats = new Set<string>();
+	/**
+	 * Where each isolated chat works, the worktree the host created for it, its session, and, once resolved with git, the
+	 * repository the worktree is of: listed in its session's summary only while that is its session's project.
+	 */
+	private readonly _isolationDirectories = new Map<string, IIsolationDirectory>();
 	/** Owning session of every chat tracked above, recorded when tracking starts. */
 	private readonly _trackedChatOwners = new Map<string, string>();
 	/** Each session's default chat, captured at registration so session removal can still clear its state. */
@@ -161,10 +178,29 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 					this._serverToolHost.advertise(session);
 				}
 			}
+			// The worktrees of its isolated chats that a session lists follow its folders, also as those become known after a restore
+			if (envelope.action.type === ActionType.SessionReady && !isAhpChatChannel(envelope.channel) && this._hasIsolatedChats(envelope.channel)) {
+				this._publishIsolatedChatWorktrees(envelope.channel);
+			}
+		}));
+		this._register(this._stateManager.onDidChangeSessionWorkingDirectories(({ session }) => {
+			if (this._hasIsolatedChats(session)) {
+				this._publishIsolatedChatWorktrees(session);
+			}
+		}));
+		// Its project decides which worktrees a session lists, so they follow it as it becomes known or changes
+		this._register(this._stateManager.onDidChangeSessionSummary(({ session, changes }) => {
+			if (changes.project !== undefined && this._hasIsolatedChats(session)) {
+				this._publishIsolatedChatWorktrees(session);
+			}
 		}));
 		this._register(this._chatOwnership.onDidRegisterChat(({ session, chat }) => {
 			if (this._chatOwnership.isDefaultChat(session, chat)) {
 				this._defaultChats.set(session, chat);
+			}
+			// An isolated chat restored before it was registered, such as its session's default chat: its session lists it now
+			if (this._isolationDirectories.has(chat)) {
+				this._publishIsolatedChatWorktrees(session);
 			}
 		}));
 		// Isolation state follows a moved chat to its new owner instead of being cleared with the previous one.
@@ -174,6 +210,13 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 			}
 			if (this._trackedChatOwners.has(chat)) {
 				this._trackedChatOwners.set(chat, current);
+			}
+			// The worktree of an isolated chat moves with it: the session it left no longer lists it, the session it joined does
+			const isolation = this._isolationDirectories.get(chat);
+			if (isolation) {
+				isolation.session = current;
+				this._publishIsolatedChatWorktrees(previous);
+				this._publishIsolatedChatWorktrees(current);
 			}
 		}));
 		this._register(this._stateManager.onDidRemoveSession(session => {
@@ -209,8 +252,71 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 		const changed = [this._pending.delete(chat), this._quarantined.delete(chat), this._quarantinedChats.delete(chat)].some(Boolean);
 		this._restoringChats.delete(chat);
 		this._isolatedChats.delete(chat);
+		this._setIsolationDirectory(chat, undefined);
 		if (changed) {
 			this._onDidChangePending.fire(chat);
+		}
+	}
+
+	/**
+	 * Records where the isolated `chat` of `session` works, or that it is no isolated chat (`undefined`), and lists the
+	 * worktrees of its session's isolated chats in the session's summary. The repository the worktree is of is resolved with
+	 * git: the worktree is not listed before that is known, nor where it is not the session's project.
+	 */
+	private _setIsolationDirectory(chat: ProtocolURI, isolation: { readonly session: string; readonly directory: string } | undefined): void {
+		const previous = this._isolationDirectories.get(chat);
+		const entry: IIsolationDirectory | undefined = isolation && { ...isolation, repository: undefined };
+		if (entry) {
+			this._isolationDirectories.set(chat, entry);
+		} else {
+			this._isolationDirectories.delete(chat);
+		}
+		for (const session of new Set([previous && this._isolationOwner(chat, previous.session), entry && this._isolationOwner(chat, entry.session)])) {
+			if (session !== undefined) {
+				this._publishIsolatedChatWorktrees(session);
+			}
+		}
+		if (entry) {
+			void this._worktreeIsolation.resolveExternalWorktreeProject(URI.parse(entry.directory)).then(resolved => {
+				if (this._isolationDirectories.get(chat) === entry && resolved) {
+					entry.repository = resolved.project.uri;
+					this._publishIsolatedChatWorktrees(this._isolationOwner(chat, entry.session));
+				}
+			}, error => this._logService.warn(`[SessionWorkspaceConversionService] Could not resolve the repository of ${entry.directory}: ${toErrorMessage(error)}`));
+		}
+	}
+
+	/** The session an isolated chat is of now, as its owner records it once registered; else as its isolation was recorded with. */
+	private _isolationOwner(chat: ProtocolURI, recorded: string): string {
+		return this._chatOwnership.getChatOwner(chat) ?? recorded;
+	}
+
+	private _hasIsolatedChats(session: string): boolean {
+		return [...this._isolationDirectories].some(([chat, entry]) => this._isolationOwner(chat, entry.session) === session);
+	}
+
+	/**
+	 * Lists in the summary of `session` the worktrees of its isolated chats that it still works in, other than its first
+	 * folder: as they change, and as its state and folders become known, such as after its chats' isolation was restored.
+	 */
+	private _publishIsolatedChatWorktrees(session: string): void {
+		const state = this._stateManager.getSessionState(session);
+		if (!state) {
+			return;
+		}
+		const sessionDirectories = this._stateManager.getSessionSummary(session)?.workingDirectories ?? [];
+		const projectUri = state.project?.uri;
+		const project = projectUri !== undefined ? URI.parse(projectUri.toString()) : undefined;
+		// Only a worktree of the session's own project, such as not one that a chat of it isolated in another repository
+		const isolated = [...this._isolationDirectories]
+			.filter(([chat, entry]) => this._isolationOwner(chat, entry.session) === session
+				&& !!project && !!entry.repository && extUriBiasedIgnorePathCase.isEqual(entry.repository, project))
+			.map(([, entry]) => URI.parse(entry.directory));
+		// As the session names them, so that the summary lists each in the form its folders have
+		const worktrees = sessionDirectories.slice(1).filter(directory => isolated.some(candidate => extUriBiasedIgnorePathCase.isEqual(candidate, URI.parse(directory))));
+		const meta = withSessionIsolatedChatWorktrees(state._meta, [...new Set(worktrees)]);
+		if (!equals(meta, state._meta)) {
+			this._stateManager.setSessionMeta(session, meta);
 		}
 	}
 
@@ -232,7 +338,7 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 			?? (owner !== undefined ? this._stateManager.getSessionSummary(owner)?.workingDirectories : undefined);
 		const movesElsewhere = !!workspaceFolder && !!directories?.length && !isEqual(workspaceFolder, URI.parse(directories[0]));
 		return this._canChangeChatWorkspace(chat) && !!state && this._worktreeIsolation.supported
-			&& !readSessionWorkspaceless(state._meta)
+			&& (movesElsewhere || !this._isChatWorkspaceless(owner!, chat))
 			&& (!!workspaceFolder || directories?.length === 1)
 			&& !(!movesElsewhere && state.config?.values[SessionConfigKey.Isolation] === 'worktree'
 				&& directories?.[0] === this._stateManager.getSessionSummary(owner!)?.workingDirectories?.[0])
@@ -244,8 +350,12 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 		const state = owner !== undefined ? this._stateManager.getSessionState(owner) : undefined;
 		const summary = state?.chats.find(candidate => candidate.resource === chat.toString());
 		const sessionDirectories = owner !== undefined ? this._stateManager.getSessionSummary(owner)?.workingDirectories : undefined;
-		const directories = summary?.workingDirectories ?? sessionDirectories;
-		const provider = owner !== undefined ? this._providerService.getProviderForSession(URI.parse(owner)) : undefined;
+		// A workspace-less session's folders also list its nested chats' own folders; its default chat works in the first.
+		const directories = summary?.workingDirectories
+			?? (owner !== undefined && sessionDirectories && sessionDirectories.length > 1 && this._chatOwnership.isDefaultChat(owner, chat.toString()) && this._isChatWorkspaceless(owner, chat)
+				? sessionDirectories.slice(0, 1)
+				: sessionDirectories);
+		const provider = owner !== undefined ? this._providerService.getProviderForChat(URI.parse(owner), chat) : undefined;
 		const supportsMultipleWorkingDirectories = !!provider?.getDescriptor().capabilities?.multipleWorkingDirectories;
 		const inheritsSessionWorkspace = summary?.workingDirectories === undefined
 			&& owner !== undefined
@@ -261,7 +371,6 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 			&& !!directories?.length && directories.every(directory => URI.parse(directory).scheme === Schemas.file)
 			&& (directories.length === 1 || (inheritsSessionWorkspace && supportsMultipleWorkingDirectories))
 			&& (hasSingleUserChat(state.chats) || supportsMultipleWorkingDirectories)
-			&& (!readSessionWorkspaceless(state._meta) || hasSingleUserChat(state.chats))
 			&& !this.isPending(chat.toString());
 	}
 
@@ -289,6 +398,17 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 		this._onDidChangePending.fire(chat.toString());
 	}
 
+	/** The folders a chat works in: its own, else those it inherits from its session, as pinning would record them. */
+	private _chatFolders(chat: ProtocolURI, state: ISessionWithDefaultChat): readonly string[] | undefined {
+		return state.chats.find(candidate => candidate.resource === chat)?.workingDirectories
+			?? (state.workingDirectories && inheritedChatFolders(this._stateManager, state.workingDirectories, readSessionWorkspaceless(state._meta)));
+	}
+
+	/** The chat's own workspace-less decision, from its recorded folders. */
+	private _isChatWorkspaceless(owner: ProtocolURI, chat: URI): boolean {
+		return isChatWorkspaceless(this._stateManager, chat.toString(), this._sessionStateStore.peek(URI.parse(owner)), readSessionWorkspaceless(this._stateManager.getSessionState(owner)?._meta));
+	}
+
 	/** The host-built context of a chat, with the storage the host recorded for it. */
 	private _chatContext(session: URI, chat: URI): IAgentChatContext {
 		return createAgentChatContext(this._stateManager, this._authenticationService, session, chat, this._chatOwnership.resolveChatStorageResource(session.toString(), chat.toString()), this._sessionStateStore.peek(session));
@@ -313,6 +433,7 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 					} else {
 						this._isolatedChats.delete(chat);
 					}
+					this._setIsolationDirectory(chat, directory ? { session, directory } : undefined);
 					if (quarantined !== 'true') {
 						this._quarantinedChats.delete(chat);
 						this._onDidChangePending.fire(chat);
@@ -332,7 +453,8 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 		initiatingClientId = this._resolveInitiatingClientId(chat, initiatingClientId);
 		const session = this._chatOwnership.getChatOwner(chat.toString());
 		const state = session !== undefined ? this._stateManager.getSessionState(session) : undefined;
-		const chatOnly = !!state && !readSessionWorkspaceless(state._meta);
+		// A workspace-less session converts as a whole only when its default chat, working in the session's folder rather than folders of its own, asks while all its chats share that folder; any other chat, or any chat next to one with its own folder, changes alone.
+		const chatOnly = !!state && !(readSessionWorkspaceless(state._meta) && this._chatOwnership.isDefaultChat(session!, chat.toString()) && state.chats.find(candidate => candidate.resource === chat.toString())?.workingDirectories === undefined && this._isChatWorkspaceless(session!, chat) && !hasChatWithOwnFolder(state.chats, state.workingDirectories?.[0]));
 		if (chatOnly) {
 			if (!this._canChangeChatWorkspace(chat)) {
 				throw new Error(localize('agentHost.chatWorkspaceUnavailable', "This chat's workspace cannot be changed."));
@@ -356,7 +478,7 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 		if (this.isPending(key)) {
 			throw new Error('A workspace conversion is already pending for this session.');
 		}
-		const directories = state?.chats.find(candidate => candidate.resource === key)?.workingDirectories ?? state?.workingDirectories;
+		const directories = state && this._chatFolders(key, state);
 		if (chatOnly && !isolation && directories?.length === 1 && extUriBiasedIgnorePathCase.isEqual(workspaceFolder, URI.parse(directories[0]))) {
 			return false;
 		}
@@ -438,7 +560,7 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 			continuation = this._beginContinuation(pending);
 			pending.continuationTurnId = continuation.turnId;
 			if (pending.showTransition) {
-				pending.transition = this._createWorkspaceTransition(pending);
+				pending.transition = await this._createWorkspaceTransition(pending);
 			}
 			pending.resolvedWorkingDirectory = pending.chatOnly
 				? pending.replaceSessionWorkspace
@@ -480,20 +602,20 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 		const { chat, workspaceFolder, initiatingClientId } = pending;
 		const session = URI.parse(pending.owner);
 		const storage = URI.parse(this._chatOwnership.resolveChatStorageResource(pending.owner, chat.toString()));
-		const provider = this._providerService.getProviderForSession(session)!;
+		const provider = this._providerService.getProviderForChat(session, chat)!;
 		let workspaceFinalized = false;
 		const assertWorkspace = (expected = pending.previousWorkingDirectories ?? [pending.previousWorkingDirectory ?? workspaceFolder]) => {
 			const state = this._stateManager.getSessionState(session.toString());
 			const summary = state?.chats.find(candidate => candidate.resource === chat.toString());
-			const directories = summary?.workingDirectories ?? this._stateManager.getSessionSummary(session.toString())?.workingDirectories;
+			const directories = state && this._chatFolders(chat.toString(), state);
 			if (!summary || state?.lifecycle !== SessionLifecycle.Ready
 				|| (state.status & SessionStatus.IsArchived) === SessionStatus.IsArchived
 				|| ((summary.status ?? 0) & SessionStatus.IsArchived) !== 0
 				|| summary.origin?.kind === ChatOriginKind.Tool
 				|| (summary.interactivity !== undefined && summary.interactivity !== ChatInteractivity.Full)
-				|| (pending.isolation && readSessionWorkspaceless(state._meta)) || readSessionExternal(state._meta)
+				|| readSessionExternal(state._meta)
 				|| (pending.isolation && !this._worktreeIsolation.supported) || !provider?.agentHostCapabilities.workspaceConversion || !provider.setChatWorkingDirectory
-				|| this._providerService.getProviderForSession(session) !== provider
+				|| this._providerService.getProviderForChat(session, chat) !== provider
 				|| this._pending.get(chat.toString()) !== pending || this._quarantinedChats.has(chat.toString())
 				|| (!workspaceFinalized && pending.isolation && state.config?.values[SessionConfigKey.Isolation] === 'worktree'
 					&& isEqual(workspaceFolder, pending.previousWorkingDirectory)
@@ -602,7 +724,7 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 					[CHAT_ISOLATION_QUARANTINED_KEY]: 'false',
 					...(configValues ? { configValues: JSON.stringify(configValues) } : {}),
 					...workspaceMetadata,
-					...(!pending.isolation && pending.replaceSessionWorkspace ? { [AH_META_WORKSPACELESS_DB_KEY]: 'false' } : {}),
+					...(pending.replaceSessionWorkspace ? { [AH_META_WORKSPACELESS_DB_KEY]: 'false' } : {}),
 				};
 				await this._persistConversionMetadata(session, database.object, metadata, pending.transition && { turnId: continuation.turnId, transition: pending.transition });
 				if (pending.transition) {
@@ -619,9 +741,7 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 					this._stateManager.setSessionProject(session.toString(), { uri: workspace.project.uri.toString(), displayName: workspace.project.displayName });
 				}
 				this._updateIsolationConfig(session, this._stateManager.getSessionState(session.toString())?.config, configValues!, workspace.isolationConfig, pending.isolation);
-				if (!pending.isolation) {
-					this._stateManager.setSessionMeta(session.toString(), withSessionWorkspaceless(this._stateManager.getSessionState(session.toString())?._meta, false));
-				}
+				this._stateManager.setSessionMeta(session.toString(), withSessionWorkspaceless(this._stateManager.getSessionState(session.toString())?._meta, false));
 			}
 			if (pending.isolation) {
 				this._trackChat(chat.toString());
@@ -629,6 +749,7 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 			} else {
 				this._isolatedChats.delete(chat.toString());
 			}
+			this._setIsolationDirectory(chat.toString(), pending.isolation ? { session: session.toString(), directory: prepared.directory.toString() } : undefined);
 			if (this._chatOwnership.isDefaultChat(session.toString(), chat.toString())) {
 				this._stateManager.setSessionMeta(session.toString(), withSessionHasWorkspaceTransitions(this._stateManager.getSessionState(session.toString())?._meta, true));
 			}
@@ -675,7 +796,7 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 	private async _convert(pending: IPendingSessionWorkspaceConversion, continuation: IDeferredAgentHostTurn): Promise<URI> {
 		const { chat, workspaceFolder, isolation, initiatingClientId, prompt, transition } = pending;
 		const { session, state, previousWorkingDirectory } = this._validateConversion(chat, workspaceFolder);
-		const provider = this._providerService.getProviderForSession(session);
+		const provider = this._providerService.getProviderForChat(session, chat);
 		if (!provider?.agentHostCapabilities.workspaceConversion) {
 			throw new Error(`Provider does not support changing the working directory: ${AgentSession.provider(session) ?? '(unknown)'}`);
 		}
@@ -1073,15 +1194,29 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 		return continuation;
 	}
 
-	private _createWorkspaceTransition(pending: IPendingSessionWorkspaceConversion): IAgentWorkspaceTransitionRecord {
+	private async _createWorkspaceTransition(pending: IPendingSessionWorkspaceConversion): Promise<IAgentWorkspaceTransitionRecord> {
 		const workspaceName = basename(pending.workspaceFolder) || pending.workspaceFolder.path;
+		const isWorktree = pending.isolation || await this._isExistingWorktree(pending.workspaceFolder);
 		return {
 			content: pending.isolation
 				? localize('agentHost.chatIsolationTransitionLabel', "Workspace changed to a new worktree of {0}", workspaceName)
 				: localize('agentHost.workspaceTransitionLabel', "Workspace changed to {0}", workspaceName),
-			workspaceKind: pending.isolation ? AgentSystemNotificationWorkspaceKind.Worktree : AgentSystemNotificationWorkspaceKind.Folder,
+			workspaceKind: isWorktree ? AgentSystemNotificationWorkspaceKind.Worktree : AgentSystemNotificationWorkspaceKind.Folder,
 			workspaceName,
 		};
+	}
+
+	/** Whether the folder is an existing linked Git worktree, such as one that an agent created earlier. */
+	private async _isExistingWorktree(folder: URI): Promise<boolean> {
+		if (!this._worktreeIsolation.supported) {
+			return false;
+		}
+		try {
+			return !!await this._worktreeIsolation.resolveExternalWorktreeProject(folder);
+		} catch (error) {
+			this._logService.warn(`[SessionWorkspaceConversionService] Failed to check whether ${folder.toString()} is a worktree: ${toErrorMessage(error)}`);
+			return false;
+		}
 	}
 
 	private async _continueConversion(continuation: IDeferredAgentHostTurn | undefined, pending: IPendingSessionWorkspaceConversion, converted: boolean, error?: unknown): Promise<void> {
@@ -1194,6 +1329,7 @@ export class SessionWorkspaceConversionService extends Disposable implements ISe
 		this._quarantinedChats.clear();
 		this._restoringChats.clear();
 		this._isolatedChats.clear();
+		this._isolationDirectories.clear();
 		this._trackedChatOwners.clear();
 		super.dispose();
 	}
