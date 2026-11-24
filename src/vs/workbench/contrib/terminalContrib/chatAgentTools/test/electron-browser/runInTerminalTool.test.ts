@@ -2756,7 +2756,7 @@ suite('RunInTerminalTool', () => {
 			const termId = 'disposed-execution-registration';
 			const tool = runInTerminalTool as unknown as {
 				_executionRegistrations: { size: number };
-				// eslint-disable-next-line @typescript-eslint/naming-convention
+				// eslint-disable-next-line ts-eslint-js/naming-convention
 				_setActiveExecution(termId: string, execution: TestExecution): void;
 			};
 			const activeExecutions = (runInTerminalTool.constructor as unknown as {
