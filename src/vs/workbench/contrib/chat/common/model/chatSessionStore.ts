@@ -497,13 +497,16 @@ export class ChatSessionStore extends Disposable {
 		});
 	}
 
-	async clearAllSessions(): Promise<void> {
-		await this.storeQueue.queue(async () => {
+	async clearAllSessions(): Promise<string[]> {
+		return this.storeQueue.queue(async () => {
 			const index = this.internalGetIndex();
 			const entries = Object.keys(index.entries);
+			// External entries are local mirrors, not deletions of provider-owned sessions.
+			const localSessionIds = entries.filter(entry => !index.entries[entry].isExternal);
 			this.logService.info(`ChatSessionStore: Clearing ${entries.length} chat sessions`);
 			await Promise.all(entries.map(entry => this.internalDeleteSession(entry)));
 			await this.flushIndex();
+			return localSessionIds;
 		});
 	}
 

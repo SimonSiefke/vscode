@@ -507,7 +507,7 @@ export class ChatService extends Disposable implements IChatService {
 	 * sessions that must never show up in chat history.
 	 */
 	private shouldStoreExternalSession(session: ChatModel): boolean {
-		if (LocalChatSessionUri.parseLocalSessionId(session.sessionResource)) {
+		if (session.isDeleted || LocalChatSessionUri.parseLocalSessionId(session.sessionResource)) {
 			return false;
 		}
 		return session.initialLocation === ChatAgentLocation.Chat;
@@ -660,15 +660,22 @@ export class ChatService extends Disposable implements IChatService {
 
 	async removeHistoryEntry(sessionResource: URI): Promise<void> {
 		await this._chatSessionStore.deleteSession(this.toLocalSessionId(sessionResource));
-		const model = this._sessionModels.get(sessionResource);
-		if (model) {
-			model.markDeleted();
-		}
-		this._onDidDisposeSession.fire({ sessionResources: [sessionResource], reason: 'cleared' });
+		this.notifySessionDeleted([sessionResource]);
 	}
 
 	async clearAllHistoryEntries(): Promise<void> {
-		await this._chatSessionStore.clearAllSessions();
+		const sessionIds = await this._chatSessionStore.clearAllSessions();
+		this.notifySessionDeleted(sessionIds.map(id => LocalChatSessionUri.forSession(id)));
+	}
+
+	notifySessionDeleted(sessionResources: readonly URI[]): void {
+		if (sessionResources.length === 0) {
+			return;
+		}
+		for (const resource of sessionResources) {
+			this._sessionModels.get(resource)?.markDeleted();
+		}
+		this._onDidDisposeSession.fire({ sessionResources: [...sessionResources], reason: 'cleared' });
 	}
 
 	startNewLocalSession(location: ChatAgentLocation, options?: IChatSessionStartOptions): IChatModelReference {

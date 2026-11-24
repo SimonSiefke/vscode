@@ -106,6 +106,7 @@ suite('Chat generated image artifacts', () => {
 			store.add(configuration.onDidChangeConfigurationEmitter);
 			const service = store.add(new ChatArtifactsService(store.add(new InMemoryStorageService()), upcastPartial<IChatService>({
 				onDidCreateModel: Event.None,
+				onDidDisposeSession: Event.None,
 				getSession: () => model,
 			}), configuration));
 			let artifacts: { uri: string; label: string; fileName: string | undefined }[] = [];

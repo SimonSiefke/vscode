@@ -50,6 +50,7 @@ suite('ChatArtifactPillSource', () => {
 		const models = new ResourceMap<IChatModel>();
 		instantiationService.stub(IChatService, upcastPartial<IChatService>({
 			onDidCreateModel: modelCreated.event,
+			onDidDisposeSession: Event.None,
 			getSession: resource => models.get(resource),
 		}));
 		const artifactsService = store.add(instantiationService.createInstance(ChatArtifactsService));
