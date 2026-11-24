@@ -22,7 +22,7 @@ import { IFilesConfigurationService } from '../../../../services/filesConfigurat
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { IOverlayWebview } from '../../../webview/browser/webview.js';
 import { IWebviewWorkbenchService } from '../../../webviewPanel/browser/webviewWorkbenchService.js';
-import { CustomEditorInput } from '../../browser/customEditorInput.js';
+import { CustomEditorInput, getCustomEditorWindowMoveVeto } from '../../browser/customEditorInput.js';
 import { ICustomEditorModel, ICustomEditorService } from '../../common/customEditor.js';
 import { CustomEditorModelManager } from '../../common/customEditorModelManager.js';
 
@@ -156,4 +156,22 @@ suite('CustomEditorInput', () => {
 			});
 		});
 	}
+
+	test('only a modified editor whose model cannot hot exit is kept in its window, exactly as canHotExit === false', () => {
+		const veto = (modified: boolean, canHotExit: boolean | undefined, sameWindow: boolean) => typeof getCustomEditorWindowMoveVeto({ modified, canHotExit, isSameWindow: () => sameWindow, getName: () => 'image.png' });
+
+		assert.deepStrictEqual({
+			modifiedCannotHotExitToOtherWindow: veto(true, false, false),
+			modifiedCannotHotExitInItsWindow: veto(true, false, true),
+			modifiedCanHotExit: veto(true, true, false),
+			modifiedHotExitUnknown: veto(true, undefined, false),
+			unmodified: veto(false, false, false),
+		}, {
+			modifiedCannotHotExitToOtherWindow: 'string',
+			modifiedCannotHotExitInItsWindow: 'boolean',
+			modifiedCanHotExit: 'boolean',
+			modifiedHotExitUnknown: 'boolean',
+			unmodified: 'boolean',
+		});
+	});
 });
