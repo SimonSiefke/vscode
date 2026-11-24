@@ -608,7 +608,7 @@ async function render(context: ComponentFixtureContext, data: IArtifactFixtureDa
 		return reference ? [{ action: reference }, decorated.inlinePill] : [decorated.inlinePill];
 	});
 	const widget = disposableStore.add(instantiationService.createInstance(ChatPillsWidget, { pills }, { ariaLabel: 'Artifact preview' }));
-	row.content.appendChild(widget.element);
+	row.appendChild(widget.element);
 	if (openDetails) {
 		const sectionIndex = data.contribution.view.sections.findIndex(section => section.detailsId === openDetails);
 		const main = widget.element.querySelector<HTMLElement>('.artifact-integration-pill > .chat-pill-button');
@@ -693,7 +693,7 @@ async function renderGroup(
 		return [...pinnedPill ? [pinnedPill] : [], group.pill];
 	});
 	const widget = disposableStore.add(instantiationService.createInstance(ChatPillsWidget, { pills }, { ariaLabel: 'Artifact group preview' }));
-	row.content.appendChild(widget.element);
+	row.appendChild(widget.element);
 	if (!options.openGroup && options.openGroupDetails === undefined) {
 		return;
 	}

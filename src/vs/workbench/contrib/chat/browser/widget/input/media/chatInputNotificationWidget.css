@@ -47,7 +47,7 @@
 
 /* A running operation shows the in-progress indicator of an active session, in its colour. */
 .chat-input-notification-widget .chat-input-notification-icon.busy,
-.chat-input-notification-widget .chat-input-notification-icon.busy .codicon {
+.chat-input-notification-widget .chat-input-notification-icon.busy .chat-input-notification-busy-glyph {
 	color: var(--vscode-textLink-foreground);
 }
 
@@ -141,7 +141,7 @@
 	margin-left: auto;
 }
 
-.chat-input-notification-widget .chat-input-notification-actions.compact {
+.chat-input-notification-widget .compact.chat-input-notification-actions {
 	gap: var(--vscode-spacing-size40);
 }
 
@@ -188,7 +188,7 @@
 	padding: var(--vscode-spacing-size40);
 }
 
-.chat-input-notification-widget .chat-input-notification-action-button.icon-only .codicon {
+.chat-input-notification-widget .chat-input-notification-action-button.icon-only :where(.codicon).chat-input-notification-action-part {
 	margin: 0;
 }
 

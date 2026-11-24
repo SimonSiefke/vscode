@@ -136,6 +136,7 @@ export class ChatArtifactsWidget extends Disposable {
 
 			const expandoContainer = dom.$('.chat-artifacts-expand');
 			const headerButton = store.add(new Button(expandoContainer, { supportIcons: true }));
+			headerButton.element.classList.add('chat-artifacts-expand-button');
 
 			const titleSection = dom.$('.chat-artifacts-title-section');
 			const expandIcon = dom.$('.expand-icon.codicon');
@@ -162,6 +163,7 @@ export class ChatArtifactsWidget extends Disposable {
 				],
 				{
 					alwaysConsumeMouseWheel: false,
+					rowClassName: 'chat-artifacts-tree-row',
 					accessibilityProvider: new ChatArtifactsAccessibilityProvider(),
 				},
 			));

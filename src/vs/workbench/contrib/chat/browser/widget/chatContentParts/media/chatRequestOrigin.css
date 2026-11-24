@@ -20,7 +20,7 @@
 	touch-action: manipulation;
 }
 
-.chat-request-origin.hidden {
+.hidden.chat-request-origin {
 	display: none;
 }
 

@@ -170,10 +170,6 @@
 	line-height: 18px;
 }
 
-.agent-global-configuration-settings-status.error .codicon {
-	color: var(--vscode-errorForeground);
-}
-
 .agent-global-configuration-settings.narrow .agent-global-configuration-settings-content {
 	padding: var(--vscode-spacing-size240) var(--vscode-spacing-size160) var(--vscode-spacing-size400);
 }

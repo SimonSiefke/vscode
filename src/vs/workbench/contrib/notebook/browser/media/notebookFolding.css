@@ -37,7 +37,7 @@
 	top: 8px;
 }
 
-.monaco-workbench .notebookOverlay > .cell-list-container .notebook-folding-indicator .codicon {
+.monaco-workbench .notebookOverlay > .cell-list-container .notebook-folding-indicator .codicon:where(.notebook-folding-glyph) {
 	visibility: visible;
 	height: 16px;
 	padding: 4px 4px 4px 4px;

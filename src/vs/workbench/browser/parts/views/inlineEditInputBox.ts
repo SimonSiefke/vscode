@@ -17,6 +17,8 @@ import { defaultInputBoxStyles } from '../../../../platform/theme/browser/defaul
 import { IEditableData } from '../../../common/views.js';
 
 export interface IInlineEditInputBoxOptions {
+	/** CSS class applied before the input is initialized and focused. */
+	readonly inputBoxClassName?: string;
 	/**
 	 * The aria label of the input box.
 	 */
@@ -59,6 +61,7 @@ export class InlineEditInputBox extends Disposable {
 		super();
 
 		const inputBox = this.inputBox = this._register(new InputBox(container, contextViewService, {
+			inputBoxClassName: options.inputBoxClassName,
 			validationOptions: {
 				validation: value => {
 					const message = _editableData.validationMessage(value);

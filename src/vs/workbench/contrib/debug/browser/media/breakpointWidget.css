@@ -38,7 +38,7 @@
 		width: 0;
 	}
 
-	.select-breakpoint-container .monaco-button {
+	.select-breakpoint-container .breakpoint-selection-button {
 		padding-left: 8px;
 		padding-right: 8px;
 		line-height: 14px;

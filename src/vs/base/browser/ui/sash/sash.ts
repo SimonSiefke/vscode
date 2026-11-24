@@ -499,7 +499,7 @@ export class Sash extends Disposable {
 			this.el.classList.remove('vertical');
 		} else {
 			this.el.classList.remove('horizontal');
-			this.el.classList.add('vertical');
+			this.el.classList.add('vertical', 'monaco-vertical-sash');
 		}
 
 		this.el.classList.toggle('debug', DEBUG);

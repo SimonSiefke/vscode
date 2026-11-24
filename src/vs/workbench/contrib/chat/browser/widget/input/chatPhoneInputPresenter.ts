@@ -216,7 +216,7 @@ export class MobileChatInputCombinedPickerActionItem extends BaseActionViewItem 
 		container.classList.add('chat-input-picker-item');
 		this._renderDisposables.clear();
 
-		const trigger = dom.append(container, dom.$('a.action-label.chat-phone-input-chip'));
+		const trigger = dom.append(container, dom.$('a.action-label.chat-input-picker-trigger.chat-phone-input-chip'));
 		trigger.tabIndex = 0;
 		trigger.role = 'button';
 		this._triggerElement = trigger;
@@ -256,13 +256,13 @@ export class MobileChatInputCombinedPickerActionItem extends BaseActionViewItem 
 		const currentMode = this._modeDelegate.currentMode.get();
 		const modeIcon = currentMode.icon.get();
 		if (modeIcon) {
-			dom.append(trigger, renderIcon(modeIcon));
+			dom.append(trigger, renderIcon(modeIcon, undefined, 'chat-input-picker-glyph'));
 		}
 
 		const currentModel = this._modelDelegate.currentModel.get();
 		const presentation = this._modelDelegate.getPresentationOptions();
 		if (currentModel && presentation.showModelIcon) {
-			dom.append(trigger, renderIcon(getModelProviderIcon(currentModel)));
+			dom.append(trigger, renderIcon(getModelProviderIcon(currentModel), undefined, 'chat-input-picker-glyph'));
 		}
 		// An Auto offered as Copilot Fusion stands for Auto under its own name.
 		const models = this._modelDelegate.getModels();

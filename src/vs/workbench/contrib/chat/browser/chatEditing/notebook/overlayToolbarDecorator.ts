@@ -95,6 +95,8 @@ export class OverlayToolbarDecorator extends Disposable {
 
 			const scopedInstaService = this._register(this.instantiationService.createChild(new ServiceCollection([IContextKeyService, this.notebookEditor.scopedContextKeyService])));
 			const toolbarWidget = scopedInstaService.createInstance(MenuWorkbenchToolBar, toolbar, MenuId.ChatEditingEditorHunk, {
+				actionBarClassName: 'chat-diff-overlay-action-bar',
+				actionsContainerClassName: 'chat-diff-overlay-actions',
 				telemetrySource: 'chatEditingNotebookHunk',
 				hiddenItemStrategy: HiddenItemStrategy.NoHide,
 				toolbarOptions: { primaryGroup: () => true },

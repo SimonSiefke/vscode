@@ -187,21 +187,15 @@
 	margin-top: 8px;
 }
 
-.workspace-trust-editor .workspace-trust-settings .trusted-uris-button-bar .monaco-button {
+.workspace-trust-editor .workspace-trust-settings .trusted-uris-button-bar .workspace-trust-add-folder-button {
 	width: fit-content;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	outline-offset: 2px !important;
 }
 
-.workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons > .monaco-button,
-.workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons > .monaco-button-dropdown,
-.workspace-trust-editor .workspace-trust-settings .trusted-uris-button-bar .monaco-button {
+.workspace-trust-editor .workspace-trust-settings .trusted-uris-button-bar .workspace-trust-add-folder-button {
 	margin: 8px 4px; /* allows button focus outline to be visible */
-}
-
-.workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons .monaco-button-dropdown .monaco-dropdown-button {
-	padding: 0 4px;
 }
 
 .workspace-trust-limitations {
@@ -269,7 +263,7 @@
 	padding-left: 5px;
 }
 
-.workspace-trust-editor .workspace-trust-settings .monaco-action-bar .action-item > .codicon {
+.workspace-trust-editor .workspace-trust-settings .monaco-action-bar .action-item > .codicon:where(.workspace-trust-action-label) {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -291,24 +285,18 @@
 	width: 100%;
 }
 
-.workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .actions .actions-container {
+.workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .actions .actions-container:where(.workspace-trust-uri-actions) {
 	justify-content: flex-end;
 	padding-right: 3px;
 }
 
-.workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .monaco-button {
-	height: 18px;
-	padding-left: 8px;
-	padding-right: 8px;
-}
-
-.workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .actions .monaco-action-bar {
+.workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .actions .monaco-action-bar:where(.workspace-trust-row-action-bar) {
 	display: none;
 	flex: 1;
 }
 
-.workspace-trust-editor .workspace-trust-settings .monaco-list-row.selected .monaco-table-tr .monaco-table-td .actions .monaco-action-bar,
-.workspace-trust-editor .workspace-trust-settings .monaco-table .monaco-list-row.focused .monaco-table-tr .monaco-table-td .actions .monaco-action-bar,
+.workspace-trust-editor .workspace-trust-settings .monaco-list-row.selected .monaco-table-tr .monaco-table-td .actions .monaco-action-bar:where(.workspace-trust-row-action-bar),
+.workspace-trust-editor .workspace-trust-settings .monaco-table .monaco-list-row.focused .monaco-table-tr .monaco-table-td .actions .monaco-action-bar:where(.workspace-trust-row-action-bar),
 .workspace-trust-editor .workspace-trust-settings .monaco-list-row:hover .monaco-table-tr .monaco-table-td .actions .monaco-action-bar {
 	display: flex;
 }

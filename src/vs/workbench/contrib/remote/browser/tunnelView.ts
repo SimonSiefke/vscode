@@ -366,6 +366,7 @@ class ActionBarRenderer implements ITableRenderer<ActionBarCell, IActionBarTempl
 		templateDisposables.add(elementDisposables);
 		const label = templateDisposables.add(new IconLabel(cell,
 			{
+				extraClasses: ['ports-view-item-label'],
 				supportHighlights: true,
 				hoverDelegate: this._hoverDelegate
 			}));

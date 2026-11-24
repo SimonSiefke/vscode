@@ -177,7 +177,7 @@
 	max-width: none;
 }
 
-.issue-reporter-floating-bar * {
+.issue-reporter-floating-bar :where(.wizard-floating-drag, .wizard-floating-drag-glyph, .wizard-segmented-btn, .wizard-segmented-main, .wizard-segmented-dropdown, .wizard-segmented-label-part, .wizard-record-btn, .wizard-floating-record-part) {
 	flex-shrink: 0;
 }
 
@@ -277,7 +277,7 @@
 	background: var(--vscode-button-background, #0e639c);
 }
 
-.issue-reporter-floating-bar .wizard-segmented-main > * {
+.issue-reporter-floating-bar :where(.wizard-segmented-main) > .wizard-segmented-label-part {
 	display: flex;
 	align-items: center;
 }
@@ -315,7 +315,7 @@
 	background: var(--vscode-button-background, #0e639c);
 }
 
-.issue-reporter-floating-bar .wizard-segmented-dropdown > * {
+.issue-reporter-floating-bar :where(.wizard-segmented-dropdown) > .wizard-segmented-label-part {
 	display: flex;
 	align-items: center;
 }
@@ -324,10 +324,10 @@
 /* Only dimmed via JS disabled class at N-1 attachments */
 
 /* Disabled state for segmented buttons when max attachments reached */
-.issue-reporter-floating-bar .wizard-segmented-main.disabled,
-.issue-reporter-floating-bar .wizard-segmented-dropdown.disabled,
-.issue-reporter-floating-bar .monaco-button.wizard-segmented-main.disabled,
-.issue-reporter-floating-bar .monaco-button.wizard-segmented-dropdown.disabled {
+.issue-reporter-floating-bar .disabled.wizard-segmented-main,
+.issue-reporter-floating-bar .disabled.wizard-segmented-dropdown,
+.issue-reporter-floating-bar .monaco-button.disabled.wizard-segmented-main,
+.issue-reporter-floating-bar .monaco-button.disabled.wizard-segmented-dropdown {
 	opacity: 0.4;
 	cursor: default;
 }
@@ -507,7 +507,7 @@ label/control gap, so the buttons must not add their own margin. */
 	background: var(--vscode-list-hoverBackground, rgba(255, 255, 255, 0.06)) !important;
 }
 
-.issue-reporter-wizard .monaco-button.wizard-type-btn .codicon {
+.issue-reporter-wizard .monaco-button.wizard-type-btn .codicon:where(.issue-wizard-type-content) {
 	margin-right: 0;
 }
 
@@ -534,7 +534,7 @@ label/control gap, so the buttons must not add their own margin. */
 	box-shadow: inset 0 0 0 2px var(--vscode-editor-background, #1e1e1e);
 }
 
-.issue-reporter-wizard .monaco-button.wizard-type-btn.selected {
+.issue-reporter-wizard .monaco-button.selected.wizard-type-btn {
 	border-color: transparent;
 	background: transparent !important;
 }
@@ -548,7 +548,7 @@ label/control gap, so the buttons must not add their own margin. */
 	border-color: var(--vscode-inputValidation-errorBorder, #be1100) !important;
 }
 
-.issue-reporter-wizard .monaco-button.wizard-type-btn.hidden {
+.issue-reporter-wizard .monaco-button.hidden.wizard-type-btn {
 	display: none;
 }
 
@@ -563,7 +563,7 @@ label/control gap, so the buttons must not add their own margin. */
 	min-height: 1.4em;
 }
 
-.issue-reporter-wizard .wizard-field-error.hidden {
+.issue-reporter-wizard .hidden.wizard-field-error {
 	visibility: hidden;
 	min-height: 1.4em;
 }
@@ -704,7 +704,7 @@ label/control gap, so the buttons must not add their own margin. */
 	background: var(--vscode-button-hoverBackground, var(--vscode-button-background, #1177bb));
 }
 
-.issue-reporter-wizard .wizard-screenshot-delete .codicon {
+.issue-reporter-wizard .wizard-screenshot-delete .codicon:where(.issue-wizard-attachment-delete-glyph) {
 	color: inherit;
 }
 
@@ -731,7 +731,7 @@ label/control gap, so the buttons must not add their own margin. */
 	color: var(--vscode-focusBorder, #007acc);
 }
 
-.issue-reporter-wizard .wizard-screenshot-add.disabled {
+.issue-reporter-wizard .disabled.wizard-screenshot-add {
 	opacity: 0.4;
 	cursor: default;
 }
@@ -746,7 +746,7 @@ label/control gap, so the buttons must not add their own margin. */
 	gap: 8px;
 }
 
-.issue-reporter-wizard .wizard-field.hidden {
+.issue-reporter-wizard .hidden.wizard-field {
 	display: none;
 }
 
@@ -784,8 +784,8 @@ label/control gap, so the buttons must not add their own margin. */
 
 .issue-reporter-wizard .wizard-field .monaco-inputbox.invalid-input,
 .issue-reporter-wizard .wizard-field .monaco-inputbox.invalid-input > .ibwrapper,
-.issue-reporter-wizard .wizard-field .monaco-inputbox.invalid-input > .ibwrapper > .input,
-.issue-reporter-wizard .wizard-field .monaco-inputbox.invalid-input .input {
+.issue-reporter-wizard .wizard-field .monaco-inputbox.invalid-input > .ibwrapper > .monaco-inputbox-input,
+.issue-reporter-wizard .wizard-field .monaco-inputbox.invalid-input .monaco-inputbox-input {
 	border-color: var(--vscode-inputValidation-errorBorder, #be1100) !important;
 	background: var(--vscode-inputValidation-errorBackground, rgba(190, 17, 0, 0.1)) !important;
 }
@@ -864,7 +864,7 @@ extension field is hidden (no fixed-width placeholder needed). */
 	max-width: 480px;
 }
 
-.issue-reporter-wizard .wizard-extension-field.hidden {
+.issue-reporter-wizard .hidden.wizard-extension-field {
 	display: none;
 }
 
@@ -882,7 +882,7 @@ extension field is hidden (no fixed-width placeholder needed). */
 	margin-bottom: 0;
 }
 
-.issue-reporter-wizard .wizard-ai-title-btn.monaco-button {
+.issue-reporter-wizard .monaco-button.wizard-ai-title-btn {
 	width: auto;
 	padding: 2px 6px 2px 4px;
 	display: flex;
@@ -896,8 +896,8 @@ extension field is hidden (no fixed-width placeholder needed). */
 	line-height: 1.4;
 }
 
-.issue-reporter-wizard .wizard-ai-title-btn.monaco-button[disabled],
-.issue-reporter-wizard .wizard-ai-title-btn.monaco-button.disabled {
+.issue-reporter-wizard .monaco-button[disabled].wizard-ai-title-btn,
+.issue-reporter-wizard .monaco-button.disabled.wizard-ai-title-btn {
 	opacity: 0.55;
 	cursor: default;
 }
@@ -990,7 +990,7 @@ extension field is hidden (no fixed-width placeholder needed). */
 	margin-bottom: 2px;
 }
 
-.issue-reporter-wizard .review-diag-toggle-all.monaco-button {
+.issue-reporter-wizard .monaco-button.review-diag-toggle-all {
 	font-size: var(--vscode-fontSize-label1);
 	padding: 2px 8px;
 	width: auto;
@@ -1065,7 +1065,7 @@ extension field is hidden (no fixed-width placeholder needed). */
 	color: var(--vscode-foreground, #ccc);
 }
 
-.issue-reporter-wizard .review-performance-refresh.monaco-button {
+.issue-reporter-wizard .monaco-button.review-performance-refresh {
 	flex: none;
 	width: auto;
 	font-size: var(--vscode-fontSize-label1);
@@ -1112,7 +1112,7 @@ extension field is hidden (no fixed-width placeholder needed). */
 	flex-shrink: 0;
 }
 
-.issue-reporter-wizard .review-diag-toggle.monaco-button {
+.issue-reporter-wizard .monaco-button.review-diag-toggle {
 	flex-shrink: 0;
 	font-size: var(--vscode-fontSize-label1);
 	padding: 2px 8px 2px 4px;

@@ -223,7 +223,7 @@ export class ChatInputNoticeWidget extends Disposable implements IChatInputNotic
 		// it names the thing that is actually clicked, focused and styled.
 		const cssClass = [ThemeIcon.asClassName(getCompactCodicon(options.icon)), options.className].filter(Boolean).join(' ');
 		const actionBar = register(new ActionBar(container));
-		actionBar.push(register(new Action('chatInputNotice.action', options.ariaLabel, cssClass, true, async () => options.onActivate())), { icon: true, label: false });
+		actionBar.push(register(new Action('chatInputNotice.action', options.ariaLabel, cssClass, true, async () => options.onActivate())), { icon: true, label: false, labelClassName: 'chat-input-notice-action-label' });
 
 		return container;
 	}

@@ -26,7 +26,7 @@ export function renderCustomizationMarketplaceIcon(
 	DOM.clearNode(container);
 	container.classList.toggle('has-custom-icon', !!iconUri);
 	container.classList.toggle('is-fallback', !iconUri);
-	const fallback = DOM.append(container, DOM.$('.codicon'));
+	const fallback = DOM.append(container, DOM.$('.codicon.customization-marketplace-fallback-glyph'));
 	fallback.classList.add(...ThemeIcon.asClassNameArray(fallbackIcon));
 	fallback.setAttribute('aria-hidden', 'true');
 	fallback.hidden = !!iconUri;
@@ -34,7 +34,7 @@ export function renderCustomizationMarketplaceIcon(
 	if (!iconUri) {
 		return;
 	}
-	const image = DOM.append(container, DOM.$('img')) as HTMLImageElement;
+	const image = DOM.append(container, DOM.$('img.customization-marketplace-image')) as HTMLImageElement;
 	image.alt = '';
 	image.loading = 'lazy';
 	image.referrerPolicy = 'no-referrer';

@@ -45,6 +45,31 @@ class TestChatInputPickerActionViewItem extends ChatInputPickerActionViewItem {
 suite('ChatInputPickerActionViewItem', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('applies trigger styling before each label render', () => {
+		const container = document.createElement('div');
+		container.style.cssText = 'position: fixed; top: 0; left: 0; width: 300px;';
+		const style = document.createElement('style');
+		style.textContent = '.action-label:where(.chat-input-picker-trigger) { padding-left: 7px; }';
+		document.body.append(container, style);
+		const padding: string[] = [];
+		const item = disposables.add(new class extends TestChatInputPickerActionViewItem {
+			protected override getTooltip(): string { return ''; }
+			protected override renderLabel(element: HTMLElement): null {
+				padding.push(dom.getWindow(element).getComputedStyle(element).paddingLeft);
+				element.textContent = action.label;
+				return null;
+			}
+		});
+		try {
+			item.render(container);
+			assert.deepStrictEqual(padding, ['7px', '7px']);
+			assert.strictEqual(dom.getWindow(container).getComputedStyle(container.querySelector('.action-label')!).paddingLeft, '7px');
+		} finally {
+			container.remove();
+			style.remove();
+		}
+	});
+
 	test('keeps the picker in the Tab order when it is not the leading toolbar item', () => {
 		const item = disposables.add(new TestChatInputPickerActionViewItem());
 		const element = document.createElement('a');

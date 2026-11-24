@@ -131,11 +131,11 @@ suite('createPullRequestHover', () => {
 			draft: render(GitHubCIOverallStatus.Success, makePullRequest({ isDraft: true })),
 			merged: render(GitHubCIOverallStatus.Success, makePullRequest({ state: GitHubPullRequestState.Merged })),
 		}, {
-			pending: { text: 'Checks pending', status: 'pending', icon: 'codicon codicon-circle-filled-compact', iconAriaHidden: 'true' },
-			success: { text: 'Checks passed', status: 'success', icon: 'codicon codicon-pass-filled-compact', iconAriaHidden: 'true' },
-			failure: { text: 'Checks failed', status: 'failure', icon: 'codicon codicon-error-compact', iconAriaHidden: 'true' },
+			pending: { text: 'Checks pending', status: 'pending', icon: 'codicon codicon-circle-filled-compact github-resource-hover-status-icon', iconAriaHidden: 'true' },
+			success: { text: 'Checks passed', status: 'success', icon: 'codicon codicon-pass-filled-compact github-resource-hover-status-icon', iconAriaHidden: 'true' },
+			failure: { text: 'Checks failed', status: 'failure', icon: 'codicon codicon-error-compact github-resource-hover-status-icon', iconAriaHidden: 'true' },
 			neutral: { text: undefined, status: undefined, icon: undefined, iconAriaHidden: undefined },
-			draft: { text: 'Checks passed', status: 'success', icon: 'codicon codicon-pass-filled-compact', iconAriaHidden: 'true' },
+			draft: { text: 'Checks passed', status: 'success', icon: 'codicon codicon-pass-filled-compact github-resource-hover-status-icon', iconAriaHidden: 'true' },
 			merged: { text: undefined, status: undefined, icon: undefined, iconAriaHidden: undefined },
 		});
 	});

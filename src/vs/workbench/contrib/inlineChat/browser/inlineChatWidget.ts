@@ -78,11 +78,11 @@ export abstract class InlineChatWidget {
 			h('div.chat-widget@chatWidget'),
 			h('div.accessibleViewer@accessibleViewer'),
 			h('div.status@status', [
-				h('div.label.info.hidden@infoLabel'),
-				h('div.actions.hidden@toolbar1'),
-				h('div.label.status.hidden@statusLabel'),
-				h('div.actions.secondary.hidden@toolbar2'),
-				h('div.label.disclaimer.hidden@disclaimerLabel'),
+				h('div.label.inline-chat-status-label.info.hidden@infoLabel'),
+				h('div.actions.inline-chat-status-toolbar.hidden@toolbar1'),
+				h('div.label.inline-chat-status-label.status.hidden@statusLabel'),
+				h('div.actions.inline-chat-status-toolbar.secondary.hidden@toolbar2'),
+				h('div.label.inline-chat-status-label.disclaimer.hidden@disclaimerLabel'),
 			]),
 		]
 	);
@@ -261,6 +261,7 @@ export abstract class InlineChatWidget {
 
 		// secondary toolbar
 		const toolbar2 = scopedInstaService.createInstance(MenuWorkbenchToolBar, this._elements.toolbar2, options.secondaryMenuId ?? MenuId.for(''), {
+			actionsContainerClassName: 'inline-chat-status-actions',
 			telemetrySource: options.chatWidgetViewOptions?.menus?.telemetrySource,
 			menuOptions: { renderShortTitle: true, shouldForwardArgs: true },
 			actionViewItemProvider: (action: IAction, options: IActionViewItemOptions) => {
@@ -324,7 +325,7 @@ export abstract class InlineChatWidget {
 			this._elements.disclaimerLabel.classList.toggle('hidden', !showDisclaimer);
 
 			if (showDisclaimer) {
-				const renderedMarkdown = disposables.add(this.#markdownRendererService.render(new MarkdownString(localize({ key: 'termsDisclaimer', comment: ['{Locked="]({2})"}', '{Locked="]({3})"}'] }, "By continuing with {0} Copilot, you agree to {1}'s [Terms]({2}) and [Privacy Statement]({3})", product.defaultChatAgent?.provider?.default?.name ?? '', product.defaultChatAgent?.provider?.default?.name ?? '', product.defaultChatAgent?.termsStatementUrl ?? '', product.defaultChatAgent?.privacyStatementUrl ?? ''), { isTrusted: true })));
+				const renderedMarkdown = disposables.add(this.#markdownRendererService.render(new MarkdownString(localize({ key: 'termsDisclaimer', comment: ['{Locked="]({2})"}', '{Locked="]({3})"}'] }, "By continuing with {0} Copilot, you agree to {1}'s [Terms]({2}) and [Privacy Statement]({3})", product.defaultChatAgent?.provider?.default?.name ?? '', product.defaultChatAgent?.provider?.default?.name ?? '', product.defaultChatAgent?.termsStatementUrl ?? '', product.defaultChatAgent?.privacyStatementUrl ?? ''), { isTrusted: true }), { linkClassName: 'inline-chat-disclaimer-link' }));
 				this._elements.disclaimerLabel.appendChild(renderedMarkdown.element);
 			}
 
@@ -406,7 +407,7 @@ export abstract class InlineChatWidget {
 
 	updateInfo(message: string): void {
 		this._elements.infoLabel.classList.toggle('hidden', !message);
-		const renderedMessage = renderLabelWithIcons(message);
+		const renderedMessage = renderLabelWithIcons(message, undefined, 'inline-chat-status-glyph');
 		reset(this._elements.infoLabel, ...renderedMessage);
 		this._onDidChangeHeight.fire();
 	}
@@ -421,9 +422,9 @@ export abstract class InlineChatWidget {
 				this.updateStatus(statusLabel, { classes, keepMessage: true, title });
 			}, ops.resetAfter);
 		}
-		const renderedMessage = renderLabelWithIcons(message);
+		const renderedMessage = renderLabelWithIcons(message, undefined, 'inline-chat-status-glyph');
 		reset(this._elements.statusLabel, ...renderedMessage);
-		this._elements.statusLabel.className = `label status ${(ops.classes ?? []).join(' ')}`;
+		this._elements.statusLabel.className = `label status inline-chat-status-label ${(ops.classes ?? []).join(' ')}`;
 		this._elements.statusLabel.classList.toggle('hidden', !message);
 		if (isTempMessage) {
 			this._elements.statusLabel.dataset['state'] = 'temp';

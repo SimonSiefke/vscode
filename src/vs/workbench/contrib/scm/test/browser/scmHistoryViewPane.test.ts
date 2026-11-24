@@ -3,6 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
+import { IconLabel } from '../../../../../base/browser/ui/iconLabel/iconLabel.js';
+import { $, append } from '../../../../../base/browser/dom.js';
 import assert from 'assert';
 import { basename } from '../../../../../base/common/path.js';
 import { IResourceNode, ResourceTree } from '../../../../../base/common/resourceTree.js';
@@ -11,6 +15,8 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { SCMHistoryTreeSorter } from '../../browser/scmHistoryViewPane.js';
 import { ISCMHistoryItemViewModel, SCMHistoryItemChangeViewModelTreeElement, SCMHistoryItemLoadMoreTreeElement, SCMHistoryItemViewModelTreeElement } from '../../common/history.js';
 import { ISCMRepository, ViewMode } from '../../common/scm.js';
+
+import '../../browser/media/scm.css';
 
 type TreeElement = SCMHistoryItemViewModelTreeElement | SCMHistoryItemLoadMoreTreeElement | SCMHistoryItemChangeViewModelTreeElement | IResourceNode<SCMHistoryItemChangeViewModelTreeElement, SCMHistoryItemViewModelTreeElement>;
 
@@ -87,5 +93,26 @@ suite('SCMHistoryTreeSorter', () => {
 			sorter.compare(historyItemElement, loadMore),
 			sorter.compare(loadMore, historyItemElement)
 		], [0, 0]);
+	});
+});
+
+suite('SCM history load more styles', () => {
+	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('centers icon-enabled load more labels without highlight options', () => {
+		const root = $('.scm-history-view');
+		root.style.cssText = 'position: fixed; top: 0; left: 0; width: 200px; --vscode-textLink-foreground: #123456;';
+		mainWindow.document.body.appendChild(root);
+		disposables.add(toDisposable(() => root.remove()));
+		const placeholder = append(append(root, $('.history-item-load-more')), $('.history-item-placeholder'));
+		const label = disposables.add(new IconLabel(placeholder, { supportIcons: true, highlightedLabelClassName: 'scm-history-placeholder-highlighted-label' }));
+		const styles = ['$(fold-down) Load More', '$(loading~spin) Loading More'].map(value => {
+			label.setLabel(value);
+			const highlighted = label.element.querySelector('.monaco-highlighted-label');
+			assert.ok(highlighted);
+			const style = mainWindow.getComputedStyle(highlighted);
+			return [style.display, style.alignItems, style.justifyContent, style.color];
+		});
+		assert.deepStrictEqual(styles, Array(2).fill(['flex', 'center', 'center', 'rgb(18, 52, 86)']));
 	});
 });

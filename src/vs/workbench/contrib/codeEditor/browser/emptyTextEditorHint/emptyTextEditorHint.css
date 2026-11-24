@@ -10,7 +10,7 @@
 	pointer-events: none;
 }
 
-.monaco-editor .contentWidgets .empty-editor-hint a {
+.monaco-editor .contentWidgets .empty-editor-hint a:where(.empty-editor-hint-link) {
 	color: var(--vscode-textLink-foreground);
 	pointer-events: auto;
 }

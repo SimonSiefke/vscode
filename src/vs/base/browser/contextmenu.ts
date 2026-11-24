@@ -39,6 +39,8 @@ export interface IContextMenuDelegate {
 	getActionsContext?(event?: IContextMenuEvent): unknown;
 	getKeyBinding?(action: IAction): ResolvedKeybinding | undefined;
 	getMenuClassName?(): string;
+	/** Class applied to labels in HTML menus and their submenus. */
+	labelClassName?: string;
 	onHide?(didCancel: boolean): void;
 	closeAnimation?: IContextViewCloseAnimation;
 	actionRunner?: IActionRunner;

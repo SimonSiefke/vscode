@@ -66,6 +66,29 @@ suite('FormattedTextRenderer', () => {
 		assert.strictEqual(result.innerHTML, 'line one<br>line two');
 	});
 
+	test('action link styling preserves nested formatting and action indexes', () => {
+		const container = document.body.appendChild(document.createElement('div'));
+		try {
+			const style = container.appendChild(document.createElement('style'));
+			style.textContent = '.test-formatted-link { letter-spacing: 7px; }';
+			const calls: string[] = [];
+			const result = renderFormattedText('**[[first]]** / [[second]]', {
+				linkClassName: 'test-formatted-link',
+				actionHandler: { callback: index => calls.push(index), disposables: store },
+			});
+			container.appendChild(result);
+			const links = Array.from(result.querySelectorAll('a'));
+			assert.deepStrictEqual(links.map(link => link.ownerDocument.defaultView!.getComputedStyle(link).letterSpacing), ['7px', '7px']);
+			assert.strictEqual(links[0].parentElement?.tagName, 'B');
+			for (const link of links) {
+				link.click();
+			}
+			assert.deepStrictEqual(calls, ['0', '1']);
+		} finally {
+			container.remove();
+		}
+	});
+
 	test('action', () => {
 		let callbackCalled = false;
 		const result: HTMLElement = renderFormattedText('[[action]]', {

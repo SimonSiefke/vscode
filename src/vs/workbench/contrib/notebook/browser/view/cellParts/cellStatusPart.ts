@@ -308,7 +308,7 @@ class CellStatusBarItem extends Disposable {
 		this._itemDisposables.clear();
 
 		if (!this._currentItem || this._currentItem.text !== item.text) {
-			this._itemDisposables.add(new SimpleIconLabel(this.container)).text = item.text.replace(/\n/g, ' ');
+			this._itemDisposables.add(new SimpleIconLabel(this.container, 'notebook-status-item-glyph')).text = item.text.replace(/\n/g, ' ');
 		}
 
 		const resolveColor = (color: ThemeColor | string) => {

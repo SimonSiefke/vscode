@@ -101,7 +101,7 @@ function createPanelTab(root: HTMLElement): {
 	root.appendChild(panel);
 
 	const title = mainWindow.document.createElement('div');
-	title.className = 'composite title has-composite-bar';
+	title.className = 'composite title workbench-part-title has-composite-bar';
 	title.style.height = '32px';
 	panel.appendChild(title);
 
@@ -114,11 +114,11 @@ function createPanelTab(root: HTMLElement): {
 	compositeBarContainer.appendChild(compositeBar);
 
 	const actionBar = mainWindow.document.createElement('div');
-	actionBar.className = 'monaco-action-bar';
+	actionBar.className = 'monaco-action-bar composite-switcher-action-bar';
 	compositeBar.appendChild(actionBar);
 
 	const actionsContainer = mainWindow.document.createElement('div');
-	actionsContainer.className = 'actions-container';
+	actionsContainer.className = 'actions-container composite-bar-toolbar-actions';
 	actionBar.appendChild(actionsContainer);
 
 	const actionItem = mainWindow.document.createElement('div');
@@ -126,7 +126,7 @@ function createPanelTab(root: HTMLElement): {
 	actionsContainer.appendChild(actionItem);
 
 	const actionLabel = mainWindow.document.createElement('a');
-	actionLabel.className = 'action-label';
+	actionLabel.className = 'action-label composite-bar-action-label';
 	actionItem.appendChild(actionLabel);
 
 	const badge = mainWindow.document.createElement('div');
@@ -147,7 +147,7 @@ function createPanelTab(root: HTMLElement): {
 	actionsContainer.appendChild(secondActionItem);
 
 	const secondActionLabel = mainWindow.document.createElement('a');
-	secondActionLabel.className = 'action-label';
+	secondActionLabel.className = 'action-label composite-bar-action-label';
 	secondActionItem.appendChild(secondActionLabel);
 
 	const secondIndicator = mainWindow.document.createElement('div');

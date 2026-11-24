@@ -478,7 +478,7 @@ class FileElementTemplate {
 		this._checkbox.domNode.tabIndex = -1;
 		container.appendChild(this._checkbox.domNode);
 
-		this._label = resourceLabels.create(container, { supportHighlights: true });
+		this._label = resourceLabels.create(container, { supportHighlights: true, labelContainerClassName: 'bulk-edit-file-label-container' });
 
 		this._details = document.createElement('span');
 		this._details.className = 'details';
@@ -583,6 +583,7 @@ class TextEditElementTemplate {
 		container.appendChild(this._icon);
 
 		this._label = this._disposables.add(new HighlightedLabel(container));
+		this._label.element.classList.add('bulk-edit-text-highlighted-label');
 	}
 
 	dispose(): void {

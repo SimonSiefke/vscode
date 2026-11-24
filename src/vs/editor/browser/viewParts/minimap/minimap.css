@@ -12,7 +12,7 @@
 .monaco-editor .minimap.slider-mouseover.slider-scrolling .minimap-slider {
 	opacity: 1;
 }
-.monaco-editor .minimap.slider-mouseover .minimap-slider.active {
+.monaco-editor .minimap.slider-mouseover .active.minimap-slider {
 	opacity: 1;
 }
 /* END cover the case that slider is visible on mouseover */
@@ -54,7 +54,7 @@
 	pointer-events: none;
 }
 .minimap.minimap-autohide-mouseover:hover,
-.minimap.minimap-autohide-scroll.active {
+.minimap.active.minimap-autohide-scroll {
 	opacity: 1;
 	pointer-events: auto;
 }

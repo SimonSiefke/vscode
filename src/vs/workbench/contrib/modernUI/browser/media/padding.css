@@ -40,7 +40,7 @@
 
 /* Body: inset each row box, leaving the scrollbar pinned to the pane edge. */
 .modern-ui .monaco-pane-view .pane-body:not(.chat-viewpane) .monaco-list-row,
-.modern-ui .multi-diff-editor-with-file-list-files .monaco-list-row {
+.modern-ui .multi-diff-editor-with-file-list-files .multi-diff-file-list-row {
 	left: var(--vscode-spacing-size40);
 	right: var(--vscode-spacing-size40);
 	width: auto;
@@ -48,13 +48,13 @@
 
 /* Tighten part chrome from 35px to 32px.
  * KEEP IN SYNC WITH: part.ts PartLayout.AREA_HEIGHT_MODERN_UI */
-.modern-ui.monaco-workbench .part > .title,
+.modern-ui.monaco-workbench .part > .title:where(.workbench-part-title),
 .modern-ui.monaco-workbench .part > .header-or-footer {
 	height: 32px;
 	padding-left: var(--vscode-spacing-size20);
 }
 
-.modern-ui.monaco-workbench .part > .title {
+.modern-ui.monaco-workbench .part > .title:where(.workbench-part-title) {
 	padding-left: var(--vscode-spacing-size40);
 	padding-right: var(--vscode-spacing-size40);
 }
@@ -69,7 +69,7 @@
 }
 
 .modern-ui.modern-ui-compact .monaco-pane-view .pane-body:not(.chat-viewpane) .monaco-list-row,
-.modern-ui.modern-ui-compact .multi-diff-editor-with-file-list-files .monaco-list-row {
+.modern-ui.modern-ui-compact .multi-diff-editor-with-file-list-files .multi-diff-file-list-row {
 	left: var(--vscode-spacing-size20);
 	right: var(--vscode-spacing-size20);
 }
@@ -112,11 +112,11 @@
 	flex: 2;
 }
 
-.modern-ui.monaco-workbench .pane-body .agent-sessions-viewer .monaco-scrollable-element {
+.modern-ui.monaco-workbench .pane-body .agent-sessions-viewer .agent-sessions-list-scrollable {
 	padding: 0 var(--vscode-spacing-size80);
 }
 
-.modern-ui.modern-ui-compact.monaco-workbench .pane-body .agent-sessions-viewer .monaco-scrollable-element {
+.modern-ui.modern-ui-compact.monaco-workbench .pane-body .agent-sessions-viewer .agent-sessions-list-scrollable {
 	padding-left: var(--vscode-spacing-size40);
 	padding-right: var(--vscode-spacing-size40);
 }
@@ -124,7 +124,7 @@
 .modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row.agent-session-list-row {
 	background-color: transparent;
 
-	> .monaco-tl-row {
+	> .monaco-tl-row:where(.agent-sessions-tree-contents) {
 		border-radius: var(--vscode-cornerRadius-small);
 	}
 }
@@ -149,20 +149,20 @@
 	}
 }
 
-.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row.agent-session-list-row:not(.drop-target).focused {
+.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row:not(.drop-target).focused.agent-session-list-row {
 	background-color: transparent;
 	outline: none;
 
-	> .monaco-tl-row {
+	> .monaco-tl-row:where(.agent-sessions-tree-contents) {
 		background-color: var(--vscode-list-inactiveFocusBackground);
 	}
 }
 
-.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row.agent-session-list-row:not(.drop-target).selected {
+.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row:not(.drop-target).selected.agent-session-list-row {
 	background-color: transparent;
 	outline: none;
 
-	> .monaco-tl-row {
+	> .monaco-tl-row:where(.agent-sessions-tree-contents) {
 		background-color: var(--vscode-list-inactiveSelectionBackground);
 	}
 }
@@ -199,22 +199,22 @@
 	outline: none;
 }
 
-.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row.agent-session-list-row.focused > .monaco-tl-row {
+.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row.agent-session-list-row.focused > .monaco-tl-row:where(.agent-sessions-tree-contents) {
 	outline: var(--vscode-strokeThickness) dotted var(--vscode-list-inactiveFocusOutline);
 	outline-offset: calc(var(--vscode-strokeThickness) * -1);
 }
 
-.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row.agent-session-list-row.focused.selected > .monaco-tl-row {
+.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row.agent-session-list-row.focused.selected > .monaco-tl-row:where(.agent-sessions-tree-contents) {
 	outline-color: var(--vscode-contrastActiveBorder, var(--vscode-list-inactiveFocusOutline));
 }
 
 .modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list:focus .monaco-list-row.agent-session-list-row.focused > .monaco-tl-row,
-.context-menu-visible .modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list.last-focused .monaco-list-row.agent-session-list-row.focused > .monaco-tl-row {
+.context-menu-visible .modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list.last-focused .monaco-list-row.agent-session-list-row.focused > .monaco-tl-row:where(.agent-sessions-tree-contents) {
 	outline: var(--vscode-strokeThickness) solid var(--vscode-list-focusOutline);
 	outline-offset: calc(var(--vscode-strokeThickness) * -1);
 }
 
-.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row.agent-session-list-row.selected:not(.focused) > .monaco-tl-row {
+.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row.agent-session-list-row.selected:not(.focused) > .monaco-tl-row:where(.agent-sessions-tree-contents) {
 	outline: var(--vscode-strokeThickness) dotted var(--vscode-contrastActiveBorder);
 	outline-offset: calc(var(--vscode-strokeThickness) * -1);
 }
@@ -229,7 +229,7 @@
 }
 
 .modern-ui.monaco-workbench .chat-viewpane {
-	.agent-session-item .agent-session-title-toolbar .actions-container {
+	.agent-session-item .agent-session-title-toolbar .actions-container:where(.agent-session-title-toolbar-actions) {
 		gap: var(--vscode-spacing-size40);
 	}
 	&.chat-view-location-auxiliarybar {
@@ -315,7 +315,7 @@
 	margin-right: 0;
 	margin-left: var(--vscode-spacing-size40);
 }
-.modern-ui.monaco-workbench .scm-view .monaco-tl-contents > div {
+.modern-ui.monaco-workbench .scm-view :where(.monaco-tl-contents) > div.scm-tree-item {
 	padding-right: var(--vscode-spacing-size40);
 }
 

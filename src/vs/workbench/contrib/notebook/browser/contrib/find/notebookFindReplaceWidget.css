@@ -25,7 +25,7 @@
 	transition: top 0ms linear;
 }
 
-.monaco-workbench .notebookOverlay .simple-fr-find-part-wrapper.visible {
+.monaco-workbench .notebookOverlay .visible.simple-fr-find-part-wrapper {
 	z-index: 100;
 }
 
@@ -98,7 +98,7 @@
 	pointer-events: all;
 }
 
-.monaco-workbench .simple-fr-find-part-wrapper.visible {
+.monaco-workbench .visible.simple-fr-find-part-wrapper {
 	visibility: visible;
 }
 
@@ -127,7 +127,7 @@
 	cursor: default;
 }
 
-.monaco-workbench .simple-fr-find-part-wrapper .monaco-custom-toggle.disabled {
+.monaco-workbench .simple-fr-find-part-wrapper .disabled.monaco-custom-toggle {
 	opacity: 0.3;
 	cursor: default;
 	user-select: none;
@@ -150,8 +150,8 @@
 	padding: 0;
 }
 
-.monaco-workbench .simple-fr-find-part .monaco-inputbox > .ibwrapper > .input,
-.monaco-workbench .simple-fr-replace-part .monaco-inputbox > .ibwrapper > .input {
+.monaco-workbench .simple-fr-find-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-input,
+.monaco-workbench .simple-fr-replace-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-input {
 	height: 24px;
 }
 .monaco-workbench .simple-fr-find-part-wrapper .monaco-sash {

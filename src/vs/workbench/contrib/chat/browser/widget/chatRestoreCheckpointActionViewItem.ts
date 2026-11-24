@@ -52,6 +52,9 @@ export class ChatRestoreCheckpointActionViewItem extends MenuEntryActionViewItem
 		container.classList.add('chat-restore-checkpoint-item');
 
 		const cancelButton = this._cancelButton = dom.append(container, dom.$('a.action-label.chat-restore-checkpoint-cancel'));
+		if (this.options.labelClassName) {
+			cancelButton.classList.add(this.options.labelClassName);
+		}
 		cancelButton.setAttribute('role', 'button');
 		// Keep the cancel affordance out of the tab order so it does not break
 		// the ActionBar roving-tabindex pattern; keyboard users can use Escape to

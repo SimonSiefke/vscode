@@ -21,7 +21,7 @@
 	border-radius: 5px;
 }
 
-.icon-select-box .icon-select-icons-container > .icon-container.focused {
+.icon-select-box .icon-select-icons-container > .focused.icon-container {
 	background-color: var(--vscode-list-inactiveSelectionBackground);
 	color: var(--vscode-list-inactiveSelectionForeground);
 }

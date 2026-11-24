@@ -55,7 +55,7 @@
 	padding-left: var(--vscode-spacing-size240);
 }
 
-.prompt-timeline-rail.hidden {
+.hidden.prompt-timeline-rail {
 	display: none;
 }
 
@@ -236,7 +236,7 @@
 	z-index: 20;
 }
 
-.prompt-timeline-card.hidden {
+.hidden.prompt-timeline-card {
 	display: none;
 }
 
@@ -401,7 +401,7 @@
 	pointer-events: auto;
 }
 
-.prompt-timeline-ruler-mark.hidden {
+.hidden.prompt-timeline-ruler-mark {
 	display: none;
 }
 
@@ -602,7 +602,7 @@
 
 /* "You are here": the dot for the prompt the transcript is scrolled to takes the accent, so the
  * resting handle doubles as a position indicator that tracks scrolling. */
-.prompt-timeline-gutter-dot.active {
+.active.prompt-timeline-gutter-dot {
 	background-color: var(--vscode-focusBorder);
 	opacity: 1;
 	transform: scale(1.5);
@@ -634,7 +634,7 @@
 	transition: opacity 140ms ease, background-color 140ms ease;
 }
 
-.monaco-reduce-motion .prompt-timeline-gutter-dot.active,
+.monaco-reduce-motion .active.prompt-timeline-gutter-dot,
 .monaco-reduce-motion .prompt-timeline-gutter-dot.preview {
 	transform: none;
 }

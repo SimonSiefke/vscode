@@ -485,6 +485,7 @@ class HelpPanel extends ViewPane {
 			[new HelpTreeRenderer()],
 			new HelpDataSource(),
 			{
+				twistieAdditionalCssClass: () => 'remote-help-tree-twistie',
 				accessibilityProvider: {
 					getAriaLabel: (item: HelpItemBase) => {
 						return item.label;

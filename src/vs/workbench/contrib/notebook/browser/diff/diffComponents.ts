@@ -128,7 +128,7 @@ class PropertyHeader extends Disposable {
 		this._foldingIndicator = DOM.append(this.propertyHeaderContainer, DOM.$('.property-folding-indicator'));
 		this._foldingIndicator.classList.add(this.accessor.prefix);
 		const metadataStatus = DOM.append(this.propertyHeaderContainer, DOM.$('div.property-status'));
-		this._statusSpan = DOM.append(metadataStatus, DOM.$('span'));
+		this._statusSpan = DOM.append(metadataStatus, DOM.$('span.notebook-diff-property-status-text'));
 		this._description = DOM.append(metadataStatus, DOM.$('span.property-description'));
 
 		const cellToolbarContainer = DOM.append(this.propertyHeaderContainer, DOM.$('div.property-toolbar'));
@@ -209,10 +209,10 @@ class PropertyHeader extends Disposable {
 
 	private _updateFoldingIcon() {
 		if (this.accessor.getFoldingState() === PropertyFoldingState.Collapsed) {
-			DOM.reset(this._foldingIndicator, renderIcon(collapsedIcon));
+			DOM.reset(this._foldingIndicator, renderIcon(collapsedIcon, undefined, 'notebook-diff-property-folding-glyph'));
 			this._propertyExpanded?.set(false);
 		} else {
-			DOM.reset(this._foldingIndicator, renderIcon(expandedIcon));
+			DOM.reset(this._foldingIndicator, renderIcon(expandedIcon, undefined, 'notebook-diff-property-folding-glyph'));
 			this._propertyExpanded?.set(true);
 		}
 
@@ -2119,7 +2119,7 @@ export class CollapsedCellOverlayWidget extends Disposable implements IDiffCellM
 				role: 'button',
 				onclick: () => { this._action.fire(); }
 			},
-				...renderLabelWithIcons('$(unfold)'))]
+				...renderLabelWithIcons('$(unfold)', undefined, 'notebook-diff-collapse-glyph'))]
 		),
 	]);
 
@@ -2158,7 +2158,7 @@ export class UnchangedCellOverlayWidget extends Disposable implements IDiffCellM
 				role: 'button',
 				onclick: () => { this._action.fire(); }
 			},
-				...renderLabelWithIcons('$(fold)')
+				...renderLabelWithIcons('$(fold)', undefined, 'notebook-diff-collapse-glyph')
 			),
 		]
 		),

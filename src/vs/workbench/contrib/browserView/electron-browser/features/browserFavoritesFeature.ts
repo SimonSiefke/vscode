@@ -73,6 +73,7 @@ class FavoriteIndicator extends Disposable {
 		}));
 		this._button.element.classList.add('browser-favorite-indicator');
 		this._button.label = `$(${Codicon.starFull.id})`;
+		this._button.element.lastElementChild?.classList.add('browser-favorite-indicator-icon');
 		this._button.element.setAttribute('aria-label', localize('browser.removeFavorite', "Remove from Favorites"));
 		this._register(this._button.onDidClick(() => this._onDidClick.fire()));
 		this._register(this._keybindingService.onDidUpdateKeybindings(() => {

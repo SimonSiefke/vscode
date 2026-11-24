@@ -131,7 +131,7 @@ class ChatEditorOverlayWidget extends Disposable {
 
 		const progressNode = document.createElement('div');
 		progressNode.classList.add('chat-editor-overlay-progress');
-		append(progressNode, renderIcon(ThemeIcon.modify(Codicon.loadingCompact, 'spin')));
+		append(progressNode, renderIcon(ThemeIcon.modify(Codicon.loadingCompact, 'spin'), undefined, 'chat-editor-progress-glyph'));
 		const textProgress = append(progressNode, $('span.progress-message'));
 		this._domNode.appendChild(progressNode);
 
@@ -194,6 +194,7 @@ class ChatEditorOverlayWidget extends Disposable {
 		this._showStore.add(toDisposable(() => this._toolbarNode.remove()));
 
 		this._showStore.add(this._instaService.createInstance(MenuWorkbenchToolBar, this._toolbarNode, MenuId.ChatEditingEditorContent, {
+			actionsContainerClassName: 'chat-editor-overlay-actions',
 			telemetrySource: 'chatEditor.overlayToolbar',
 			hiddenItemStrategy: HiddenItemStrategy.Ignore,
 			toolbarOptions: {

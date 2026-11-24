@@ -22,7 +22,7 @@
 	transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.onboarding-a-overlay.visible {
+.visible.onboarding-a-overlay {
 	opacity: 1;
 }
 
@@ -108,7 +108,7 @@
 	transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.onboarding-a-progress-dot.active {
+.active.onboarding-a-progress-dot {
 	width: 24px;
 	border-radius: 4px;
 	background: var(--vscode-focusBorder, #007acc);
@@ -448,20 +448,20 @@
 	max-width: 320px;
 }
 
-.onboarding-a-signin-ghe-input .monaco-inputbox {
+.onboarding-a-signin-ghe-input .onboarding-ghe-input-box {
 	height: 40px;
 	border-radius: 8px;
 	font-size: 13px;
 	line-height: 40px;
 }
 
-.onboarding-a-signin-ghe-input .monaco-inputbox .monaco-action-bar {
+.onboarding-a-signin-ghe-input .monaco-inputbox .monaco-action-bar:where(.inputbox-action-bar) {
 	top: 50%;
 	right: 6px;
 	transform: translateY(-50%);
 }
 
-.onboarding-a-signin-ghe-input .monaco-inputbox.error {
+.onboarding-a-signin-ghe-input .error.onboarding-ghe-input-box {
 	box-shadow: inset 0 0 0 1px var(--vscode-inputValidation-errorBorder);
 }
 
@@ -518,7 +518,7 @@
 	background-image: none;
 }
 
-.onboarding-a-provider-mark.github .codicon {
+.onboarding-a-provider-mark.github .codicon:where(.onboarding-provider-glyph) {
 	font-size: 18px;
 	color: currentColor;
 }
@@ -527,7 +527,7 @@
 	background-image: none;
 }
 
-.onboarding-a-provider-mark.github-enterprise .codicon {
+.onboarding-a-provider-mark.github-enterprise .codicon:where(.onboarding-provider-glyph) {
 	font-size: 18px;
 	color: currentColor;
 }
@@ -622,7 +622,7 @@
 	outline-offset: 2px;
 }
 
-.onboarding-a-theme-card.selected {
+.selected.onboarding-a-theme-card {
 	border-color: var(--vscode-focusBorder, #007acc);
 	box-shadow: 0 0 0 1px var(--vscode-focusBorder, #007acc);
 }
@@ -644,8 +644,8 @@
 	outline-offset: 2px;
 }
 
-.monaco-workbench.hc-black .onboarding-a-theme-card.selected,
-.monaco-workbench.hc-light .onboarding-a-theme-card.selected {
+.monaco-workbench.hc-black .selected.onboarding-a-theme-card,
+.monaco-workbench.hc-light .selected.onboarding-a-theme-card {
 	border-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	box-shadow: 0 0 0 1px var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }
@@ -702,7 +702,7 @@
 	outline-offset: 1px;
 }
 
-.onboarding-a-keymap-pill.selected {
+.selected.onboarding-a-keymap-pill {
 	background: var(--vscode-button-background);
 	color: var(--vscode-button-foreground);
 	border-color: var(--vscode-button-background);
@@ -754,13 +754,13 @@
 	outline-offset: -2px;
 }
 
-.onboarding-a-ai-pref-card.selected {
+.selected.onboarding-a-ai-pref-card {
 	border-color: var(--vscode-focusBorder);
 	background: color-mix(in srgb, var(--vscode-focusBorder) 8%, var(--vscode-editor-background));
 	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-focusBorder) 18%, transparent);
 }
 
-.onboarding-a-ai-pref-card-icon .codicon {
+.onboarding-a-ai-pref-card-icon .codicon:where(.onboarding-ai-preference-glyph) {
 	font-size: 48px;
 	color: var(--vscode-textLink-foreground, #3794ff);
 }
@@ -880,7 +880,7 @@
 		0 0 0 4px var(--vscode-focusBorder);
 }
 
-.onboarding-a-signin-btn.primary .onboarding-a-provider-mark.github .codicon {
+.onboarding-a-signin-btn.primary .onboarding-a-provider-mark.github .codicon:where(.onboarding-provider-glyph) {
 	color: var(--vscode-button-foreground);
 }
 
@@ -949,10 +949,6 @@
 }
 
 /* Keymap pills with icons */
-.onboarding-a-keymap-pill .codicon {
-	font-size: 13px;
-	opacity: 0.7;
-}
 
 @media (prefers-reduced-motion: reduce) {
 	.onboarding-a-overlay,

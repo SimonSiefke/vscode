@@ -78,10 +78,12 @@ export class CommentThreadHeader<T = IRange> extends Disposable {
 
 		this._actionsContainer = dom.append(this._headElement, dom.$('.review-actions'));
 		this._actionbarWidget = new ActionBar(this._actionsContainer, {
+			actionsContainerClassName: 'comment-thread-header-actions',
 			actionViewItemProvider: createActionViewItem.bind(undefined, this._instantiationService)
 		});
 
 		this._register(this._actionbarWidget);
+		this._actionbarWidget.domNode.classList.add('comment-thread-header-action-bar');
 
 		const collapseActionClass = this._delegate.collapseAction ? 'expand-review-action ' + ThemeIcon.asClassName(this._delegate.collapseAction.icon) : COLLAPSE_ACTION_CLASS;
 		const collapseClass = threadHasComments(this._commentThread.comments) ? collapseActionClass : DELETE_ACTION_CLASS;

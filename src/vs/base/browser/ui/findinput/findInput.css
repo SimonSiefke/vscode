@@ -8,7 +8,7 @@
 	position: relative;
 }
 
-.monaco-findInput .monaco-inputbox {
+.monaco-findInput .find-input-box {
 	font-size: 13px;
 	width: 100%;
 }
@@ -19,12 +19,12 @@
 	right: 2px;
 }
 
-.vs .monaco-findInput.disabled {
+.vs .disabled.monaco-findInput {
 	background-color: #E1E1E1;
 }
 
 /* Theming */
-.vs-dark .monaco-findInput.disabled {
+.vs-dark .disabled.monaco-findInput {
 	background-color: #333;
 }
 

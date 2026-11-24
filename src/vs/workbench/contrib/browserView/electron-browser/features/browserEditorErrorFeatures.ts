@@ -126,7 +126,7 @@ class BrowserEditorErrorFeatures extends BrowserEditorContribution {
 
 		const errorIcon = $('.browser-error-icon');
 		errorIcon.classList.toggle('cert-error', isCertError);
-		errorIcon.appendChild(renderIcon(isCertError ? Codicon.workspaceUntrusted : Codicon.globe));
+		errorIcon.appendChild(renderIcon(isCertError ? Codicon.workspaceUntrusted : Codicon.globe)).classList.add('browser-error-glyph');
 
 		const errorTitle = $('.browser-error-title');
 		errorTitle.textContent = isCertError
@@ -233,6 +233,7 @@ class BrowserEditorErrorFeatures extends BrowserEditorContribution {
 		this._certActionButton.value = buttonBar;
 
 		const primaryButton = buttonBar.addButton({ ...defaultButtonStyles });
+		primaryButton.element.classList.add('browser-cert-action-button');
 		primaryButton.label = canGoBack
 			? localize('browser.certGoBack', "Go Back")
 			: localize('browser.certCloseTab', "Close Tab");
@@ -245,6 +246,7 @@ class BrowserEditorErrorFeatures extends BrowserEditorContribution {
 		});
 
 		const secondaryButton = buttonBar.addButton({ ...defaultButtonStyles, secondary: true });
+		secondaryButton.element.classList.add('browser-cert-action-button');
 		secondaryButton.label = localize('browser.certProceed', "Proceed anyway (unsafe)");
 		secondaryButton.onDidClick(() => {
 			this.editor.model?.trustCertificate(certError.host, certError.fingerprint);
@@ -323,7 +325,7 @@ class SiteInfoWidget extends Disposable {
 		this._indicator.tabIndex = 0;
 		this._indicator.role = 'button';
 		this._indicator.ariaLabel = localize('browser.notSecure', "Not Secure");
-		this._indicator.appendChild(renderIcon(Codicon.workspaceUntrusted));
+		this._indicator.appendChild(renderIcon(Codicon.workspaceUntrusted)).classList.add('browser-site-info-icon');
 		this._container.appendChild(this._indicator);
 
 		parent.appendChild(this._container);

@@ -230,7 +230,7 @@ export class AgentHostFolderPickerActionItem extends ChatInputPickerActionViewIt
 		this._renderedKey = `${icon}|${!!chip}|${compact}|${shownLabel ?? ''}`;
 		dom.reset(
 			element,
-			...renderLabelWithIcons(`$(${icon})`),
+			...renderLabelWithIcons(`$(${icon})`, undefined, 'chat-input-picker-glyph'),
 			...(this._labelElement ? [this._labelElement] : []),
 		);
 		// Set the aria label after the visible text is in place: the base class

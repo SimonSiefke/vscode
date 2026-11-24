@@ -184,6 +184,7 @@ export class ChatTodoListWidget extends Disposable {
 		this.expandoButton = this._register(new Button(expandoContainer, {
 			supportIcons: true
 		}));
+		this.expandoButton.element.classList.add('chat-todo-expand-button');
 		this.expandoButton.element.setAttribute('aria-expanded', String(this._isExpanded));
 		this.expandoButton.element.setAttribute('aria-controls', 'todo-list-container');
 
@@ -229,6 +230,7 @@ export class ChatTodoListWidget extends Disposable {
 			supportIcons: true,
 			ariaLabel: localize('chat.todoList.clearButton', 'Clear all todos'),
 		});
+		this.clearButton.element.classList.add('chat-todo-clear-button');
 		this.clearButton.element.tabIndex = 0;
 		this.clearButton.icon = Codicon.clearAll;
 		this._register(this.clearButton);
@@ -330,6 +332,7 @@ export class ChatTodoListWidget extends Disposable {
 				new TodoListDelegate(),
 				[new TodoListRenderer()],
 				{
+					rowClassName: 'chat-todo-list-row',
 					alwaysConsumeMouseWheel: false,
 					accessibilityProvider: {
 						getAriaLabel: (todo: IChatTodo) => {

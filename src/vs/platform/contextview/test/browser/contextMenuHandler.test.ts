@@ -69,6 +69,25 @@ suite('ContextMenuHandler', () => {
 		});
 	}
 
+	test('applies the dropdown owner class to HTML menu labels', () => {
+		const container = mainWindow.document.body.appendChild($('div'));
+		store.add(toDisposable(() => container.remove()));
+		const contextViewService = upcastPartial<IContextViewService>({
+			showContextView: delegate => {
+				store.add(delegate.render(container));
+				return { close: () => delegate.onHide?.() };
+			},
+		});
+		const handler = new ContextMenuHandler(contextViewService, NullTelemetryService, new TestNotificationService(), new MockKeybindingService());
+		const action = store.add(new Action('first', 'First'));
+		handler.showContextMenu({
+			getAnchor: () => container,
+			getActions: () => [action],
+			labelClassName: 'test-menu-owner-label',
+		});
+		assert.strictEqual(container.querySelector('.test-menu-owner-label')?.textContent, 'First');
+	});
+
 	suite('popover hosting', () => {
 		function showMenu(domPosition: ContextViewDOMPosition | undefined, hostAsPopover: boolean | undefined) {
 			const container = appendFixed($('div'));

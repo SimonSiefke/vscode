@@ -45,7 +45,7 @@ export class ChatCommandButtonContentPart extends Disposable implements IChatCon
 		const tooltip = enabled ?
 			command.tooltip :
 			localize('commandButtonDisabled', "Button not available in restored chat");
-		const button = this._register(new Button(container, { ...defaultButtonStyles, supportIcons: true, title: tooltip, secondary }));
+		const button = this._register(new Button(container, { ...defaultButtonStyles, supportIcons: true, contentClassName: 'chat-command-button-content', title: tooltip, secondary }));
 		button.label = command.title;
 		button.enabled = enabled;
 

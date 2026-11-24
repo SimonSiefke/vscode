@@ -163,7 +163,7 @@ export function getModePermissionsPickerAccessibilityProvider<T extends { readon
 
 export function renderModePickerTrigger(
 	trigger: HTMLElement,
-	mode: { readonly label: string; readonly icon: ThemeIcon | undefined; readonly labelClassName: string },
+	mode: { readonly label: string; readonly icon: ThemeIcon | undefined; readonly labelClassName: string; readonly iconClassNames?: readonly string[] },
 	permissions: IModePickerPermissions,
 	openPicker: (anchor: HTMLElement, openPermissions: boolean) => void,
 	previous?: IModePickerTrigger,
@@ -174,11 +174,14 @@ export function renderModePickerTrigger(
 	permissionsButton.classList.add('agent-host-mode-picker-button', 'agent-host-permissions-button');
 	const icon = mode.icon ? renderIcon(getCompactCodicon(mode.icon)) : undefined;
 	if (icon) {
+		if (mode.iconClassNames) {
+			icon.classList.add(...mode.iconClassNames);
+		}
 		icon.ariaHidden = 'true';
 	}
 	dom.reset(modeButton, ...(icon ? [icon] : []), dom.$(`span.${mode.labelClassName}`, undefined, mode.label));
 	dom.clearNode(permissionsButton);
-	renderModePickerPermissions(permissionsButton, permissions);
+	renderModePickerPermissions(permissionsButton, permissions, mode.iconClassNames);
 	trigger.classList.add('agent-host-mode-permissions-trigger');
 	modeButton.ariaLabel = localize('agentHostModePicker.modeButton', "Pick Mode, {0}", mode.label);
 	permissionsButton.ariaLabel = permissions.sandboxed
@@ -223,7 +226,7 @@ export function shouldCombineModeAndPermissions(enabled: boolean, isCopilot: boo
 		&& !!getSessionApprovalProperty({ type: 'object', properties: { [permissionSchema.enum?.includes('manual') ? 'approvalMode' : 'autoApprove']: permissionSchema } });
 }
 
-export function renderModePickerPermissions(trigger: HTMLElement, permissions: IModePickerPermissions): void {
+export function renderModePickerPermissions(trigger: HTMLElement, permissions: IModePickerPermissions, iconClassNames?: readonly string[]): void {
 	const summary = dom.append(trigger, dom.$('span.agent-host-mode-permission-summary'));
 	summary.textContent = permissions.label;
 	const style = getPermissionLevelStyle(permissions.level);
@@ -233,6 +236,9 @@ export function renderModePickerPermissions(trigger: HTMLElement, permissions: I
 	if (permissions.sandboxed) {
 		const shield = dom.append(trigger, renderIcon(Codicon.shieldCompact));
 		shield.classList.add('agent-host-mode-sandbox-icon');
+		if (iconClassNames) {
+			shield.classList.add(...iconClassNames);
+		}
 		shield.ariaHidden = 'true';
 	}
 }

@@ -139,7 +139,7 @@ export class ChatReadOnlyBanner extends Disposable {
 		if (!this._renderedIcon || !ThemeIcon.isEqual(this._renderedIcon, icon)) {
 			this._renderedIcon = icon;
 			dom.clearNode(this._icon);
-			this._icon.appendChild(renderIcon(icon));
+			this._icon.appendChild(renderIcon(icon, undefined, 'chat-readonly-lock-glyph'));
 		}
 		this._content = content;
 		if (this._text.textContent !== content.message) {

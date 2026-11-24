@@ -409,7 +409,7 @@ export abstract class CompositePart<T extends Composite, MementoType extends obj
 
 		// Title Area Container
 		const titleArea = append(parent, $('.composite'));
-		titleArea.classList.add('title');
+		titleArea.classList.add('title', 'workbench-part-title');
 
 		// Left Title Label
 		this.titleLabel = this.createTitleLabel(titleArea);

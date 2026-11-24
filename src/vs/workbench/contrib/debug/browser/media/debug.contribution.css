@@ -11,7 +11,7 @@
 	opacity: 0.4 !important;
 }
 
-.inline-breakpoint-widget.codicon {
+.codicon.inline-breakpoint-widget {
 	display: flex !important;
 	align-items: center;
 }
@@ -75,7 +75,7 @@
 	cursor: pointer;
 }
 
-.monaco-workbench .debug-view-content .monaco-list-row .monaco-tl-contents {
+.monaco-workbench .debug-view-content .monaco-list-row .debug-view-tree-contents {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }

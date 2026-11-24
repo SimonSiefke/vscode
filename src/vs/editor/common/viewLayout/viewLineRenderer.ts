@@ -379,12 +379,13 @@ export class RenderLineOutput {
 	}
 }
 
-export function renderViewLine(input: RenderLineInput, sb: StringBuilder): RenderLineOutput {
+export function renderViewLine(input: RenderLineInput, sb: StringBuilder, outerSpanClassName?: string): RenderLineOutput {
+	const spanStart = outerSpanClassName ? `<span class="${strings.htmlAttributeEncodeValue(outerSpanClassName)}">` : '<span>';
 	if (input.lineContent.length === 0) {
 
 		if (input.lineDecorations.length > 0) {
 			// This line is empty, but it contains inline decorations
-			sb.appendString(`<span>`);
+			sb.appendString(spanStart);
 
 			let beforeCount = 0;
 			let afterCount = 0;
@@ -420,9 +421,9 @@ export function renderViewLine(input: RenderLineInput, sb: StringBuilder): Rende
 
 		// completely empty line
 		if (input.renderNewLineWhenEmpty) {
-			sb.appendString('<span><span>\n</span></span>');
+			sb.appendString(spanStart + '<span>\n</span></span>');
 		} else {
-			sb.appendString('<span><span></span></span>');
+			sb.appendString(spanStart + '<span></span></span>');
 		}
 		return new RenderLineOutput(
 			new CharacterMapping(0, 0),
@@ -430,7 +431,7 @@ export function renderViewLine(input: RenderLineInput, sb: StringBuilder): Rende
 		);
 	}
 
-	return _renderLine(resolveRenderLineInput(input), sb);
+	return _renderLine(resolveRenderLineInput(input), sb, spanStart);
 }
 
 export class RenderLineOutput2 {
@@ -1018,7 +1019,7 @@ function _applyInlineDecorations(lineContent: string, len: number, tokens: LineP
  * This function is on purpose not split up into multiple functions to allow runtime type inference (i.e. performance reasons).
  * Notice how all the needed data is fully resolved and passed in (i.e. no other calls).
  */
-function _renderLine(input: ResolvedRenderLineInput, sb: StringBuilder): RenderLineOutput {
+function _renderLine(input: ResolvedRenderLineInput, sb: StringBuilder, spanStart: string): RenderLineOutput {
 	const fontIsMonospace = input.fontIsMonospace;
 	const canUseHalfwidthRightwardsArrow = input.canUseHalfwidthRightwardsArrow;
 	const containsForeignElements = input.containsForeignElements;
@@ -1047,7 +1048,7 @@ function _renderLine(input: ResolvedRenderLineInput, sb: StringBuilder): RenderL
 
 	let partDisplacement = 0;
 
-	sb.appendString('<span>');
+	sb.appendString(spanStart);
 
 	for (let partIndex = 0, tokensLen = parts.length; partIndex < tokensLen; partIndex++) {
 

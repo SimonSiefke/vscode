@@ -160,8 +160,8 @@
 	text-overflow: ellipsis;
 }
 
-.debug-pane .debug-call-stack .thread > .state.label,
-.debug-pane .debug-call-stack .session > .state.label {
+.debug-pane .debug-call-stack .thread > .state.label:where(.debug-call-stack-state),
+.debug-pane .debug-call-stack .session > .state.label:where(.debug-call-stack-state) {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	margin: 0 10px;
@@ -202,7 +202,7 @@
 	text-overflow: ellipsis;
 }
 
-.debug-pane .debug-call-stack .stack-frame.label {
+.debug-pane .debug-call-stack .label.stack-frame {
 	text-align: center;
 	font-style: italic;
 }
@@ -292,7 +292,7 @@
 	height: 19px;
 }
 
-.debug-pane .monaco-inputbox > .ibwrapper > .input {
+.debug-pane .monaco-inputbox > .ibwrapper > .monaco-inputbox-input {
 	padding: 0px;
 	color: initial;
 }

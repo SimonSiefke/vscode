@@ -62,7 +62,7 @@
 	overflow: hidden;
 }
 
-.models-widget .models-table-container > .monaco-scrollable-element {
+.models-widget .models-table-container > .chat-models-table-scrollable {
 	width: 100%;
 	height: 100%;
 }
@@ -173,7 +173,7 @@
 	gap: 4px;
 }
 
-.models-widget .models-table-container .monaco-table-td .model-name-container .model-deprecation-link .monaco-link .model-deprecation-link-label .codicon {
+.models-widget .models-table-container .monaco-table-td .model-name-container .model-deprecation-link .monaco-link .model-deprecation-link-label .model-deprecation-link-icon {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
@@ -187,20 +187,20 @@
 
 /** Actions column styling **/
 
-.models-widget .models-table-container .monaco-list-row .monaco-table-tr.models-model-row .models-table-column.models-actions-column .actions-container {
+.models-widget .models-table-container .monaco-list-row .monaco-table-tr.models-model-row .models-table-column.models-actions-column .actions-container:where(.models-table-row-actions) {
 	display: none;
 	align-items: center;
 	justify-content: center;
 	width: 100%;
 }
 
-.models-widget .models-table-container .monaco-list-row.focused .monaco-table-tr .models-table-column.models-actions-column .actions-container,
-.models-widget .models-table-container .monaco-list-row.selected .monaco-table-tr .models-table-column.models-actions-column .actions-container,
+.models-widget .models-table-container .monaco-list-row.focused .monaco-table-tr .models-table-column.models-actions-column .actions-container:where(.models-table-row-actions),
+.models-widget .models-table-container .monaco-list-row.selected .monaco-table-tr .models-table-column.models-actions-column .actions-container:where(.models-table-row-actions),
 .models-widget .models-table-container .monaco-list-row:hover .monaco-table-tr .models-table-column.models-actions-column .actions-container {
 	display: flex;
 }
 
-.models-widget .models-table-container .monaco-table-td .models-actions-column .actions-container .monaco-action-bar {
+.models-widget .models-table-container .monaco-table-td .models-actions-column .actions-container .monaco-action-bar:where(.models-row-action-bar) {
 	margin-right: 9px;
 }
 
@@ -235,10 +235,6 @@
 	min-width: 48px;
 }
 
-.models-widget .models-table-container .monaco-table-td .model-token-limits .codicon {
-	font-size: var(--vscode-codiconFontSize-compact);
-}
-
 /** Capabilities column styling **/
 
 .models-widget .models-table-container .monaco-table-td .model-capabilities {
@@ -258,7 +254,7 @@
 	border-color: var(--vscode-radio-inactiveBorder, transparent);
 }
 
-.models-widget .models-table-container .monaco-table-td .model-capability.active {
+.models-widget .models-table-container .monaco-table-td .active.model-capability {
 	background-color: var(--vscode-toolbar-hoverBackground);
 	opacity: 0.8;
 }
@@ -297,15 +293,15 @@
 	opacity: 0.55;
 }
 
-.models-widget .models-table-container .models-gutter-column .monaco-action-bar {
+.models-widget .models-table-container .models-gutter-column .monaco-action-bar:where(.models-gutter-action-bar) {
 	width: 100%;
 }
 
-.models-widget .models-table-container .monaco-table-tr.models-vendor-row .models-gutter-column .monaco-action-bar .actions-container {
+.models-widget .models-table-container .monaco-table-tr.models-vendor-row .models-gutter-column .monaco-action-bar .actions-container:where(.models-table-gutter-actions) {
 	justify-content: space-between;
 }
 
-.models-widget .models-table-container .monaco-table-tr.models-model-row .models-gutter-column .monaco-action-bar .actions-container {
+.models-widget .models-table-container .monaco-table-tr.models-model-row .models-gutter-column .monaco-action-bar .actions-container:where(.models-table-gutter-actions) {
 	justify-content: flex-end;
 }
 
@@ -317,7 +313,7 @@
 	visibility: hidden;
 }
 
-.models-widget .models-table-container .models-gutter-column .monaco-action-bar .action-item:has(.model-visibility-toggle) {
+.models-widget .models-table-container .models-gutter-column .monaco-action-bar .action-item.model-visibility-toggle-item {
 	margin-right: 4px;
 }
 

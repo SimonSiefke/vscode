@@ -10,7 +10,7 @@
 	position: relative;
 }
 
-.monaco-tl-row.disabled {
+.disabled.monaco-tl-row {
 	cursor: default;
 }
 .monaco-tl-indent {
@@ -92,7 +92,7 @@
 	transition: top 0.3s;
 }
 
-.monaco-tree-type-filter.disabled {
+.disabled.monaco-tree-type-filter {
 	top: -40px !important;
 }
 
@@ -104,8 +104,8 @@
 	height: 23px;
 }
 
-.monaco-tree-type-filter-input .monaco-inputbox > .ibwrapper > .input,
-.monaco-tree-type-filter-input .monaco-inputbox > .ibwrapper > .mirror {
+.monaco-tree-type-filter-input .monaco-inputbox > .ibwrapper > .monaco-inputbox-input,
+.monaco-tree-type-filter-input .monaco-inputbox > .ibwrapper > .monaco-inputbox-mirror {
 	padding: 2px 4px;
 }
 
@@ -117,7 +117,7 @@
 	margin-left: 4px;
 }
 
-.monaco-tree-type-filter-actionbar .monaco-action-bar .action-label {
+.monaco-tree-type-filter-actionbar .monaco-action-bar .monaco-tree-find-close-label {
 	padding: 2px;
 }
 
@@ -133,7 +133,7 @@
 	background-color: var(--vscode-sideBar-background);
 }
 
-.monaco-list .monaco-scrollable-element .monaco-tree-sticky-container .monaco-tree-sticky-row.monaco-list-row{
+.monaco-list .monaco-scrollable-element .monaco-tree-sticky-container .monaco-list-row.monaco-tree-sticky-row{
 	position: absolute;
 	width: 100%;
 	opacity: 1 !important; /* Settings editor uses opacity < 1 */

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { getWindow } from '../../../../browser/dom.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../browser/ui/list/list.js';
 import { DefaultStyleController, List, unthemedListStyles } from '../../../../browser/ui/list/listWidget.js';
 import { range } from '../../../../common/arrays.js';
@@ -13,6 +14,63 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../common/utils.j
 
 suite('ListWidget', function () {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	for (const supportDynamicHeights of [false, true]) {
+		test(`owner row styling is available during template creation and survives recycling (dynamic: ${supportDynamicHeights})`, () => {
+			const container = document.createElement('div');
+			const neighbor = document.createElement('div');
+			const style = document.createElement('style');
+			style.textContent = '.monaco-list .test-owner-list-row { padding-left: 11px; } .monaco-list > .test-owner-list-scrollable { padding-right: 13px; }';
+			document.body.append(container, neighbor, style);
+			store.add(toDisposable(() => { container.remove(); neighbor.remove(); style.remove(); }));
+			const delegate: IListVirtualDelegate<number> = {
+				getHeight: () => 20,
+				getTemplateId: () => 'template',
+				hasDynamicHeight: () => true
+			};
+			const rows: HTMLElement[] = [];
+			const styledRenderer: IListRenderer<number, HTMLElement> = {
+				templateId: 'template',
+				renderTemplate(row) {
+					assert.ok(row.classList.contains('test-owner-list-row'));
+					rows.push(row);
+					return row;
+				},
+				renderElement(value, _index, row) {
+					row.textContent = String(value);
+					assert.strictEqual(getWindow(row).getComputedStyle(row).paddingLeft, '11px');
+				},
+				disposeTemplate() { }
+			};
+			const list = store.add(new List<number>('test', container, delegate, [styledRenderer], {
+				rowClassName: 'test-owner-list-row', scrollableClassName: 'test-owner-list-scrollable', supportDynamicHeights
+			}));
+			const viewport = container.querySelector<HTMLElement>('.test-owner-list-scrollable')!;
+			assert.strictEqual(getWindow(viewport).getComputedStyle(viewport).paddingRight, '13px');
+			list.layout(20, 200);
+			list.splice(0, 0, [1]);
+			const row = container.querySelector<HTMLElement>('.test-owner-list-row')!;
+			assert.ok(row);
+			list.splice(0, 1);
+			list.splice(0, 0, [2]);
+			assert.strictEqual(container.querySelector('.test-owner-list-row'), row);
+			assert.strictEqual(row.textContent, '2');
+			assert.strictEqual(getWindow(row).getComputedStyle(row).paddingLeft, '11px');
+			assert.strictEqual(rows.length, 1);
+
+			const defaultRenderer: IListRenderer<number, HTMLElement> = {
+				templateId: 'template',
+				renderTemplate: row => row,
+				renderElement(value, _index, row) { row.textContent = String(value); },
+				disposeTemplate() { }
+			};
+			const defaultList = store.add(new List<number>('test', neighbor, delegate, [defaultRenderer]));
+			defaultList.layout(20, 200);
+			defaultList.splice(0, 0, [3]);
+			assert.strictEqual(neighbor.querySelector('.test-owner-list-row'), null);
+			assert.strictEqual(neighbor.querySelector('.test-owner-list-scrollable'), null);
+		});
+	}
 
 	test('Page up and down', async function () {
 		const element = document.createElement('div');

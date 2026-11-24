@@ -204,6 +204,7 @@ function keybindingLabel(keybinding: IObservable<ResolvedKeybinding | undefined>
 		ref: elem => {
 			const keybindingLabel = _reader.store.add(new KeybindingLabel(elem, OS, {
 				disableTitle: true,
+				keyClassName: 'inline-edit-jump-key',
 				...defaultKeybindingLabelStyles,
 				keybindingLabelShadow: undefined,
 				keybindingLabelForeground: asCssVariable(inlineEditIndicatorPrimaryForeground),

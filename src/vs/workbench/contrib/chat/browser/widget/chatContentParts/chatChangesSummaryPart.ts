@@ -447,6 +447,7 @@ export class ChangesSummaryFileListPool extends Disposable {
 			new CollapsibleChangesSummaryListDelegate(),
 			[renderer],
 			{
+				scrollableClassName: 'chat-summary-list-scrollable',
 				alwaysConsumeMouseWheel: false,
 				identityProvider: { getId: diff => getComparisonKey(diff.modifiedURI) },
 				keyboardNavigationLabelProvider: { getKeyboardNavigationLabel: diff => diff.modifiedURI.path },
@@ -548,7 +549,8 @@ class CollapsibleChangesSummaryListRenderer implements IListRenderer<IEditSessio
 	}
 
 	renderTemplate(container: HTMLElement): ICollapsibleChangesSummaryListTemplate {
-		const label = this.labels.create(container, { supportHighlights: true, supportIcons: true });
+		container.classList.add('chat-summary-file-row');
+		const label = this.labels.create(container, { supportHighlights: true, supportIcons: true, extraClasses: ['chat-file-list-label'] });
 		const elementDisposables = new DisposableStore();
 		let actionsContainer: HTMLElement | undefined;
 		let changesContainer = label.element;

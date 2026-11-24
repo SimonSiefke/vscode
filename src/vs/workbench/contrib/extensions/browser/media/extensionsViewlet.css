@@ -200,15 +200,15 @@
 	box-shadow: var(--vscode-shadow-md);
 }
 
-.extensions-viewlet > .extensions .extension-list-item.loading {
+.extensions-viewlet > .extensions .loading.extension-list-item {
 	background: url('loading.svg') center center no-repeat;
 }
 
-.monaco-workbench.vs-dark .extensions-viewlet > .extensions .extension-list-item.loading {
+.monaco-workbench.vs-dark .extensions-viewlet > .extensions .loading.extension-list-item {
 	background-image: url('loading-dark.svg');
 }
 
-.monaco-workbench.hc-black .extensions-viewlet > .extensions .extension-list-item.loading {
+.monaco-workbench.hc-black .extensions-viewlet > .extensions .loading.extension-list-item {
 	background-image: url('loading-hc.svg');
 }
 
@@ -220,12 +220,12 @@
 	align-items: flex-start;
 	padding-top: 10px;
 }
-.extensions-viewlet.narrow > .extensions .extension-list-item > .icon-container > .extension-icon .icon {
+.extensions-viewlet.narrow > .extensions .extension-list-item > .icon-container > .extension-icon .icon:where(.extension-widget-icon-image) {
 	width: 24px;
 	height: 24px;
 	padding-right: 8px;
 }
-.extensions-viewlet.narrow > .extensions .extension-list-item > .icon-container > .extension-icon .codicon {
+.extensions-viewlet.narrow > .extensions .extension-list-item > .icon-container > .extension-icon .codicon:where(.extension-widget-fallback-glyph) {
 	font-size: 24px !important;
 	padding-right: 8px;
 }
@@ -241,10 +241,10 @@
 	max-width: 100px;
 }
 
-.monaco-workbench.vs .extensions-viewlet > .extensions .monaco-list-row.disabled:not(.selected) > .extension-list-item > .icon-container > .extension-icon .icon,
-.monaco-workbench.vs-dark .extensions-viewlet > .extensions .monaco-list-row.disabled:not(.selected) > .extension-list-item > .icon-container > .extension-icon .icon,
-.monaco-workbench.vs .extensions-viewlet > .extensions .monaco-list-row.disabled:not(.selected) > .extension-list-item > .details > .header-container .codicon,
-.monaco-workbench.vs-dark .extensions-viewlet > .extensions .monaco-list-row.disabled:not(.selected) > .extension-list-item > .details > .header-container .codicon {
+.monaco-workbench.vs .extensions-viewlet > .extensions .monaco-list-row.disabled:not(.selected) > .extension-list-item > .icon-container > .extension-icon .icon:where(.extension-widget-icon-image),
+.monaco-workbench.vs-dark .extensions-viewlet > .extensions .monaco-list-row.disabled:not(.selected) > .extension-list-item > .icon-container > .extension-icon .icon:where(.extension-widget-icon-image),
+.monaco-workbench.vs .extensions-viewlet > .extensions .monaco-list-row.disabled:not(.selected) > .extension-list-item > .details > .header-container .codicon:where(.extension-header-widget-glyph, .extension-restart-required, .extension-sync-ignored, .extension-kind-glyph),
+.monaco-workbench.vs-dark .extensions-viewlet > .extensions .monaco-list-row.disabled:not(.selected) > .extension-list-item > .details > .header-container .codicon:where(.extension-header-widget-glyph, .extension-restart-required, .extension-sync-ignored, .extension-kind-glyph) {
 	opacity: 0.5;
 }
 

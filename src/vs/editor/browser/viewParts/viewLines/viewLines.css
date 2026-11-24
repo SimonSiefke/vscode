@@ -77,7 +77,7 @@
 }
 
 /* There are view-lines in view-zones. We have to make sure this rule does not apply to them, as they don't set a line height */
-.monaco-editor .lines-content > .view-lines > .view-line > span {
+.monaco-editor .lines-content > .view-lines > .view-line > span:where(.editor-view-line-content) {
 	top: 0;
 	bottom: 0;
 	position: absolute;

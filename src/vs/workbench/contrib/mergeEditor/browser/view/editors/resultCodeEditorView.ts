@@ -64,7 +64,7 @@ export class ResultCodeEditorView extends CodeEditorView {
 			}
 			this.editor.setModel(vm.model.resultTextModel);
 			reset(this.htmlElements.title, ...renderLabelWithIcons(localize('result', 'Result')));
-			reset(this.htmlElements.description, ...renderLabelWithIcons(this._labelService.getUriLabel(vm.model.resultTextModel.uri, { relative: true })));
+			reset(this.htmlElements.description, ...renderLabelWithIcons(this._labelService.getUriLabel(vm.model.resultTextModel.uri, { relative: true }), undefined, 'merge-editor-description-glyph'));
 		}));
 
 

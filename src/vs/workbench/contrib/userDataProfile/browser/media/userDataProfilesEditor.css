@@ -67,7 +67,7 @@
 	align-items: center;
 }
 
-.profiles-editor .sidebar-container .profiles-list .profile-list-item > * {
+.profiles-editor .sidebar-container .profiles-list :where(.profile-list-item) > .profile-list-item-child {
 	margin-right: 5px;
 }
 
@@ -170,11 +170,11 @@
 	align-items: center;
 }
 
-.profiles-editor .contents-container .profile-body .profile-row-container .profile-icon-container.disabled .codicon {
+.profiles-editor .contents-container .profile-body .profile-row-container .profile-icon-container.disabled .codicon:where(.profile-editor-icon-control) {
 	cursor: default;
 }
 
-.profiles-editor .contents-container .profile-body .profile-row-container .profile-icon-container .codicon {
+.profiles-editor .contents-container .profile-body .profile-row-container .profile-icon-container .codicon:where(.profile-editor-icon-control) {
 	cursor: pointer;
 	margin-right: 4px;
 	padding: 2px;
@@ -249,11 +249,6 @@
 .profiles-editor .contents-container .profile-content-tree-header > .options-header {
 	display: flex;
 	align-items: center;
-}
-
-.profiles-editor .contents-container .profile-content-tree-header > .options-header .codicon {
-	cursor: pointer;
-	padding-left: 2px;
 }
 
 .profiles-editor .contents-container .profile-content-tree-header.default-profile {

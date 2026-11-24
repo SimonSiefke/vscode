@@ -39,13 +39,13 @@
 	padding-top: 10px;
 }
 
-.monaco-workbench .bulk-edit-panel .content .buttons .monaco-button {
+.monaco-workbench .bulk-edit-panel .content .buttons .bulk-edit-preview-button {
 	display: inline-flex;
 	width: inherit;
 	margin: 0 4px;
 }
 
-.monaco-workbench .bulk-edit-panel .monaco-tl-contents {
+.monaco-workbench .bulk-edit-panel .bulk-edit-tree-contents {
 	display: flex;
 }
 
@@ -53,7 +53,7 @@
 	align-self: center;
 }
 
-.monaco-workbench .bulk-edit-panel .monaco-tl-contents .monaco-icon-label.delete .monaco-icon-label-container {
+.monaco-workbench .bulk-edit-panel .monaco-tl-contents .monaco-icon-label.delete .monaco-icon-label-container:where(.bulk-edit-file-label-container) {
 	text-decoration: line-through;
 }
 
@@ -64,7 +64,7 @@
 	white-space: pre
 }
 
-.monaco-workbench .bulk-edit-panel .monaco-tl-contents.category {
+.monaco-workbench .bulk-edit-panel .category.bulk-edit-tree-contents {
 	display: flex;
 	flex: 1;
 	flex-flow: row nowrap;
@@ -98,7 +98,7 @@
 	background-image: var(--background-dark);
 }
 
-.monaco-workbench .bulk-edit-panel .monaco-tl-contents.textedit .monaco-highlighted-label {
+.monaco-workbench .bulk-edit-panel .monaco-tl-contents.textedit .bulk-edit-text-highlighted-label {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }

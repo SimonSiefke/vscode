@@ -11,13 +11,13 @@
 	overflow: hidden;
 }
 
-.monaco-workbench .repl .repl-tree .monaco-tl-contents,
-.monaco-workbench .repl .repl-tree .monaco-tl-twistie {
+.monaco-workbench .repl .repl-tree .debug-repl-tree-contents,
+.monaco-workbench .repl .repl-tree .debug-repl-tree-twistie {
 	user-select: text;
 	-webkit-user-select: text;
 }
 
-.monaco-workbench .repl .repl-tree .monaco-tl-contents {
+.monaco-workbench .repl .repl-tree .debug-repl-tree-contents {
 	white-space: pre;
 }
 
@@ -31,11 +31,11 @@
 	cursor: pointer;
 }
 
-.monaco-workbench .repl .repl-tree .monaco-tl-twistie {
+.monaco-workbench .repl .repl-tree .debug-repl-tree-twistie {
 	background-position-y: calc(100% - (var(--vscode-repl-font-size-for-twistie)));
 }
 
-.monaco-workbench .repl .repl-tree.word-wrap .monaco-tl-contents {
+.monaco-workbench .repl .repl-tree.word-wrap .debug-repl-tree-contents {
 	/* Wrap words but also do not trim whitespace #6275 */
 	word-wrap: break-word;
 	white-space: pre-wrap;
@@ -47,8 +47,8 @@
 	white-space: pre; /* Preserve whitespace but don't wrap */
 }
 
-.monaco-workbench .repl .repl-tree .monaco-tl-twistie.collapsible + .monaco-tl-contents,
-.monaco-workbench .repl .repl-tree .monaco-tl-twistie.collapsible {
+.monaco-workbench .repl .repl-tree .monaco-tl-twistie.collapsible + .debug-repl-tree-contents,
+.monaco-workbench .repl .repl-tree .collapsible.debug-repl-tree-twistie {
 	cursor: pointer;
 }
 

@@ -27,6 +27,8 @@ import { DisposableStore, MutableDisposable, type IDisposable } from '../../../c
 const $ = dom.$;
 
 export interface IInputOptions {
+	/** CSS class applied to the input box before its contents are created. */
+	readonly inputBoxClassName?: string;
 	readonly placeholder?: string;
 	readonly showPlaceholderOnFocus?: boolean;
 	readonly tooltip?: string;
@@ -141,11 +143,14 @@ export class InputBox extends Widget {
 		}
 
 		this.element = dom.append(container, $('.monaco-inputbox.idle'));
+		if (options.inputBoxClassName) {
+			this.element.classList.add(options.inputBoxClassName);
+		}
 
 		const tagName = this.options.flexibleHeight ? 'textarea' : 'input';
 
 		const wrapper = dom.append(this.element, $('.ibwrapper'));
-		this.input = dom.append(wrapper, $(tagName + '.input.empty'));
+		this.input = dom.append(wrapper, $(tagName + '.input.empty.monaco-inputbox-input'));
 		this.input.setAttribute('autocorrect', 'off');
 		this.input.setAttribute('autocapitalize', 'off');
 		this.input.setAttribute('spellcheck', 'false');
@@ -156,10 +161,10 @@ export class InputBox extends Widget {
 		if (this.options.flexibleHeight) {
 			this.maxHeight = typeof this.options.flexibleMaxHeight === 'number' ? this.options.flexibleMaxHeight : Number.POSITIVE_INFINITY;
 
-			this.mirror = dom.append(wrapper, $('div.mirror'));
+			this.mirror = dom.append(wrapper, $('div.mirror.monaco-inputbox-mirror'));
 			this.mirror.innerText = '\u00a0';
 
-			this.scrollableElement = new ScrollableElement(this.element, { vertical: ScrollbarVisibility.Auto });
+			this.scrollableElement = new ScrollableElement(this.element, { className: 'monaco-inputbox-scrollable', vertical: ScrollbarVisibility.Auto });
 
 			if (this.options.flexibleWidth) {
 				this.input.setAttribute('wrap', 'off');
@@ -210,6 +215,8 @@ export class InputBox extends Widget {
 		// Support actions
 		if (this.options.actions) {
 			this.actionbar = this._register(new ActionBar(this.element, {
+				actionItemClassName: 'inputbox-action-item',
+				className: 'inputbox-action-bar',
 				actionViewItemProvider: this.options.actionViewItemProvider
 			}));
 			this.actionbar.push(this.options.actions, { icon: true, label: false });
@@ -226,6 +233,8 @@ export class InputBox extends Widget {
 			}
 		} else if (actions) {
 			this.actionbar = this._register(new ActionBar(this.element, {
+				actionItemClassName: 'inputbox-action-item',
+				className: 'inputbox-action-bar',
 				actionViewItemProvider: actionViewItemProvider ?? this.options.actionViewItemProvider
 			}));
 			this.actionbar.push(actions, { icon: true, label: false });

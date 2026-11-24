@@ -322,6 +322,8 @@ interface ITreeRendererOptions<T> {
 }
 
 interface ITreeRendererConstructionOptions<T> extends ITreeRendererOptions<T> {
+	readonly contentsClassName?: string;
+	readonly treeRowClassName?: string;
 	readonly identityProvider?: IIdentityProvider<T>;
 }
 
@@ -367,6 +369,8 @@ export class TreeRenderer<T, TFilterData, TRef, TTemplateData> implements IListR
 	private readonly identityProvider: IIdentityProvider<T> | undefined;
 
 	private readonly disposables = new DisposableStore();
+	private readonly contentsClassName: string | undefined;
+	private readonly treeRowClassName: string | undefined;
 
 	constructor(
 		private readonly renderer: ITreeRenderer<T, TFilterData, TTemplateData>,
@@ -377,6 +381,8 @@ export class TreeRenderer<T, TFilterData, TRef, TTemplateData> implements IListR
 		options: ITreeRendererConstructionOptions<T> = {}
 	) {
 		this.templateId = renderer.templateId;
+		this.contentsClassName = options.contentsClassName;
+		this.treeRowClassName = options.treeRowClassName;
 		this.identityProvider = options.identityProvider;
 		this.updateOptions(options);
 
@@ -439,9 +445,15 @@ export class TreeRenderer<T, TFilterData, TRef, TTemplateData> implements IListR
 			container.classList.add(this.renderer.rowClassName);
 		}
 		const el = append(container, $('.monaco-tl-row'));
+		if (this.treeRowClassName) {
+			el.classList.add(this.treeRowClassName);
+		}
 		const indent = append(el, $('.monaco-tl-indent'));
 		const twistie = append(el, $('.monaco-tl-twistie'));
 		const contents = append(el, $('.monaco-tl-contents'));
+		if (this.contentsClassName) {
+			contents.classList.add(this.contentsClassName);
+		}
 		const templateData = this.renderer.renderTemplate(contents);
 
 		return { container, indent, twistie, indentGuidesDisposable: Disposable.None, indentSize: 0, templateData };
@@ -969,7 +981,7 @@ class FindWidget<T, TFilterData> extends Disposable {
 		}));
 
 		const closeAction = this._register(new Action('close', localize('close', "Close"), 'codicon codicon-close', true, () => this.dispose()));
-		this.actionbar.push(closeAction, { icon: true, label: false });
+		this.actionbar.push(closeAction, { icon: true, label: false, labelClassName: 'monaco-tree-find-close-label' });
 
 		this.onDidChangeValue = this.findInput.onDidChange;
 	}
@@ -2002,6 +2014,9 @@ class StickyScrollWidget<T, TFilterData, TRef> implements IDisposable {
 
 		stickyElement.classList.add('monaco-tree-sticky-row');
 		stickyElement.classList.add('monaco-list-row');
+		if (this.tree.options.rowClassName) {
+			stickyElement.classList.add(this.tree.options.rowClassName);
+		}
 		stickyElement.classList.toggle('source-node-partially-visible', stickyNode.sourceNodePartiallyVisible);
 
 		stickyElement.setAttribute('data-index', `${nodeIndex}`);
@@ -2425,6 +2440,10 @@ export interface IAbstractTreeOptionsUpdate<T> extends ITreeRendererOptions<T> {
 }
 
 export interface IAbstractTreeOptions<T, TFilterData = void> extends IAbstractTreeOptionsUpdate<T>, IListOptions<T> {
+	/** Class applied to each contents element at template creation, before the renderer runs. */
+	readonly contentsClassName?: string;
+	/** Class applied to the inner tree-row wrapper at template creation, before the renderer runs. */
+	readonly treeRowClassName?: string;
 	readonly contextViewProvider?: IContextViewProvider;
 	readonly collapseByDefault?: boolean; // defaults to false
 	readonly allowNonCollapsibleParents?: boolean; // defaults to false

@@ -135,9 +135,11 @@ export class ChatDebugEventTreeRenderer implements ITreeRenderer<IChatDebugEvent
 
 	renderElement(node: ITreeNode<IChatDebugEvent, void>, index: number, templateData: IChatDebugEventTemplate): void {
 		renderEventToTemplate(node.element, templateData);
+		templateData.container.parentElement?.classList.toggle('chat-debug-log-error-row', templateData.container.classList.contains('chat-debug-log-error'));
+		templateData.container.parentElement?.classList.toggle('chat-debug-log-warning-row', templateData.container.classList.contains('chat-debug-log-warning'));
 	}
 
-	disposeTemplate(_templateData: IChatDebugEventTemplate): void {
-		// noop
+	disposeTemplate(templateData: IChatDebugEventTemplate): void {
+		templateData.container.parentElement?.classList.remove('chat-debug-log-error-row', 'chat-debug-log-warning-row');
 	}
 }

@@ -50,23 +50,23 @@
 	height: 100%;
 }
 
-.search-editor .search-widget .monaco-inputbox > .ibwrapper > .mirror,
-.search-editor .search-widget .monaco-inputbox > .ibwrapper > textarea.input {
+.search-editor .search-widget .monaco-inputbox > .ibwrapper > .monaco-inputbox-mirror,
+.search-editor .search-widget .monaco-inputbox > .ibwrapper > textarea.monaco-inputbox-input {
 	padding: 3px;
 	padding-left: 6px;
 }
 
-.search-editor .search-widget .monaco-inputbox > .ibwrapper > .mirror {
+.search-editor .search-widget .monaco-inputbox > .ibwrapper > .monaco-inputbox-mirror {
 	max-height: 134px;
 }
 
 /* NOTE: height is also used in searchWidget.ts as a constant*/
-.search-editor .search-widget .monaco-inputbox > .ibwrapper > textarea.input {
+.search-editor .search-widget .monaco-inputbox > .ibwrapper > textarea.monaco-inputbox-input {
 	overflow: initial;
 	height: 26px; /* set initial height before measure */
 }
 
-.search-editor .monaco-inputbox > .ibwrapper > textarea.input {
+.search-editor .monaco-inputbox > .ibwrapper > textarea.monaco-inputbox-input {
 	scrollbar-width: none; /* Firefox: hide scrollbar */
 }
 
@@ -105,15 +105,15 @@
 	right: 2px;
 }
 
-.search-editor .search-widget .replace-container.disabled {
+.search-editor .search-widget .disabled.replace-container {
 	display: none;
 }
 
-.search-editor .search-widget .replace-container .monaco-action-bar {
+.search-editor .search-widget .replace-container .monaco-action-bar:where(.search-replace-action-bar, .inputbox-action-bar) {
 	margin-left: 0;
 }
 
-.search-editor .search-widget .replace-container .monaco-action-bar {
+.search-editor .search-widget .replace-container .monaco-action-bar:where(.search-replace-action-bar, .inputbox-action-bar) {
 	height: 25px;
 }
 

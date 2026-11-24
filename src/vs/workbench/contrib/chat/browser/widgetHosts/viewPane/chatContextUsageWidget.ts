@@ -243,6 +243,7 @@ export class ChatContextUsageWidget extends Disposable {
 
 	private readonly _hoverOptions: Omit<IDelayedHoverOptions, 'content'> = {
 		id: ChatContextUsageWidget._HOVER_ID,
+		additionalClasses: ['chat-context-usage-hover'],
 		appearance: { showPointer: true, compact: true },
 		persistence: { hideOnHover: false },
 		trapFocus: true

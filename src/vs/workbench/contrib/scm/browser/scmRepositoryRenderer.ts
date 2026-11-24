@@ -89,12 +89,12 @@ export class RepositoryRenderer implements ICompressibleTreeRenderer<ISCMReposit
 	}
 
 	renderTemplate(container: HTMLElement): RepositoryTemplate {
-		const provider = append(container, $('.scm-provider'));
+		const provider = append(container, $('.scm-provider.scm-tree-item'));
 		const icon = append(provider, $('.icon'));
-		const label = new IconLabel(provider, { supportIcons: false });
+		const label = new IconLabel(provider, { extraClasses: ['scm-provider-label'], nameContainerClassName: 'scm-provider-name', supportIcons: false });
 
 		const actions = append(provider, $('.actions'));
-		const toolBar = new WorkbenchToolBar(actions, { actionViewItemProvider: this.actionViewItemProvider, resetMenu: this.toolbarMenuId, responsiveBehavior: { enabled: true, kind: 'all', minItems: 2 } }, this.menuService, this.contextKeyService, this.contextMenuService, this.keybindingService, this.commandService, this.telemetryService);
+		const toolBar = new WorkbenchToolBar(actions, { actionLabelClassName: 'scm-provider-action-label', actionViewItemProvider: this.actionViewItemProvider, resetMenu: this.toolbarMenuId, responsiveBehavior: { enabled: true, kind: 'all', minItems: 2 } }, this.menuService, this.contextKeyService, this.contextMenuService, this.keybindingService, this.commandService, this.telemetryService);
 		const countContainer = append(provider, $('.count'));
 		const count = new CountBadge(countContainer, {}, defaultCountBadgeStyles);
 		const visibilityDisposable = toolBar.onDidChangeDropdownVisibility(e => provider.classList.toggle('active', e));
@@ -119,8 +119,8 @@ export class RepositoryRenderer implements ICompressibleTreeRenderer<ISCMReposit
 			const showSelectedIcon = icon.id === Codicon.repo.id && isVisible && this.scmViewService.repositories.length > 1;
 
 			templateData.icon.className = showSelectedIcon
-				? `icon ${ThemeIcon.asClassName(Codicon.repoSelected)}`
-				: `icon ${ThemeIcon.asClassName(icon)}`;
+				? `icon scm-provider-icon ${ThemeIcon.asClassName(Codicon.repoSelected)}`
+				: `icon scm-provider-icon ${ThemeIcon.asClassName(icon)}`;
 		}));
 
 		// Use the description to disambiguate repositories with the same name and have

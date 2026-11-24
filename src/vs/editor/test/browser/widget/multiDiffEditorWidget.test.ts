@@ -256,6 +256,20 @@ suite('MultiDiffEditorWidget', () => {
 				viewState: previousState,
 				modifiedEditorHasFocus: true,
 			});
+
+			const collapseButtonDisplays: string[] = [];
+			for (const variant of multiDiffEditorVariants) {
+				viewModel.items.get()[0].collapsed.set(false, undefined);
+				widget.setVariant(variant);
+				widget.reveal({ original: originalUri, modified: modifiedUri }, { highlight: false });
+				await waitForState(widget.getLayoutDebugState(), state => state.items[0]?.hasTemplate === true);
+				for (const collapsed of [false, true, false]) {
+					viewModel.items.get()[0].collapsed.set(collapsed, undefined);
+					const button = widget.getRootElement().querySelector<HTMLElement>('.collapse-button a')!;
+					collapseButtonDisplays.push(getWindow(button).getComputedStyle(button).display);
+				}
+			}
+			assert.deepStrictEqual(collapseButtonDisplays, ['flex', 'flex', 'flex', 'flex', 'flex', 'flex', 'block', 'block', 'block']);
 		} finally {
 			widget.setViewModel(undefined);
 		}

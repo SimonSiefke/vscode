@@ -12,7 +12,7 @@ import type { IHoverWidget, IManagedHoverTooltipMarkdownString } from '../../../
 import { IHoverDelegate } from '../../../base/browser/ui/hover/hoverDelegate.js';
 import { HoverPosition } from '../../../base/browser/ui/hover/hoverWidget.js';
 import { IIconLabelValueOptions, IconLabel } from '../../../base/browser/ui/iconLabel/iconLabel.js';
-import { KeybindingLabel } from '../../../base/browser/ui/keybindingLabel/keybindingLabel.js';
+import { KeybindingLabel, unthemedKeybindingLabelOptions } from '../../../base/browser/ui/keybindingLabel/keybindingLabel.js';
 import { IListVirtualDelegate } from '../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider, IListStyles } from '../../../base/browser/ui/list/listWidget.js';
 import { Checkbox, createToggleActionViewItemProvider, IToggleStyles } from '../../../base/browser/ui/toggle/toggle.js';
@@ -372,17 +372,19 @@ abstract class BaseQuickInputListRenderer<T extends IQuickPickElement> extends D
 		// Label
 		data.label = new IconLabel(row1, { supportHighlights: true, supportDescriptionHighlights: true, supportIcons: true, hoverDelegate: this.hoverDelegate });
 		data.toDisposeTemplate.add(data.label);
+		data.label.element.classList.add('quick-input-list-icon-label');
 		data.icon = dom.prepend(data.label.element, $('.quick-input-list-icon'));
 
 		// Keybinding
 		const keybindingContainer = dom.append(row1, $('.quick-input-list-entry-keybinding'));
-		data.keybinding = new KeybindingLabel(keybindingContainer, OS);
+		data.keybinding = new KeybindingLabel(keybindingContainer, OS, { ...unthemedKeybindingLabelOptions, keyClassName: 'quick-input-list-key' });
 		data.toDisposeTemplate.add(data.keybinding);
 
 		// Detail
 		const detailContainer = dom.append(row2, $('.quick-input-list-label-meta'));
 		data.detail = new IconLabel(detailContainer, { supportHighlights: true, supportIcons: true, hoverDelegate: this.hoverDelegate });
 		data.toDisposeTemplate.add(data.detail);
+		data.detail.element.classList.add('quick-input-list-icon-label');
 
 		// Separator
 		data.separator = dom.append(data.entry, $('.quick-input-list-separator'));
@@ -511,13 +513,14 @@ class QuickPickItemElementRenderer extends BaseQuickInputListRenderer<QuickPickI
 			};
 		}
 		const options: IIconLabelValueOptions = {
+			extraClasses: ['quick-input-list-icon-label'],
 			matches: labelHighlights || [],
 			// If we have a tooltip, we want that to be shown and not any other hover
 			descriptionTitle,
 			descriptionMatches: descriptionHighlights || [],
 			labelEscapeNewLines: true
 		};
-		options.extraClasses = mainItem.iconClasses;
+		options.extraClasses = ['quick-input-list-icon-label', ...(mainItem.iconClasses ?? [])];
 		options.italic = mainItem.italic;
 		options.strikethrough = mainItem.strikethrough;
 		data.entry.classList.remove('quick-input-list-separator-as-item');
@@ -541,6 +544,7 @@ class QuickPickItemElementRenderer extends BaseQuickInputListRenderer<QuickPickI
 			}
 			data.detail.element.style.display = '';
 			data.detail.setLabel(element.saneDetail, undefined, {
+				extraClasses: ['quick-input-list-icon-label'],
 				matches: detailHighlights,
 				title,
 				labelEscapeNewLines: true
@@ -653,6 +657,7 @@ class QuickPickSeparatorElementRenderer extends BaseQuickInputListRenderer<Quick
 			};
 		}
 		const options: IIconLabelValueOptions = {
+			extraClasses: ['quick-input-list-icon-label'],
 			matches: labelHighlights || [],
 			// If we have a tooltip, we want that to be shown and not any other hover
 			descriptionTitle,
@@ -810,6 +815,8 @@ export class QuickInputList extends Disposable {
 					},
 				},
 				accessibilityProvider: new QuickInputAccessibilityProvider(),
+				rowClassName: 'quick-input-tree-row',
+				scrollableClassName: 'quick-input-tree-scrollable',
 				setRowLineHeight: false,
 				multipleSelectionSupport: false,
 				hideTwistiesOfChildlessElements: true,

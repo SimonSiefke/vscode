@@ -15,7 +15,7 @@
 	align-items: center;
 }
 
-.inline-progress-widget .icon {
+.inline-progress-widget .icon:where(.inline-progress-glyph) {
 	font-size: 80% !important;
 }
 

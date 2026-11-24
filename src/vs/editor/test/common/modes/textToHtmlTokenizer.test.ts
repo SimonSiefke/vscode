@@ -36,6 +36,14 @@ suite('Editor Modes - textToHtmlTokenizer', () => {
 		return resultArr.join('');
 	}
 
+	test('escapes optional element styling on tokens, line breaks and the source wrapper', () => {
+		const mode = disposables.add(instantiationService.createInstance(Mode));
+		const support = TokenizationRegistry.get(mode.languageId)!;
+		const html = _tokenizeToString('<\n&', new LanguageIdCodec(), support, 'owner"<>&\'');
+		const marker = 'owner&quot;&lt;&gt;&amp;&apos;';
+		assert.strictEqual(html, `<div class="monaco-tokenized-source ${marker}"><span class="mtk9 ${marker}">&lt;</span><br class="${marker}"/><span class="mtk9 ${marker}">&amp;</span></div>`);
+	});
+
 	test('TextToHtmlTokenizer 1', () => {
 		const mode = disposables.add(instantiationService.createInstance(Mode));
 		const support = TokenizationRegistry.get(mode.languageId)!;
@@ -80,6 +88,13 @@ suite('Editor Modes - textToHtmlTokenizer', () => {
 		const expectedStr = `<div class="monaco-tokenized-source">${expectedStr1}<br/>${expectedStr2}</div>`;
 
 		assert.strictEqual(actual, expectedStr);
+	});
+
+	test('tokenizeLineToHTML escapes optional element styling while preserving token styles and text', () => {
+		const tokens = new TestLineTokens([new TestLineToken(2, (1 << MetadataConsts.FOREGROUND_OFFSET) >>> 0)]);
+		const html = tokenizeLineToHTML('<&', tokens, ['', '#000000'], 0, 2, 4, false, 'line"<>&');
+		const marker = 'line&quot;&lt;&gt;&amp;';
+		assert.strictEqual(html, `<div class="${marker}"><span class="${marker}" style="color: #000000;">&lt;&amp;</span></div>`);
 	});
 
 	test('tokenizeLineToHTML', () => {

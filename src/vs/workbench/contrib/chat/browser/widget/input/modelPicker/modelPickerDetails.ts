@@ -49,6 +49,7 @@ export function renderModelDescription(tooltip: string, openerService: IOpenerSe
 		content.appendMarkdown(tooltip ? ' ' : '').appendLink(learnMoreUrl, localize('chat.modelPicker.learnMore', "Learn more"));
 	}
 	const rendered = store.add(renderMarkdown(content, {
+		linkClassName: 'chat-model-description-link',
 		actionHandler: link => { void openerService.open(link, { allowCommands: false, fromUserGesture: true }); },
 	}));
 	const possibleLearnMoreLink = learnMoreUrl ? rendered.element.lastElementChild?.lastElementChild : undefined;

@@ -978,9 +978,9 @@ export class VoiceModeOnboardingBanner extends ChatInputNoticeWidget implements 
 	 */
 	private appendVoiceIcon(option: HTMLElement): void {
 		const icon = dom.append(option, dom.$('span.voice-mode-onboarding-voice-icon'));
-		dom.append(icon, dom.$(`span.codicon.codicon-${Codicon.play.id}.voice-mode-onboarding-voice-idle`)).setAttribute('aria-hidden', 'true');
-		dom.append(icon, dom.$(`span.codicon.codicon-${Codicon.checkCompact.id}.voice-mode-onboarding-voice-chosen`)).setAttribute('aria-hidden', 'true');
-		const bars = dom.append(icon, dom.$('span.voice-mode-onboarding-voice-bars'));
+		dom.append(icon, dom.$(`span.codicon.codicon-${Codicon.play.id}.voice-mode-onboarding-voice-idle.voice-mode-onboarding-voice-content`)).setAttribute('aria-hidden', 'true');
+		dom.append(icon, dom.$(`span.codicon.codicon-${Codicon.checkCompact.id}.voice-mode-onboarding-voice-chosen.voice-mode-onboarding-voice-content`)).setAttribute('aria-hidden', 'true');
+		const bars = dom.append(icon, dom.$('span.voice-mode-onboarding-voice-bars.voice-mode-onboarding-voice-content'));
 		bars.setAttribute('aria-hidden', 'true');
 		for (let bar = 0; bar < 3; bar++) {
 			dom.append(bars, dom.$('span.voice-mode-onboarding-voice-bar'));

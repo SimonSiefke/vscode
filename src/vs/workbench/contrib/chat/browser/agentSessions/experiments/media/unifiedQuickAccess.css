@@ -78,7 +78,7 @@
 	outline-offset: 1px;
 }
 
-.unified-send-button .codicon {
+.unified-send-button .codicon:where(.unified-send-icon) {
 	font-size: var(--vscode-codiconFontSize-compact) !important;
 	color: var(--vscode-button-foreground) !important;
 }
@@ -148,10 +148,6 @@
 	opacity: 0.9;
 }
 
-.unified-quick-access-pr-badge .codicon {
-	font-size: var(--vscode-codiconFontSize-compact);
-}
-
 /* Action text styling (e.g., "Run 'zsh' command?") */
 .unified-quick-access-action-text {
 	font-style: italic;
@@ -164,23 +160,6 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
-}
-
-.unified-quick-access-session-status.in-progress .codicon {
-	color: var(--vscode-progressBar-background);
-	animation: unified-spin 1s linear infinite;
-}
-
-.unified-quick-access-session-status.needs-input .codicon {
-	color: var(--vscode-inputValidation-warningBorder);
-}
-
-.unified-quick-access-session-status.completed .codicon {
-	color: var(--vscode-testing-iconPassed);
-}
-
-.unified-quick-access-session-status.failed .codicon {
-	color: var(--vscode-testing-iconFailed);
 }
 
 @keyframes unified-spin {

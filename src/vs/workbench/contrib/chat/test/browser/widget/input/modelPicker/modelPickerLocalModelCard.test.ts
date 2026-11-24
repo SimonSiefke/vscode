@@ -399,7 +399,7 @@ suite('LocalModelCard', () => {
 			spinner: true,
 			sameAfterStep: true,
 			afterReady: null,
-			reduced: 'codicon codicon-session-in-progress',
+			reduced: 'codicon codicon-session-in-progress chat-local-model-busy-glyph',
 		});
 	});
 

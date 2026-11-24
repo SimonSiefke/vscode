@@ -16,7 +16,7 @@
 	opacity: 1;
 }
 
-.chat-diff-change-content-widget .monaco-action-bar {
+.chat-diff-change-content-widget .monaco-action-bar:where(.chat-diff-overlay-action-bar) {
 	padding: 4px 4px;
 	border-radius: 6px;
 	background-color: var(--vscode-editorWidget-background);
@@ -25,7 +25,7 @@
 	overflow: hidden;
 }
 
-.chat-diff-change-content-widget .monaco-action-bar .actions-container {
+.chat-diff-change-content-widget .monaco-action-bar .actions-container:where(.chat-diff-overlay-actions) {
 	gap: 4px;
 }
 

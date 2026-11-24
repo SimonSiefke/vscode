@@ -599,6 +599,7 @@ export class SplitView<TLayoutContext = undefined, TView extends IView<TLayoutCo
 			scheduleAtNextAnimationFrame: callback => scheduleAtNextAnimationFrame(getWindow(this.el), callback),
 		}));
 		this.scrollableElement = this._register(new SmoothScrollableElement(this.viewContainer, {
+			className: 'monaco-split-view-scrollable',
 			vertical: this.orientation === Orientation.VERTICAL ? (options.scrollbarVisibility ?? ScrollbarVisibility.Auto) : ScrollbarVisibility.Hidden,
 			horizontal: this.orientation === Orientation.HORIZONTAL ? (options.scrollbarVisibility ?? ScrollbarVisibility.Auto) : ScrollbarVisibility.Hidden
 		}, this.scrollable));

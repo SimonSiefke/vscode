@@ -349,7 +349,7 @@ suite('Voice Mode onboarding', () => {
 				activeElement: document.body,
 				card,
 				tabIndex: 0,
-				closeIcon: 'action-label codicon codicon-close-compact voice-mode-onboarding-close chat-input-notice-dismiss',
+				closeIcon: 'action-label chat-input-notice-action-label codicon codicon-close-compact voice-mode-onboarding-close chat-input-notice-dismiss',
 				listeningNotice: null,
 			});
 	});

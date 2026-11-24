@@ -187,6 +187,7 @@ export function getModelHoverContent(
 			const buttonsContainer = dom.$('.chat-model-hover-configurable-buttons');
 			for (const { group, label } of configButtons) {
 				const button = disposables.add(new Button(buttonsContainer, {
+					buttonClassName: 'chat-model-configuration-button',
 					...defaultButtonStyles,
 					secondary: true,
 					title: label,
@@ -221,7 +222,8 @@ export function repeatsMessageBanner(model: ILanguageModelChatMetadataAndIdentif
  */
 export function createMessageBanner(message: string, className: string, icon: ThemeIcon, disposables: DisposableStore, openerService: IOpenerService): HTMLElement {
 	const banner = dom.$(`.${className}`);
-	banner.appendChild(renderIcon(icon));
+	const bannerIcon = banner.appendChild(renderIcon(icon));
+	bannerIcon.classList.add('chat-model-banner-icon');
 	const markdown = new MarkdownString(message, { isTrusted: false, supportThemeIcons: true });
 	const rendered = disposables.add(renderMarkdown(markdown, {
 		actionHandler: link => { void openerService.open(link, { allowCommands: false, fromUserGesture: true }); },

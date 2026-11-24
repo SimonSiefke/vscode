@@ -235,6 +235,7 @@ export class SuggestWidget implements IDisposable {
 			getHeight: (_element: CompletionItem): number => this.getLayoutInfo().itemHeight,
 			getTemplateId: (_element: CompletionItem): string => 'suggestion'
 		}, [renderer], {
+			rowClassName: 'editor-suggest-list-row',
 			alwaysConsumeMouseWheel: true,
 			useShadows: false,
 			mouseSupport: false,

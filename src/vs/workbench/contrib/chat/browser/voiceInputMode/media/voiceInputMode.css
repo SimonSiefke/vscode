@@ -56,7 +56,7 @@
 /* Compact glyph size, matching the agent / model picker icons that sit beside the pill.
  * Needs to outrank the `font` shorthand on `.codicon[class*='codicon-']`, and to drop the
  * fixed 16px box the action bar puts on every codicon so the glyph sizes to its font. */
-.monaco-workbench .chat-voice-input-mode-icon.codicon[class*='codicon-'] {
+.monaco-workbench .codicon[class*='codicon-'].chat-voice-input-mode-icon {
 	font-size: var(--vscode-codiconFontSize-compact);
 	width: auto;
 	height: auto;

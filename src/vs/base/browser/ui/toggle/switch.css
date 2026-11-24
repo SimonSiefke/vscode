@@ -18,7 +18,7 @@
 	transition: background-color 120ms ease, border-color 120ms ease;
 }
 
-.monaco-switch.checked {
+.checked.monaco-switch {
 	background: var(--vscode-button-background);
 	border-color: var(--vscode-button-background);
 }

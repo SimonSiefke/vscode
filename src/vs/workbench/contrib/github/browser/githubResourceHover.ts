@@ -91,30 +91,31 @@ export interface ICommitResourceHoverData extends IGitHubResourceHoverData {
 export function createIssueResourceHover(data: IIssueResourceHoverData): IGitHubResourceHover {
 	const hoverElement = createChatPillHoverElement('sessions-issue-hover', data.density);
 
-	const header = append(hoverElement, $('.sessions-issue-hover-header'));
-	const repositoryLink = appendHoverLink(header, 'sessions-issue-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
+	const header = append(hoverElement, $('.sessions-issue-hover-header.github-resource-hover-header'));
+	const repositoryLink = appendHoverLink(header, 'sessions-issue-hover-repository github-resource-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
 	const createdAt = getGitHubHoverDate(data.issue.createdAt);
 	if (createdAt) {
-		append(header, $('span.sessions-issue-hover-date', undefined, localize('github.issueHover.createdDate', "on {0}", createdAt)));
+		append(header, $('span.sessions-issue-hover-date.github-resource-hover-date.github-resource-hover-metadata', undefined, localize('github.issueHover.createdDate', "on {0}", createdAt)));
 	}
 
 	const title = data.issue.title || localize('github.issueHover.titleFallback', "Issue #{0}", data.number);
-	const titleElement = append(hoverElement, $('.sessions-issue-hover-title'));
-	const titleContent = append(titleElement, $('.sessions-issue-hover-title-content'));
-	const titleLayout = appendGitHubHoverTitle(titleContent, title, 'sessions-issue-hover-title-tail');
+	const titleElement = append(hoverElement, $('.sessions-issue-hover-title.github-resource-hover-title'));
+	const titleContent = append(titleElement, $('.sessions-issue-hover-title-content.github-resource-hover-title-content'));
+	const titleLayout = appendGitHubHoverTitle(titleContent, title, 'sessions-issue-hover-title-tail github-resource-hover-title-tail');
 	const referenceLink = appendHoverLink(titleLayout.referenceContainer, 'sessions-issue-hover-reference', data.referenceHref, `#${data.number}`, data.onDidClickReference, localize('github.issueHover.reference', "Issue #{0}", data.number));
 	referenceLink.onfocus = titleLayout.showFullTitle;
 	referenceLink.onblur = titleLayout.showBoundedTitle;
 	titleElement.title = title;
 
-	const statusRow = append(hoverElement, $('.sessions-issue-hover-status-row'));
+	const statusRow = append(hoverElement, $('.sessions-issue-hover-status-row.github-resource-hover-status-row'));
 	statusRow.setAttribute('aria-live', 'polite');
 	statusRow.setAttribute('aria-atomic', 'true');
 	const status = getIssueResourceStatus(data.issue);
-	const statusElement = append(statusRow, $('span.sessions-issue-hover-status'));
+	const statusElement = append(statusRow, $('span.sessions-issue-hover-status.github-resource-hover-status'));
 	statusElement.dataset.state = status.kind;
 	const statusIcon = computeIssueIcon(data.issue.state, data.issue.stateReason);
 	const statusIconElement = append(statusElement, renderIcon(statusIcon));
+	statusIconElement.classList.add('github-resource-hover-status-icon');
 	statusIconElement.setAttribute('aria-hidden', 'true');
 	if (statusIcon.color) {
 		statusIconElement.style.color = asCssVariable(statusIcon.color.id);
@@ -124,37 +125,38 @@ export function createIssueResourceHover(data: IIssueResourceHoverData): IGitHub
 	refreshStatus.hidden = true;
 
 	appendDescription(hoverElement, 'sessions-issue-hover', data.issue.body, localize('github.issueHover.bodyFallback', "No description provided."));
-	append(hoverElement, $('.sessions-issue-hover-author', undefined, localize('github.issueHover.author', "@{0} opened this issue", data.issue.author.login)));
+	append(hoverElement, $('.sessions-issue-hover-author.github-resource-hover-metadata', undefined, localize('github.issueHover.author', "@{0} opened this issue", data.issue.author.login)));
 	return { element: hoverElement, tabbableElements: [repositoryLink, referenceLink], statusRow, refreshStatus, liveElements: [statusRow] };
 }
 
 export function createPullRequestResourceHover(data: IPullRequestResourceHoverData): IGitHubResourceHover {
 	const hoverElement = createChatPillHoverElement('sessions-pr-hover', data.density);
 
-	const header = append(hoverElement, $('.sessions-pr-hover-header'));
-	const repositoryLink = appendHoverLink(header, 'sessions-pr-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
+	const header = append(hoverElement, $('.sessions-pr-hover-header.github-resource-hover-header'));
+	const repositoryLink = appendHoverLink(header, 'sessions-pr-hover-repository github-resource-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
 	const createdAt = getGitHubHoverDate(data.pullRequest.createdAt);
 	if (createdAt) {
-		append(header, $('span.sessions-pr-hover-date', undefined, localize('github.pullRequestHover.createdDate', "on {0}", createdAt)));
+		append(header, $('span.sessions-pr-hover-date.github-resource-hover-date.github-resource-hover-metadata', undefined, localize('github.pullRequestHover.createdDate', "on {0}", createdAt)));
 	}
 
 	const title = data.pullRequest.title || localize('github.pullRequestHover.titleFallback', "Pull Request #{0}", data.number);
-	const titleElement = append(hoverElement, $('.sessions-pr-hover-title'));
-	const titleContent = append(titleElement, $('.sessions-pr-hover-title-content'));
-	const titleLayout = appendGitHubHoverTitle(titleContent, title, 'sessions-pr-hover-title-tail');
+	const titleElement = append(hoverElement, $('.sessions-pr-hover-title.github-resource-hover-title'));
+	const titleContent = append(titleElement, $('.sessions-pr-hover-title-content.github-resource-hover-title-content'));
+	const titleLayout = appendGitHubHoverTitle(titleContent, title, 'sessions-pr-hover-title-tail github-resource-hover-title-tail');
 	const referenceLink = appendHoverLink(titleLayout.referenceContainer, 'sessions-pr-hover-reference', data.referenceHref, `#${data.number}`, data.onDidClickReference, localize('github.pullRequestHover.reference', "Pull Request #{0}", data.number));
 	referenceLink.onfocus = titleLayout.showFullTitle;
 	referenceLink.onblur = titleLayout.showBoundedTitle;
 	titleElement.title = title;
 
-	const statusRow = append(hoverElement, $('.sessions-pr-hover-status-row'));
+	const statusRow = append(hoverElement, $('.sessions-pr-hover-status-row.github-resource-hover-status-row'));
 	statusRow.setAttribute('aria-live', 'polite');
 	statusRow.setAttribute('aria-atomic', 'true');
 	const status = getPullRequestResourceStatus(data.pullRequest);
-	const statusElement = append(statusRow, $('span.sessions-pr-hover-status'));
+	const statusElement = append(statusRow, $('span.sessions-pr-hover-status.github-resource-hover-status'));
 	statusElement.dataset.state = status.kind;
 	const statusIcon = computePullRequestIcon(status.kind, { hasFailingChecks: data.checksStatus === 'failure' });
 	const statusIconElement = append(statusElement, renderIcon(statusIcon));
+	statusIconElement.classList.add('github-resource-hover-status-icon');
 	statusIconElement.setAttribute('aria-hidden', 'true');
 	if (statusIcon.color) {
 		statusIconElement.style.color = asCssVariable(statusIcon.color.id);
@@ -170,7 +172,7 @@ export function createPullRequestResourceHover(data: IPullRequestResourceHoverDa
 	const branchArrow = append(branchRow, $('span.sessions-pr-hover-branch-arrow', undefined, '\u2190'));
 	branchArrow.setAttribute('aria-hidden', 'true');
 	const headBranch = appendBranchPill(branchRow, data.pullRequest.headRef || localize('github.pullRequestHover.headFallback', "source"), 'head', data.onDidClickHeadBranch);
-	append(hoverElement, $('.sessions-pr-hover-author', undefined, localize('github.pullRequestHover.author', "@{0} opened this pull request", data.pullRequest.author.login)));
+	append(hoverElement, $('.sessions-pr-hover-author.github-resource-hover-metadata', undefined, localize('github.pullRequestHover.author', "@{0} opened this pull request", data.pullRequest.author.login)));
 
 	return {
 		element: hoverElement,
@@ -184,18 +186,18 @@ export function createPullRequestResourceHover(data: IPullRequestResourceHoverDa
 export function createCommitResourceHover(data: ICommitResourceHoverData): IGitHubResourceHover {
 	const hoverElement = createChatPillHoverElement('sessions-commit-hover', data.density);
 
-	const header = append(hoverElement, $('.sessions-commit-hover-header'));
-	const repositoryLink = appendHoverLink(header, 'sessions-commit-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
+	const header = append(hoverElement, $('.sessions-commit-hover-header.github-resource-hover-header'));
+	const repositoryLink = appendHoverLink(header, 'sessions-commit-hover-repository github-resource-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
 	const committedAt = getGitHubHoverDate(data.commit.committedAt);
 	if (committedAt) {
-		append(header, $('span.sessions-commit-hover-date', undefined, localize('github.commitHover.committedDate', "on {0}", committedAt)));
+		append(header, $('span.sessions-commit-hover-date.github-resource-hover-date.github-resource-hover-metadata', undefined, localize('github.commitHover.committedDate', "on {0}", committedAt)));
 	}
 
 	const [headline, ...descriptionLines] = data.commit.message.split(/\r?\n/);
 	const title = headline || data.commit.sha;
-	const titleElement = append(hoverElement, $('.sessions-commit-hover-title'));
-	const titleContent = append(titleElement, $('.sessions-commit-hover-title-content'));
-	const titleLayout = appendGitHubHoverTitle(titleContent, title, 'sessions-commit-hover-title-tail');
+	const titleElement = append(hoverElement, $('.sessions-commit-hover-title.github-resource-hover-title'));
+	const titleContent = append(titleElement, $('.sessions-commit-hover-title-content.github-resource-hover-title-content'));
+	const titleLayout = appendGitHubHoverTitle(titleContent, title, 'sessions-commit-hover-title-tail github-resource-hover-title-tail');
 	const shortSha = data.commit.sha.slice(0, 12);
 	const referenceLink = appendHoverLink(titleLayout.referenceContainer, 'sessions-commit-hover-reference', data.referenceHref, `@${shortSha}`, data.onDidClickReference, localize('github.commitHover.reference', "Commit {0}", shortSha));
 	referenceLink.onfocus = titleLayout.showFullTitle;
@@ -203,7 +205,7 @@ export function createCommitResourceHover(data: ICommitResourceHoverData): IGitH
 	titleElement.title = title;
 
 	appendDescription(hoverElement, 'sessions-commit-hover', descriptionLines.join('\n').trim(), localize('github.commitHover.bodyFallback', "No additional commit message."));
-	append(hoverElement, $('.sessions-commit-hover-author', undefined, localize('github.commitHover.author', "@{0} committed this change", data.commit.author.login)));
+	append(hoverElement, $('.sessions-commit-hover-author.github-resource-hover-metadata', undefined, localize('github.commitHover.author', "@{0} committed this change", data.commit.author.login)));
 	return { element: hoverElement, tabbableElements: [repositoryLink, referenceLink] };
 }
 
@@ -305,8 +307,8 @@ function appendHoverLink(container: HTMLElement, className: string, href: string
 }
 
 function appendDescription(container: HTMLElement, classPrefix: string, body: string, fallback: string): void {
-	const description = append(container, $(`.${classPrefix}-description`));
-	append(description, $(`.${classPrefix}-description-content`, undefined, getGitHubHoverDescription(body, fallback)));
+	const description = append(container, $(`.${classPrefix}-description.github-resource-hover-description`));
+	append(description, $(`.${classPrefix}-description-content.github-resource-hover-description-content`, undefined, getGitHubHoverDescription(body, fallback)));
 }
 
 function appendChecksStatus(container: HTMLElement, pullRequest: IGitHubPullRequestHoverModel, checksStatus: GitHubChecksStatus | undefined): void {
@@ -314,9 +316,10 @@ function appendChecksStatus(container: HTMLElement, pullRequest: IGitHubPullRequ
 	if (!status) {
 		return;
 	}
-	const checksElement = append(container, $('span.sessions-pr-hover-checks'));
+	const checksElement = append(container, $('span.sessions-pr-hover-checks.github-resource-hover-status'));
 	checksElement.dataset.status = status.kind;
 	const checksIcon = append(checksElement, renderIcon(status.icon));
+	checksIcon.classList.add('github-resource-hover-status-icon');
 	checksIcon.setAttribute('aria-hidden', 'true');
 	append(checksElement, $('span.sessions-pr-hover-checks-label', undefined, status.label));
 }

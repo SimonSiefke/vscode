@@ -63,7 +63,8 @@
 }
 
 .modern-ui :is(.part.sidebar, .part.auxiliarybar) .monaco-pane-view .pane,
-.modern-ui.floating-panels :is(.part.sidebar, .part.auxiliarybar) {
+.modern-ui.floating-panels .part.sidebar,
+.modern-ui.floating-panels .part.auxiliarybar {
 	background-color: var(--vscode-sideBar-background) !important;
 }
 

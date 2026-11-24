@@ -141,7 +141,7 @@ export class ChatSessionWorkingSet extends Disposable {
 
 		const overview = dom.append(this.domNode, dom.$('.chat-editing-session-overview'));
 		const title = dom.append(overview, dom.$('.working-set-title'));
-		const button = this._register(new ButtonWithIcon(title, { secondary: true, supportIcons: true }));
+		const button = this._register(new ButtonWithIcon(title, { secondary: true, supportIcons: true, buttonClassName: 'chat-working-set-title-button', iconClassName: 'chat-working-set-title-content', contentClassName: 'chat-working-set-title-content' }));
 		const counts = dom.append(button.element, dom.$('.working-set-line-counts', { 'aria-hidden': 'true' }));
 		const addedLabel = dom.append(counts, dom.$('.working-set-lines-added'));
 		const removedLabel = dom.append(counts, dom.$('.working-set-lines-removed'));

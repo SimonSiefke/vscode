@@ -581,7 +581,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 		// feedback. Submit's label includes the count of inline comments.
 		if (this._isFeedbackMode) {
 			const inlineCount = this.getInlineFeedbackItems().length;
-			const submitButton = new Button(container, { ...defaultButtonStyles, supportIcons: true });
+			const submitButton = new Button(container, { ...defaultButtonStyles, supportIcons: true, buttonClassName: 'chat-plan-review-action-button' });
 			submitButton.label = this.computeSubmitLabel(inlineCount);
 			submitButton.enabled = this.canSubmitFeedback();
 			this._submitButton = submitButton;
@@ -598,6 +598,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 		let approveButton: IButton;
 		if (moreActions.length > 0) {
 			approveButton = new ButtonWithDropdown(container, {
+				buttonClassName: 'chat-plan-review-action-button',
 				...defaultButtonStyles,
 				supportIcons: true,
 				secondary: this._isFeedbackMode,
@@ -618,8 +619,9 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 					return this._buttonStore.add(button);
 				}) as (Action | Separator)[],
 			});
+			approveButton.element.classList.add('chat-plan-review-action-dropdown');
 		} else {
-			approveButton = new Button(container, { ...defaultButtonStyles, secondary: this._isFeedbackMode, supportIcons: true });
+			approveButton = new Button(container, { ...defaultButtonStyles, secondary: this._isFeedbackMode, supportIcons: true, buttonClassName: 'chat-plan-review-action-button' });
 		}
 		this._buttonStore.add(approveButton);
 		this._approveButton = approveButton;
@@ -634,7 +636,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 		// chatToolConfirmationCarouselPart which only surfaces the primary
 		// action when collapsed).
 		if (includeReject) {
-			const rejectButton = new Button(container, { ...defaultButtonStyles, secondary: true });
+			const rejectButton = new Button(container, { ...defaultButtonStyles, secondary: true, buttonClassName: 'chat-plan-review-action-button' });
 			rejectButton.label = localize('chat.planReview.reject', 'Reject');
 			this._buttonStore.add(rejectButton);
 			this._buttonStore.add(rejectButton.onDidClick(() => this.submitRejection()));

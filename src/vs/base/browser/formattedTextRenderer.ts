@@ -16,6 +16,8 @@ export interface IContentActionHandler {
 export interface FormattedTextRenderOptions {
 	readonly actionHandler?: IContentActionHandler;
 	readonly renderCodeSegments?: boolean;
+	/** Class applied when action links are created, including nested formatting. */
+	readonly linkClassName?: string;
 }
 
 export function renderText(text: string, _options?: FormattedTextRenderOptions, target?: HTMLElement): HTMLElement {
@@ -27,7 +29,7 @@ export function renderText(text: string, _options?: FormattedTextRenderOptions, 
 export function renderFormattedText(formattedText: string, options?: FormattedTextRenderOptions, target?: HTMLElement): HTMLElement {
 	const element = target ?? document.createElement('div');
 	element.textContent = '';
-	_renderFormattedText(element, parseFormattedText(formattedText, !!options?.renderCodeSegments), options?.actionHandler, options?.renderCodeSegments);
+	_renderFormattedText(element, parseFormattedText(formattedText, !!options?.renderCodeSegments), options?.actionHandler, options?.renderCodeSegments, options?.linkClassName);
 	return element;
 }
 
@@ -78,7 +80,7 @@ interface IFormatParseTree {
 	children?: IFormatParseTree[];
 }
 
-function _renderFormattedText(element: Node, treeNode: IFormatParseTree, actionHandler?: IContentActionHandler, renderCodeSegments?: boolean) {
+function _renderFormattedText(element: Node, treeNode: IFormatParseTree, actionHandler?: IContentActionHandler, renderCodeSegments?: boolean, linkClassName?: string) {
 	let child: Node | undefined;
 
 	if (treeNode.type === FormatType.Text) {
@@ -91,6 +93,9 @@ function _renderFormattedText(element: Node, treeNode: IFormatParseTree, actionH
 		child = document.createElement('code');
 	} else if (treeNode.type === FormatType.Action && actionHandler) {
 		const a = document.createElement('a');
+		if (linkClassName) {
+			a.classList.add(linkClassName);
+		}
 		actionHandler.disposables.add(DOM.addStandardDisposableListener(a, 'click', (event) => {
 			actionHandler.callback(String(treeNode.index), event);
 		}));
@@ -108,7 +113,7 @@ function _renderFormattedText(element: Node, treeNode: IFormatParseTree, actionH
 
 	if (child && Array.isArray(treeNode.children)) {
 		treeNode.children.forEach((nodeChild) => {
-			_renderFormattedText(child, nodeChild, actionHandler, renderCodeSegments);
+			_renderFormattedText(child, nodeChild, actionHandler, renderCodeSegments, linkClassName);
 		});
 	}
 }

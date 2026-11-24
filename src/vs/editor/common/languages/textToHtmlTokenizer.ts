@@ -18,20 +18,22 @@ const fallback: IReducedTokenizationSupport = {
 	tokenizeEncoded: (buffer: string, hasEOL: boolean, state: IState) => nullTokenizeEncoded(LanguageId.Null, state)
 };
 
-export function tokenizeToStringSync(languageService: ILanguageService, text: string, languageId: string): string {
-	return _tokenizeToString(text, languageService.languageIdCodec, TokenizationRegistry.get(languageId) || fallback);
+export function tokenizeToStringSync(languageService: ILanguageService, text: string, languageId: string, elementClassName?: string): string {
+	return _tokenizeToString(text, languageService.languageIdCodec, TokenizationRegistry.get(languageId) || fallback, elementClassName);
 }
 
-export async function tokenizeToString(languageService: ILanguageService, text: string, languageId: string | null): Promise<string> {
+export async function tokenizeToString(languageService: ILanguageService, text: string, languageId: string | null, elementClassName?: string): Promise<string> {
 	if (!languageId) {
-		return _tokenizeToString(text, languageService.languageIdCodec, fallback);
+		return _tokenizeToString(text, languageService.languageIdCodec, fallback, elementClassName);
 	}
 	const tokenizationSupport = await TokenizationRegistry.getOrCreate(languageId);
-	return _tokenizeToString(text, languageService.languageIdCodec, tokenizationSupport || fallback);
+	return _tokenizeToString(text, languageService.languageIdCodec, tokenizationSupport || fallback, elementClassName);
 }
 
-export function tokenizeLineToHTML(text: string, viewLineTokens: IViewLineTokens, colorMap: string[], startOffset: number, endOffset: number, tabSize: number, useNbsp: boolean): string {
-	let result = `<div>`;
+export function tokenizeLineToHTML(text: string, viewLineTokens: IViewLineTokens, colorMap: string[], startOffset: number, endOffset: number, tabSize: number, useNbsp: boolean, elementClassName?: string): string {
+	const elementClass = elementClassName ? strings.htmlAttributeEncodeValue(elementClassName) : '';
+	const classAttribute = elementClass ? ` class="${elementClass}"` : '';
+	let result = `<div${classAttribute}>`;
 	let charIndex = 0;
 	let width = 0;
 
@@ -127,7 +129,7 @@ export function tokenizeLineToHTML(text: string, viewLineTokens: IViewLineTokens
 			continue;
 		}
 
-		result += `<span style="${viewLineTokens.getInlineStyle(tokenIndex, colorMap)}">${partContent}</span>`;
+		result += `<span${classAttribute} style="${viewLineTokens.getInlineStyle(tokenIndex, colorMap)}">${partContent}</span>`;
 
 		if (tokenEndIndex > endOffset || charIndex >= endOffset || startOffset >= endOffset) {
 			break;
@@ -138,15 +140,17 @@ export function tokenizeLineToHTML(text: string, viewLineTokens: IViewLineTokens
 	return result;
 }
 
-export function _tokenizeToString(text: string, languageIdCodec: ILanguageIdCodec, tokenizationSupport: IReducedTokenizationSupport): string {
-	let result = `<div class="monaco-tokenized-source">`;
+export function _tokenizeToString(text: string, languageIdCodec: ILanguageIdCodec, tokenizationSupport: IReducedTokenizationSupport, elementClassName?: string): string {
+	const elementClass = elementClassName ? strings.htmlAttributeEncodeValue(elementClassName) : '';
+	const extraClass = elementClass ? ` ${elementClass}` : '';
+	let result = `<div class="monaco-tokenized-source${extraClass}">`;
 	const lines = strings.splitLines(text);
 	let currentState = tokenizationSupport.getInitialState();
 	for (let i = 0, len = lines.length; i < len; i++) {
 		const line = lines[i];
 
 		if (i > 0) {
-			result += `<br/>`;
+			result += elementClass ? `<br class="${elementClass}"/>` : `<br/>`;
 		}
 
 		const tokenizationResult = tokenizationSupport.tokenizeEncoded(line, true, currentState);
@@ -158,7 +162,7 @@ export function _tokenizeToString(text: string, languageIdCodec: ILanguageIdCode
 		for (let j = 0, lenJ = viewLineTokens.getCount(); j < lenJ; j++) {
 			const type = viewLineTokens.getClassName(j);
 			const endIndex = viewLineTokens.getEndOffset(j);
-			result += `<span class="${type}">${strings.escape(line.substring(startOffset, endIndex))}</span>`;
+			result += `<span class="${type}${extraClass}">${strings.escape(line.substring(startOffset, endIndex))}</span>`;
 			startOffset = endIndex;
 		}
 

@@ -46,6 +46,7 @@ export const enum ChatInputStackSlot {
 	Standalone,
 }
 
+const memberClass = 'chat-input-stack-member';
 const dockedClass = 'chat-input-stack-docked';
 const standaloneClass = 'chat-input-stack-standalone';
 /** Set by the stack, not by slots: this slot continues the run above it. */
@@ -121,6 +122,7 @@ function updateChatInputStack(stack: HTMLElement): void {
 		if (!isHTMLElement(slot)) {
 			continue;
 		}
+		slot.classList.toggle(memberClass, true);
 		slot.classList.toggle(continuesClass, docked);
 
 		if (slot.classList.contains(dockedClass)) {

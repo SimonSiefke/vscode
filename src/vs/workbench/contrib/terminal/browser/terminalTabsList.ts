@@ -294,6 +294,8 @@ class TerminalTabsRenderer implements IListRenderer<ITerminalInstance, ITerminal
 		const templateDisposables = new DisposableStore();
 
 		const label = templateDisposables.add(this._labels.create(element, {
+			descriptionContainerClassName: 'terminal-tab-description',
+			nameContainerClassName: 'terminal-tab-name',
 			supportHighlights: true,
 			supportDescriptionHighlights: true,
 			supportIcons: true,
@@ -436,6 +438,7 @@ class TerminalTabsRenderer implements IListRenderer<ITerminalInstance, ITerminal
 		const disposables = new DisposableStore();
 		const inputBox = disposables.add(this._instantiationService.createInstance(InlineEditInputBox, container, editableData, {
 			value: instance.title || '',
+			inputBoxClassName: 'terminal-tab-inline-input-box',
 			ariaLabel: localize('terminalInputAriaLabel', "Type terminal name. Press Enter to confirm or Escape to cancel.")
 		})).inputBox;
 

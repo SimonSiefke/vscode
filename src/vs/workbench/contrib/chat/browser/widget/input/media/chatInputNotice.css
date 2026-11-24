@@ -212,7 +212,7 @@
 	flex-shrink: 0;
 }
 
-.chat-input-notice-action .action-label {
+.chat-input-notice-action .action-label:where(.chat-input-notice-action-label) {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -232,7 +232,7 @@
  * without out-ranking it this renders as a dark 16px icon rather than a compact
  * one inheriting the button's foreground.
  */
-.monaco-workbench .chat-input-notice-action .codicon[class*='codicon-'] {
+.monaco-workbench .chat-input-notice-action .codicon[class*='codicon-']:where(.chat-input-notice-action-label) {
 	font-size: var(--vscode-codiconFontSize-compact);
 	line-height: 1;
 	color: inherit;

@@ -56,7 +56,7 @@
 }
 
 /* Icon content sits above the hover background. */
-.monaco-segmented-icon-toggle-cell > * {
+.monaco-segmented-icon-toggle-content {
 	position: relative;
 	z-index: 1;
 }
@@ -92,7 +92,7 @@
  * `visibility: hidden` (delayed until the width/opacity transition finishes) also removes
  * the collapsed native button from the Tab order and accessibility tree, so it can't be
  * focused or keyboard-activated while invisible. */
-.monaco-segmented-icon-toggle-cell.collapsed {
+.collapsed.monaco-segmented-icon-toggle-cell {
 	width: 0;
 	opacity: 0;
 	pointer-events: none;

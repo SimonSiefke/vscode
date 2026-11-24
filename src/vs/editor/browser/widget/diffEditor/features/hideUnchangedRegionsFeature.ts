@@ -318,7 +318,7 @@ class CollapsedCodeOverlayWidget extends ViewZoneOverlayWidget {
 				[
 					h('span.line-number-control@lineNumberControl', { 'aria-hidden': 'true' }),
 					$('a.default-control', { title: localize('showUnchangedRegion', 'Show Unchanged Region'), role: 'button', onclick: () => { this._unchangedRegion.showAll(undefined); } },
-						...renderLabelWithIcons('$(unfold)'))]
+						...renderLabelWithIcons('$(unfold)', undefined, 'diff-hidden-lines-glyph'))]
 			),
 			h('div.content-row@others', { style: { display: 'flex', justifyContent: 'center', alignItems: 'center' } }),
 		]),
@@ -385,7 +385,7 @@ class CollapsedCodeOverlayWidget extends ViewZoneOverlayWidget {
 					: localize('diff.hiddenLines.expand', 'Show {0} hidden lines', this._unchangedRegion.getHiddenModifiedRange(reader).length);
 				this._nodes.toggle.setAttribute('aria-expanded', String(isFullyRevealed));
 				this._nodes.toggle.setAttribute('aria-label', actionLabel);
-				reset(this._nodes.lineNumberControl, ...renderLabelWithIcons(isFullyRevealed ? '$(fold)' : '$(unfold)'));
+				reset(this._nodes.lineNumberControl, ...renderLabelWithIcons(isFullyRevealed ? '$(fold)' : '$(unfold)', undefined, 'diff-hidden-lines-glyph'));
 			}
 			this._nodes.bottom.classList.toggle('canMoveTop', !isFullyRevealed);
 			this._nodes.bottom.classList.toggle('canMoveBottom', this._unchangedRegion.visibleLineCountBottom.read(reader) > 0);
@@ -523,12 +523,12 @@ class CollapsedCodeOverlayWidget extends ViewZoneOverlayWidget {
 						const divItem = h('div.breadcrumb-item', {
 							style: { display: 'flex', alignItems: 'center' },
 						}, [
-							renderIcon(icon),
+							renderIcon(icon, undefined, 'diff-hidden-lines-glyph'),
 							'\u00a0',
 							h('span.breadcrumb-label', [item.name]).root,
 							...(i === items.length - 1
 								? []
-								: [renderIcon(Codicon.chevronRight)]
+								: [renderIcon(Codicon.chevronRight, undefined, 'diff-hidden-lines-glyph')]
 							)
 						]).root;
 						children.push(divItem);
@@ -555,6 +555,9 @@ class CollapsedCodeOverlayWidget extends ViewZoneOverlayWidget {
 			}
 
 			if (this._compactControl && children.length > 0) {
+				for (const child of children) {
+					child.classList.add('diff-hidden-lines-disclosure-content-item');
+				}
 				const content = h('div.disclosure-content', children).root;
 				reader.store.add(this._hoverService.setupDelayedHover(content, { content: content.textContent ?? '' }));
 				reset(this._nodes.others, h('div.line-left').root, content, h('div.line-right').root);

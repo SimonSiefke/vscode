@@ -201,7 +201,7 @@ export class DocumentSymbolRenderer implements ITreeRenderer<OutlineElement, Fuz
 
 	renderTemplate(container: HTMLElement): DocumentSymbolTemplate {
 		container.classList.add('outline-element');
-		const iconLabel = new IconLabel(container, { supportHighlights: true });
+		const iconLabel = new IconLabel(container, { supportHighlights: true, highlightedLabelClassName: 'outline-highlighted-label' });
 		const iconClass = dom.$('.outline-element-icon');
 		const decoration = dom.$('.outline-element-decoration');
 		container.prepend(iconClass);

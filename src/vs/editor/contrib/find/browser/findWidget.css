@@ -39,7 +39,7 @@
 	display: flex;
 }
 
-.monaco-editor .find-widget.visible {
+.monaco-editor .visible.find-widget {
 	transform: translateY(0);
 }
 
@@ -50,7 +50,7 @@
 	outline-color: var(--vscode-focusBorder);
 }
 
-.monaco-editor .find-widget .monaco-inputbox .input {
+.monaco-editor .find-widget .monaco-inputbox .monaco-inputbox-input {
 	background-color: transparent;
 	min-height: 0;
 }
@@ -72,14 +72,14 @@
 }
 
 
-.monaco-editor .find-widget > .replace-part .monaco-inputbox > .ibwrapper > .mirror {
+.monaco-editor .find-widget > .replace-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-mirror {
 	padding-right: 22px;
 }
 
-.monaco-editor .find-widget > .find-part .monaco-inputbox > .ibwrapper > .input,
-.monaco-editor .find-widget > .find-part .monaco-inputbox > .ibwrapper > .mirror,
-.monaco-editor .find-widget > .replace-part .monaco-inputbox > .ibwrapper > .input,
-.monaco-editor .find-widget > .replace-part .monaco-inputbox > .ibwrapper > .mirror {
+.monaco-editor .find-widget > .find-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-input,
+.monaco-editor .find-widget > .find-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-mirror,
+.monaco-editor .find-widget > .replace-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-input,
+.monaco-editor .find-widget > .replace-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-mirror {
 	padding-top: 2px;
 	padding-bottom: 2px;
 }
@@ -102,7 +102,7 @@
 	flex: 1;
 }
 
-.monaco-editor .find-widget .monaco-findInput .monaco-scrollable-element {
+.monaco-editor .find-widget .monaco-findInput .monaco-inputbox-scrollable {
 	/* Make sure textarea inherits the width correctly */
 	width: 100%;
 }

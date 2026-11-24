@@ -114,10 +114,13 @@ export class SubagentChatToolbar extends Disposable {
 			context => commandService.executeCommand(CHAT_OPEN_AGENT_HOST_CHAT_COMMAND_ID, context),
 		));
 		this.toolbar = this._register(instantiationService.createInstance(WorkbenchToolBar, container, {
+			actionBarClassName: 'chat-subagent-action-bar',
+			actionsContainerClassName: 'chat-subagent-toolbar-actions',
 			hiddenItemStrategy: HiddenItemStrategy.Ignore,
 			actionViewItemProvider: actionViewItemProvider ?? ((item, options) => actionViewItemService.lookUp(MenuId.ChatSubagentContent, CHAT_OPEN_AGENT_HOST_CHAT_COMMAND_ID)?.(item, options, instantiationService, getWindow(container).vscodeWindowId)
 				?? instantiationService.createInstance(OpenSubagentChatActionViewItem, undefined, item, options, !environmentService.isSessionsWindow && !ChatContextKeys.inSessionsChat.getValue(contextKeyService))),
 		}));
+		this.toolbar.getElement().classList.add('chat-subagent-toolbar-root');
 		this.toolbar.setActions([action]);
 		if (!actionViewItemProvider && !actionViewItemService.lookUp(MenuId.ChatSubagentContent, CHAT_OPEN_AGENT_HOST_CHAT_COMMAND_ID)) {
 			this._register(Event.once(Event.filter(actionViewItemService.onDidChange, menuId => menuId === MenuId.ChatSubagentContent))(() => {

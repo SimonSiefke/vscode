@@ -62,6 +62,12 @@ export class ChatRichLink implements IDisposable {
 	}
 
 	update(presentation: IChatLinkPresentation): void {
+		this.element.classList.toggle('chat-rich-link-lifecycle-status', presentation.status !== undefined && ['open', 'closed', 'merged', 'draft', 'notPlanned'].includes(presentation.status.kind));
+		this.element.classList.toggle('chat-rich-link-kind-issue', presentation.kind === 'issue');
+		this.element.classList.toggle('chat-rich-link-kind-pull-request', presentation.kind === 'pullRequest');
+		this.element.classList.toggle('chat-rich-link-github', presentation.kind === 'issue' || presentation.kind === 'pullRequest');
+		this.element.classList.toggle('chat-rich-link-session', presentation.kind === 'session' || presentation.kind === 'chat');
+		this.element.classList.toggle('chat-rich-link-session-alert', ['pending', 'warning', 'error'].includes(presentation.status?.kind ?? ''));
 		this.element.dataset.chatRichLinkKind = presentation.kind;
 		this.element.classList.toggle('chat-rich-link-loading', presentation.isLoading === true);
 		this.element.setAttribute('aria-busy', String(presentation.isLoading === true));
@@ -258,6 +264,10 @@ function updateRichLinkStatus(
 	status: IChatLinkPresentationStatus | undefined,
 	dataKey: 'chatRichLinkStatus' | 'chatRichLinkSecondaryStatus',
 ): void {
+	const statusClassPrefix = dataKey === 'chatRichLinkStatus' ? 'chat-rich-link-primary-' : 'chat-rich-link-secondary-';
+	for (const kind of ['pending', 'success', 'warning', 'error', 'open', 'closed', 'merged', 'draft', 'notPlanned']) {
+		element.classList.toggle(`${statusClassPrefix}${kind}`, status?.kind === kind);
+	}
 	if (!status) {
 		delete element.dataset[dataKey];
 		resetRichLinkStatus(dom);

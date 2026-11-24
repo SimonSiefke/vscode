@@ -770,6 +770,7 @@ export class CellOutputContainer extends CellContentPart {
 		};
 
 		const rendered = disposables.add(renderMarkdown(md, {
+			linkClassName: 'notebook-output-more-link',
 			actionHandler: (content) => {
 				if (content === 'command:workbench.action.openLargeOutput') {
 					this.openerService.open(CellUri.generateCellOutputUriWithId(this.notebookEditor.textModel!.uri));

@@ -213,7 +213,7 @@
 }
 
 /* Keep collapsed output fully hidden so it cannot contribute an extra border line. */
-.chat-terminal-output-container.collapsed,
+.collapsed.chat-terminal-output-container,
 .chat-terminal-output-container:not(.expanded) {
 	display: none;
 }
@@ -224,11 +224,11 @@
 	border-bottom: 0;
 }
 
-.chat-terminal-output-container.expanded {
+.expanded.chat-terminal-output-container {
 	display: block;
 }
 
-.chat-terminal-output-container > .monaco-scrollable-element {
+.chat-terminal-output-container > .chat-terminal-output-scrollable {
 	width: 100%;
 	background: inherit;
 }

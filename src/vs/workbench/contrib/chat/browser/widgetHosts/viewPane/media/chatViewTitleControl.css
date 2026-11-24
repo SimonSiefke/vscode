@@ -82,7 +82,7 @@
 		}
 	}
 
-	.chat-view-title-container.visible {
+	.visible.chat-view-title-container {
 		display: block;
 	}
 }

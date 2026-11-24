@@ -48,7 +48,7 @@ export class AnimatedCounterWidget extends Disposable {
 			? dom.$(`span.monaco-animated-counter.${cssClassName}`)
 			: dom.$('span.monaco-animated-counter');
 
-		this._element.appendChild(dom.$('span'));
+		this._element.appendChild(dom.$('span.monaco-animated-counter-value'));
 		container.appendChild(this._element);
 
 		this._animationOptions = {
@@ -95,7 +95,7 @@ export class AnimatedCounterWidget extends Disposable {
 		// that a change in the number of digits can be animated smoothly.
 		const previousWidth = this._element.getBoundingClientRect().width;
 
-		const incomingElement = dom.$('span', undefined, incomingElementText);
+		const incomingElement = dom.$('span.monaco-animated-counter-value', undefined, incomingElementText);
 		this._element?.appendChild(incomingElement);
 
 		// The incoming element is content-sized, so its width is the width the

@@ -235,7 +235,7 @@ export class InlineSuggestionHintsContentWidget extends Disposable implements IC
 					return instantiationService.createInstance(StatusBarViewItem, action, undefined);
 				}
 				if (action === this.availableSuggestionCountAction) {
-					const a = new ActionViewItemWithClassName(undefined, action, { label: true, icon: false });
+					const a = new ActionViewItemWithClassName(undefined, action, { label: true, icon: false, labelClassName: 'inline-suggestion-count-label' });
 					a.setClass('availableSuggestionCount');
 					return a;
 				}
@@ -351,7 +351,7 @@ class StatusBarViewItem extends MenuEntryActionViewItem {
 		if (this.label) {
 			const div = h('div.keybinding').root;
 
-			const k = this._register(new KeybindingLabel(div, OS, { disableTitle: true, ...unthemedKeybindingLabelOptions }));
+			const k = this._register(new KeybindingLabel(div, OS, { disableTitle: true, ...unthemedKeybindingLabelOptions, keyClassName: 'inline-suggestion-hint-key' }));
 			k.set(kb);
 			this.label.textContent = this._action.label;
 			this.label.appendChild(div);

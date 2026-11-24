@@ -75,10 +75,6 @@
 	max-width: 200px;
 }
 
-.chat-rich-link[data-chat-rich-link-kind='session'] :is(.chat-rich-link-label, .chat-rich-link-title) {
-	max-width: 150px;
-}
-
 .chat-rich-link-label[hidden],
 .chat-rich-link-title[hidden],
 .chat-rich-link-reference[hidden] {
@@ -158,13 +154,7 @@
 	color: inherit;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-status='open'],
-	[data-chat-rich-link-status='closed'],
-	[data-chat-rich-link-status='merged'],
-	[data-chat-rich-link-status='draft'],
-	[data-chat-rich-link-status='notPlanned']
-) .chat-rich-link-primary-status {
+.chat-rich-link.chat-rich-link-lifecycle-status .chat-rich-link-primary-status {
 	align-self: baseline;
 	padding: 0;
 	border: 0;
@@ -185,60 +175,55 @@
 	font-weight: var(--vscode-fontWeight-regular);
 }
 
-.chat-rich-link[data-chat-rich-link-status='success'] .chat-rich-link-primary-status {
+.chat-rich-link.chat-rich-link-primary-success .chat-rich-link-primary-status {
 	color: var(--vscode-charts-green);
 }
 
-.chat-rich-link[data-chat-rich-link-secondary-status='success'] .chat-rich-link-secondary-status {
+.chat-rich-link.chat-rich-link-secondary-success .chat-rich-link-secondary-status {
 	color: var(--vscode-charts-green);
 }
 
-.chat-rich-link[data-chat-rich-link-status='warning'] .chat-rich-link-primary-status,
-.chat-rich-link[data-chat-rich-link-secondary-status='warning'] .chat-rich-link-secondary-status,
-.chat-rich-link[data-chat-rich-link-status='pending'] .chat-rich-link-primary-status,
-.chat-rich-link[data-chat-rich-link-secondary-status='pending'] .chat-rich-link-secondary-status {
+.chat-rich-link.chat-rich-link-primary-warning .chat-rich-link-primary-status,
+.chat-rich-link.chat-rich-link-secondary-warning .chat-rich-link-secondary-status,
+.chat-rich-link.chat-rich-link-primary-pending .chat-rich-link-primary-status,
+.chat-rich-link.chat-rich-link-secondary-pending .chat-rich-link-secondary-status {
 	color: var(--vscode-editorWarning-foreground);
 }
 
-.chat-rich-link[data-chat-rich-link-status='error'] .chat-rich-link-primary-status,
-.chat-rich-link[data-chat-rich-link-secondary-status='error'] .chat-rich-link-secondary-status {
+.chat-rich-link.chat-rich-link-primary-error .chat-rich-link-primary-status,
+.chat-rich-link.chat-rich-link-secondary-error .chat-rich-link-secondary-status {
 	color: var(--vscode-errorForeground);
 }
 
-.chat-rich-link[data-chat-rich-link-kind='issue'] .chat-rich-link-primary-status .chat-rich-link-status-label,
-.chat-rich-link[data-chat-rich-link-kind='pullRequest'] :is(
-	.chat-rich-link-primary-status,
-	.chat-rich-link-secondary-status
-) .chat-rich-link-status-label {
+.chat-rich-link.chat-rich-link-kind-issue .chat-rich-link-primary-status .chat-rich-link-status-label,
+.chat-rich-link.chat-rich-link-kind-pull-request .chat-rich-link-primary-status .chat-rich-link-status-label,
+.chat-rich-link.chat-rich-link-kind-pull-request .chat-rich-link-secondary-status .chat-rich-link-status-label {
 	display: none;
 }
 
-.chat-rich-link[data-chat-rich-link-status='open'] .chat-rich-link-primary-status {
+.chat-rich-link.chat-rich-link-primary-open .chat-rich-link-primary-status {
 	color: var(--vscode-charts-green);
 }
 
-.chat-rich-link[data-chat-rich-link-kind='issue'][data-chat-rich-link-status='closed'] .chat-rich-link-primary-status,
-.chat-rich-link[data-chat-rich-link-status='merged'] .chat-rich-link-primary-status {
+.chat-rich-link.chat-rich-link-kind-issue.chat-rich-link-primary-closed .chat-rich-link-primary-status,
+.chat-rich-link.chat-rich-link-primary-merged .chat-rich-link-primary-status {
 	color: var(--vscode-charts-purple);
 }
 
-.chat-rich-link[data-chat-rich-link-kind='pullRequest'][data-chat-rich-link-status='closed'] .chat-rich-link-primary-status {
+.chat-rich-link.chat-rich-link-kind-pull-request.chat-rich-link-primary-closed .chat-rich-link-primary-status {
 	color: var(--vscode-charts-red);
 }
 
-.chat-rich-link[data-chat-rich-link-status='draft'] .chat-rich-link-primary-status,
-.chat-rich-link[data-chat-rich-link-status='notPlanned'] .chat-rich-link-primary-status {
+.chat-rich-link.chat-rich-link-primary-draft .chat-rich-link-primary-status,
+.chat-rich-link.chat-rich-link-primary-notPlanned .chat-rich-link-primary-status {
 	color: var(--vscode-descriptionForeground);
 }
 
-.chat-rich-link[data-chat-rich-link-kind='pullRequest'][data-chat-rich-link-secondary-status='error'] .chat-rich-link-secondary-status {
+.chat-rich-link.chat-rich-link-kind-pull-request.chat-rich-link-secondary-error .chat-rich-link-secondary-status {
 	color: var(--vscode-charts-red);
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='issue'],
-	[data-chat-rich-link-kind='pullRequest']
-) {
+.chat-rich-link.chat-rich-link-github {
 	align-items: center;
 	gap: var(--vscode-spacing-size40);
 	padding: 1px var(--vscode-spacing-size60);
@@ -257,31 +242,21 @@
 	color: var(--vscode-button-secondaryForeground);
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='issue'],
-	[data-chat-rich-link-kind='pullRequest']
-) .chat-rich-link-reference {
+.chat-rich-link.chat-rich-link-github .chat-rich-link-reference {
 	display: none;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='issue'],
-	[data-chat-rich-link-kind='pullRequest']
-) :is(
-	.chat-rich-link-label,
-	.chat-rich-link-title,
-	.chat-rich-link-primary-status,
-	.chat-rich-link-secondary-status
-) {
+.chat-rich-link.chat-rich-link-github .chat-rich-link-label,
+.chat-rich-link.chat-rich-link-github .chat-rich-link-title,
+.chat-rich-link.chat-rich-link-github .chat-rich-link-primary-status,
+.chat-rich-link.chat-rich-link-github .chat-rich-link-secondary-status {
 	align-self: center;
 	font-size: inherit;
 	line-height: inherit;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='issue'],
-	[data-chat-rich-link-kind='pullRequest']
-) :is(.chat-rich-link-label, .chat-rich-link-title) {
+.chat-rich-link.chat-rich-link-github .chat-rich-link-label,
+.chat-rich-link.chat-rich-link-github .chat-rich-link-title {
 	position: relative;
 	top: 0.25px;
 	max-width: 200px;
@@ -289,18 +264,12 @@
 	font-weight: var(--vscode-fontWeight-regular);
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='issue'],
-	[data-chat-rich-link-kind='pullRequest']
-) .chat-rich-link-status {
+.chat-rich-link.chat-rich-link-github .chat-rich-link-status {
 	align-items: center;
 	height: 1.25em;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='issue'],
-	[data-chat-rich-link-kind='pullRequest']
-) .chat-rich-link-status-icon {
+.chat-rich-link.chat-rich-link-github .chat-rich-link-status-icon {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -318,10 +287,7 @@
 	line-height: inherit;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) {
+.chat-rich-link.chat-rich-link-session {
 	align-items: center;
 	gap: var(--vscode-spacing-size40);
 	max-width: 100%;
@@ -350,10 +316,7 @@
 	color: var(--vscode-button-secondaryForeground);
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) .chat-rich-link-icon {
+.chat-rich-link.chat-rich-link-session .chat-rich-link-icon {
 	display: inline-flex;
 	flex: 0 0 var(--vscode-codiconFontSize);
 	align-items: center;
@@ -365,26 +328,18 @@
 	line-height: var(--vscode-codiconFontSize);
 }
 
-.interactive-item-container .value .rendered-markdown .chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) .chat-rich-link-icon,
+.interactive-item-container .value .rendered-markdown .chat-rich-link.chat-rich-link-session .chat-rich-link-icon,
 .interactive-item-container .value .rendered-markdown .chat-rich-link .chat-rich-link-status-icon {
 	position: static;
 	top: auto;
 }
 
-.interactive-item-container .value .rendered-markdown a.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) {
+.interactive-item-container .value .rendered-markdown a.chat-rich-link.chat-rich-link-session {
 	color: var(--vscode-button-secondaryForeground);
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) :is(.chat-rich-link-label, .chat-rich-link-title) {
+.chat-rich-link.chat-rich-link-session .chat-rich-link-label,
+.chat-rich-link.chat-rich-link-session .chat-rich-link-title {
 	flex: 1 1 auto;
 	min-width: 0;
 	max-width: 100%;
@@ -395,22 +350,14 @@
 	white-space: nowrap;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) :is(
-	.chat-rich-link-detail,
-	.chat-rich-link-reference,
-	.chat-rich-link-changes,
-	.chat-rich-link-secondary-status
-) {
+.chat-rich-link.chat-rich-link-session .chat-rich-link-detail,
+.chat-rich-link.chat-rich-link-session .chat-rich-link-reference,
+.chat-rich-link.chat-rich-link-session .chat-rich-link-changes,
+.chat-rich-link.chat-rich-link-session .chat-rich-link-secondary-status {
 	display: none;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) .chat-rich-link-primary-status {
+.chat-rich-link.chat-rich-link-session .chat-rich-link-primary-status {
 	display: none;
 	align-items: center;
 	height: var(--vscode-codiconFontSize-compact);
@@ -419,31 +366,16 @@
 	line-height: var(--vscode-codiconFontSize-compact);
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-):is(
-	[data-chat-rich-link-status='pending'],
-	[data-chat-rich-link-status='warning'],
-	[data-chat-rich-link-status='error']
-) .chat-rich-link-primary-status {
+.chat-rich-link.chat-rich-link-session.chat-rich-link-session-alert .chat-rich-link-primary-status {
 	display: inline-flex;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) .chat-rich-link-primary-status .chat-rich-link-status-label {
+.chat-rich-link.chat-rich-link-session .chat-rich-link-primary-status .chat-rich-link-status-label {
 	display: none;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) .chat-rich-link-primary-status :is(
-	.chat-rich-link-status-icon,
-	.monaco-pixel-spinner
-) {
+.chat-rich-link.chat-rich-link-session .chat-rich-link-primary-status .chat-rich-link-status-icon,
+.chat-rich-link.chat-rich-link-session .chat-rich-link-primary-status .monaco-pixel-spinner {
 	width: var(--vscode-codiconFontSize-compact);
 	height: var(--vscode-codiconFontSize-compact);
 	font-size: var(--vscode-codiconFontSize-compact);

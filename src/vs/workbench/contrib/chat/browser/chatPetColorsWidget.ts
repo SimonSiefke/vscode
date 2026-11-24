@@ -111,6 +111,7 @@ export class ChatPetColorsWidget extends Disposable {
 			'aria-label': localize('chatPet.colors.chooseCustom', "Choose Blobby's custom color"),
 		}));
 		this.hexInput = this._register(new InputBox(row, undefined, {
+			inputBoxClassName: 'chat-pet-color-input-box',
 			inputBoxStyles: defaultInputBoxStyles,
 			ariaLabel: localize('chatPet.colors.hex', "Custom hex color"),
 			placeholder: '#ff8800',

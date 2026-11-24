@@ -380,6 +380,7 @@ export class EmptyTextEditorHintContentWidget extends Disposable implements ICon
 		const hintElement = renderFormattedText(message, {
 			actionHandler: hintHandler,
 			renderCodeSegments: false,
+			linkClassName: 'empty-editor-hint-link',
 		});
 		hintElement.style.fontStyle = 'italic';
 

@@ -136,13 +136,14 @@ function validateLink(value: string, allowedProtocols: AllowedLinksConfig): bool
 }
 
 /**
- * Hooks dompurify using `afterSanitizeAttributes` to check link and media-loading attributes.
+ * Checks link/media attributes and applies trusted element styling after attribute sanitization.
  */
-function hookDomPurifyHrefAndSrcSanitizer(
+function hookDomPurifyAttributeSanitizer(
 	allowedLinkProtocols: AllowedLinksConfig,
 	allowedMediaProtocols: AllowedLinksConfig,
 	mediaSourceIsAllowed: ((source: string) => boolean) | undefined,
 	replaceWithPlaintext: boolean,
+	elementClassName: string | undefined,
 ) {
 	dompurify.addHook('afterSanitizeAttributes', (node) => {
 		for (const attr of ['href', 'src', 'poster']) {
@@ -169,6 +170,9 @@ function hookDomPurifyHrefAndSrcSanitizer(
 				}
 			}
 		}
+		if (elementClassName) {
+			node.classList.add(elementClassName);
+		}
 	});
 }
 
@@ -186,6 +190,9 @@ export interface SanitizeAttributeRule {
 
 
 export interface DomSanitizerConfig {
+	/** Class added to sanitized elements after attribute validation, for component styling. */
+	readonly elementClassName?: string;
+
 	/**
 	 * Configured the allowed html tags.
 	 */
@@ -309,7 +316,7 @@ function doSanitizeHtml(untrusted: string, config: DomSanitizerConfig | undefine
 
 		resolvedConfig.ALLOWED_ATTR = Array.from(allowedAttrNames);
 
-		hookDomPurifyHrefAndSrcSanitizer(
+		hookDomPurifyAttributeSanitizer(
 			{
 				override: config?.allowedLinkProtocols?.override ?? [Schemas.http, Schemas.https],
 				allowRelativePaths: config?.allowRelativeLinkPaths ?? false
@@ -320,6 +327,7 @@ function doSanitizeHtml(untrusted: string, config: DomSanitizerConfig | undefine
 			},
 			config?.mediaSourceIsAllowed,
 			config?.replaceWithPlaintext ?? false,
+			config?.elementClassName,
 		);
 
 		if (config?.replaceWithPlaintext) {

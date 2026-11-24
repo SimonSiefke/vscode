@@ -88,7 +88,7 @@
 	justify-content: center;
 }
 
-.monaco-editor .diff-hidden-lines .center span.codicon {
+.monaco-editor .diff-hidden-lines .center span.codicon:where(.diff-hidden-lines-glyph) {
 	vertical-align: middle;
 }
 
@@ -207,7 +207,7 @@
 	text-overflow: ellipsis;
 }
 
-.monaco-editor .diff-hidden-lines-disclosure .disclosure-content > * {
+.diff-hidden-lines-disclosure-content-item {
 	flex-shrink: 0;
 }
 
@@ -459,7 +459,7 @@
 	flex-shrink: 0;
 	flex-grow: 0;
 
-	& > div {
+	& > .editor-gutter-child {
 		position: absolute;
 	}
 
@@ -501,22 +501,22 @@
 			justify-content: center;
 			align-items: center;
 
-			.monaco-toolbar {
+			.diff-gutter-toolbar {
 				height: fit-content;
-				.monaco-action-bar  {
+				.diff-gutter-action-bar  {
 					line-height: 1;
 
-					.actions-container {
+					.diff-gutter-toolbar-actions {
 						width: fit-content;
 						border-radius: 4px;
 						background: var(--vscode-editorGutter-itemBackground);
 
-						.action-item {
+						.diff-gutter-action-item {
 							&:hover {
 								background: var(--vscode-toolbar-hoverBackground);
 							}
 
-							.action-label {
+							.diff-gutter-action-label {
 								color: var(--vscode-editorGutter-itemGlyphForeground);
 								padding: 1px 2px;
 							}

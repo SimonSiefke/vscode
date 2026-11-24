@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-.extension-icon .icon {
+.extension-icon .icon:where(.extension-widget-icon-image) {
 	width: 36px;
 	height: 36px;
 	margin-right: 16px;
@@ -12,7 +12,7 @@
 	object-fit: contain;
 }
 
-.extension-icon .codicon {
+.extension-icon .codicon:where(.extension-widget-fallback-glyph) {
 	padding-right: 16px;
 	font-size: 36px !important;
 }
@@ -82,8 +82,8 @@
 	color: var(--vscode-extensionButton-prominentForeground);
 }
 
-.extension-bookmark > .recommendation > .codicon,
-.extension-bookmark > .pre-release > .codicon {
+.extension-bookmark > .recommendation > .codicon:where(.extension-bookmark-glyph),
+.extension-bookmark > .pre-release > .codicon:where(.extension-bookmark-glyph) {
 	color: inherit;
 	font-size: 12px !important;
 	line-height: 12px;

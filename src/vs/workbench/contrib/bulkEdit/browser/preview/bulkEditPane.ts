@@ -137,6 +137,7 @@ export class BulkEditPane extends ViewPane {
 			{
 				accessibilityProvider: this._instaService.createInstance(BulkEditAccessibilityProvider),
 				identityProvider: new BulkEditIdentityProvider(),
+				contentsClassName: 'bulk-edit-tree-contents',
 				expandOnlyOnTwistieClick: true,
 				multipleSelectionSupport: false,
 				keyboardNavigationLabelProvider: new BulkEditNaviLabelProvider(),
@@ -156,10 +157,12 @@ export class BulkEditPane extends ViewPane {
 		this._disposables.add(buttonBar);
 
 		const btnConfirm = buttonBar.addButton({ supportIcons: true, ...defaultButtonStyles });
+		btnConfirm.element.classList.add('bulk-edit-preview-button');
 		btnConfirm.label = localize('ok', 'Apply');
 		btnConfirm.onDidClick(() => this.accept(), this, this._disposables);
 
 		const btnCancel = buttonBar.addButton({ ...defaultButtonStyles, secondary: true });
+		btnCancel.element.classList.add('bulk-edit-preview-button');
 		btnCancel.label = localize('cancel', 'Discard');
 		btnCancel.onDidClick(() => this.discard(), this, this._disposables);
 

@@ -49,7 +49,7 @@
 				margin: 0;
 			}
 
-			a {
+			a:where(.customization-marketplace-markdown-link) {
 				color: var(--vscode-textLink-foreground);
 			}
 		}

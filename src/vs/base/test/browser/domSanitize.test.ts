@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from 'assert';
-import { convertTagToPlaintext, sanitizeHtml, sanitizeSurvivingStalePolicy } from '../../browser/domSanitize.js';
+import { convertTagToPlaintext, safeSetInnerHtml, sanitizeHtml, sanitizeSurvivingStalePolicy } from '../../browser/domSanitize.js';
 import { Schemas } from '../../common/network.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../common/utils.js';
 
@@ -14,6 +14,17 @@ type SanitizeConfig = Parameters<typeof sanitizeSurvivingStalePolicy>[1];
 suite('DomSanitize', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('trusted element styling preserves sanitization and stays local to one call', () => {
+		const html = '<p class="from-input" onclick="alert(1)"><a href="javascript:alert(1)">link</a><code>text</code><script>bad()</script></p>';
+		const config = { elementClassName: 'test-sanitized-element', allowedAttributes: { override: ['href'] } };
+		const expected = '<p class="test-sanitized-element"><a class="test-sanitized-element">link</a><code class="test-sanitized-element">text</code></p>';
+		assert.strictEqual(sanitizeHtml(html, config).toString(), expected);
+		const container = document.createElement('div');
+		safeSetInnerHtml(container, html, config);
+		assert.strictEqual(container.innerHTML, expected);
+		assert.strictEqual(sanitizeHtml('<p>after</p>').toString(), '<p>after</p>');
+	});
 
 	test('removes unsupported tags by default', () => {
 		const html = '<div>safe<script>alert(1)</script>content</div>';

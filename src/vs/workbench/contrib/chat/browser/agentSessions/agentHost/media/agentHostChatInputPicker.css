@@ -31,8 +31,8 @@
 	height: 100%;
 }
 
-.agent-host-chat-input-picker-slot a.action-label,
-.agent-host-chat-input-picker-slot span.action-label {
+.agent-host-chat-input-picker-slot a.agent-host-picker-action-label,
+.agent-host-chat-input-picker-slot span.agent-host-picker-action-label {
 	display: inline-flex;
 	align-items: center;
 	box-sizing: border-box;
@@ -48,11 +48,11 @@
 	opacity: 0.75;
 }
 
-.agent-host-chat-input-picker-slot .action-label .codicon {
+.agent-host-chat-input-picker-slot .action-label .agent-host-picker-icon {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
-.agent-host-chat-input-picker-slot.disabled span.action-label {
+.agent-host-chat-input-picker-slot.disabled span.agent-host-picker-action-label {
 	opacity: 0.6;
 	cursor: default;
 }
@@ -80,7 +80,7 @@
 	> .agent-host-generic-chip-slot {
 		cursor: pointer;
 
-		.action-label {
+		.agent-host-picker-action-label {
 			font-size: 11px;
 
 			&:hover {
@@ -88,7 +88,7 @@
 			}
 		}
 
-		.codicon {
+		.agent-host-picker-icon {
 			font-size: var(--vscode-codiconFontSize-compact);
 		}
 	}
@@ -109,7 +109,7 @@
 	height: var(--chat-input-control-height);
 }
 
-.interactive-session .compact-picker .agent-host-chat-input-picker-slot .action-label {
+.interactive-session .compact-picker .agent-host-chat-input-picker-slot .agent-host-picker-action-label {
 	box-sizing: border-box;
 	width: var(--chat-input-control-height);
 	height: var(--chat-input-control-height);
@@ -118,7 +118,7 @@
 	justify-content: center;
 }
 
-.interactive-session .compact-picker .agent-host-chat-input-picker-slot .action-label .codicon {
+.interactive-session .compact-picker .agent-host-chat-input-picker-slot .action-label .agent-host-picker-icon {
 	width: var(--vscode-codiconFontSize-compact);
 	height: var(--vscode-codiconFontSize-compact);
 	line-height: var(--vscode-codiconFontSize-compact);
@@ -130,11 +130,11 @@
  *   .info    → Bypass / autoApprove (blue)
  * Toggled in `AgentHostChatInputPicker._renderTrigger`.
  */
-.agent-host-chat-input-picker-slot .action-label.warning {
+.agent-host-chat-input-picker-slot .warning.agent-host-picker-action-label {
 	color: var(--vscode-problemsWarningIcon-foreground);
 }
 
-.agent-host-chat-input-picker-slot .action-label.warning .codicon {
+.agent-host-chat-input-picker-slot .action-label.warning .agent-host-picker-icon {
 	color: var(--vscode-problemsWarningIcon-foreground) !important;
 }
 
@@ -142,11 +142,11 @@
 	color: var(--vscode-problemsWarningIcon-foreground);
 }
 
-.agent-host-chat-input-picker-slot .action-label.info {
+.agent-host-chat-input-picker-slot .info.agent-host-picker-action-label {
 	color: var(--vscode-problemsInfoIcon-foreground);
 }
 
-.agent-host-chat-input-picker-slot .action-label.info .codicon {
+.agent-host-chat-input-picker-slot .action-label.info .agent-host-picker-icon {
 	color: var(--vscode-problemsInfoIcon-foreground) !important;
 }
 
@@ -171,7 +171,7 @@
 }
 
 /* A chat's own value is still loading: show the session's value dimmed until it arrives. */
-.agent-host-chat-input-picker-slot.resolving .action-label {
+.agent-host-chat-input-picker-slot.resolving .agent-host-picker-action-label {
 	opacity: 0.6;
 	cursor: default;
 }

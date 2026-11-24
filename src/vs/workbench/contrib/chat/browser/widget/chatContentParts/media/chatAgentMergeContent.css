@@ -10,7 +10,7 @@
 	color: var(--vscode-descriptionForeground);
 }
 
-.chat-agent-merge .chat-agent-merge-check-icon.codicon {
+.chat-agent-merge .codicon.chat-agent-merge-check-icon {
 	color: var(--vscode-errorForeground);
 }
 
@@ -60,12 +60,12 @@
 	align-items: start;
 }
 
-.chat-agent-merge .chat-agent-merge-comment-icon.codicon,
+.chat-agent-merge .codicon.chat-agent-merge-comment-icon,
 .chat-agent-merge .chat-agent-merge-comment-header {
 	line-height: var(--vscode-spacing-size200);
 }
 
-.chat-agent-merge .chat-agent-merge-comment-icon.codicon {
+.chat-agent-merge .codicon.chat-agent-merge-comment-icon {
 	transform: translateY(1px);
 }
 

@@ -22,7 +22,7 @@
 	padding: 0 6px 0 10px;
 }
 
-.monaco-workbench .part.banner .icon-container .codicon {
+.monaco-workbench .part.banner .icon-container .banner-main-glyph {
 	color: var(--vscode-banner-iconForeground);
 }
 
@@ -43,7 +43,7 @@
 	overflow: hidden;
 }
 
-.monaco-workbench .part.banner .message-container a {
+.monaco-workbench .part.banner .message-container a:where(.banner-message-link) {
 	color: var(--vscode-banner-foreground);
 }
 
@@ -58,7 +58,7 @@
 	line-height: 26px;
 }
 
-.monaco-workbench .part.banner .message-actions-container a {
+.monaco-workbench .part.banner .message-actions-container a:where(.monaco-link) {
 	color: var(--vscode-banner-foreground);
 	padding: 3px;
 	margin-left: 12px;
@@ -66,7 +66,7 @@
 	cursor: pointer;
 }
 
-.monaco-workbench .part.banner .message-container a {
+.monaco-workbench .part.banner .message-container a:where(.banner-message-link) {
 	text-decoration: underline;
 	cursor: pointer;
 }
@@ -75,7 +75,7 @@
 	padding: 0 10px 0 6px;
 }
 
-.monaco-workbench .part.banner .action-container .codicon {
+.monaco-workbench .part.banner .action-container .banner-close-glyph {
 	color: var(--vscode-banner-foreground);
 }
 
@@ -85,8 +85,8 @@
 	border-bottom: var(--vscode-strokeThickness) solid var(--vscode-contrastBorder);
 }
 
-.monaco-workbench .part.banner.neutral .message-actions-container a,
-.monaco-workbench .part.banner.neutral .action-container .codicon,
-.monaco-workbench .part.banner.neutral .icon-container .codicon {
+.monaco-workbench .part.banner.neutral .message-actions-container a:where(.monaco-link),
+.monaco-workbench .part.banner.neutral .action-container .banner-close-glyph,
+.monaco-workbench .part.banner.neutral .icon-container .banner-main-glyph {
 	color: var(--vscode-foreground);
 }

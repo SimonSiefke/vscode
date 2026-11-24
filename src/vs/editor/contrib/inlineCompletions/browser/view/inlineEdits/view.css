@@ -10,74 +10,6 @@
 .monaco-editor {
 	--inline-edit-border-radius: 3px;
 
-	.inline-edits-view-indicator {
-		display: flex;
-
-		z-index: 34; /* Below the find widget */
-		height: 20px;
-
-		color: var(--vscode-inlineEdit-gutterIndicator-primaryForeground);
-		background-color: var(--vscode-inlineEdit-gutterIndicator-background);
-		border: 1px solid var(--vscode-inlineEdit-gutterIndicator-primaryBorder);
-		border-radius: var(--inline-edit-border-radius);
-
-		align-items: center;
-		padding: 2px;
-		padding-right: 10px;
-		margin: 0 4px;
-
-		/*
-		animation: blink 1s;
-		animation-iteration-count: 3;
-		*/
-
-		opacity: 0;
-
-		&.contained {
-			transition: opacity 0.2s ease-in-out;
-			transition-delay: 0.4s;
-		}
-
-		&.visible {
-			opacity: 1;
-		}
-
-		&.top {
-			opacity: 1;
-
-			.icon {
-				transform: rotate(90deg);
-			}
-		}
-
-		&.bottom {
-			opacity: 1;
-
-			.icon {
-				transform: rotate(-90deg);
-			}
-		}
-
-		.icon {
-			display: flex;
-			align-items: center;
-			margin: 0 2px;
-			transform: none;
-			transition: transform 0.2s ease-in-out;
-			.codicon {
-				color: var(--vscode-inlineEdit-gutterIndicator-primaryForeground);
-			}
-		}
-
-		.label {
-			margin: 0 2px;
-
-			display: flex;
-			justify-content: center;
-			width: 100%;
-		}
-	}
-
 	.inline-edits-view .editorContainer {
 		.preview .monaco-editor {
 			.view-overlays .current-line-exact {
@@ -195,7 +127,7 @@
 
 
 		.monaco-keybinding {
-			.monaco-keybinding-key {
+			.monaco-keybinding-key:where(.inline-edit-jump-key) {
 				font-size: 11px;
 				padding: 1px 2px 2px 2px;
 			}
@@ -214,7 +146,7 @@
 	border-radius: 3px;
 	cursor: pointer;
 
-	.monaco-keybinding-key {
+	.monaco-keybinding-key:where(.inline-edit-menu-key) {
 		font-size: 13px;
 		opacity: 0.7;
 		padding: 0;
@@ -223,13 +155,13 @@
 		min-width: unset;
 	}
 
-	&.active {
+	&.active:where(.monaco-menu-option) {
 		background: var(--vscode-editorActionList-focusBackground);
 		color: var(--vscode-editorActionList-focusForeground);
 		outline: 1px solid var(--vscode-menu-selectionBorder, transparent);
 		outline-offset: -1px;
 
-		.monaco-keybinding-key {
+		.monaco-keybinding-key:where(.inline-edit-menu-key) {
 			color: var(--vscode-editorActionList-focusForeground);
 		}
 	}
@@ -251,12 +183,12 @@
 	background: var(--vscode-editorWidget-background);
 }
 
-.inline-edit-alternative-action-label .codicon {
+.inline-edit-alternative-action-label .codicon:where(.inline-edit-alternative-glyph) {
 	font-size: 12px !important;
 	padding-right: 4px;
 }
 
-.inline-edit-alternative-action-label .monaco-keybinding-key {
+.inline-edit-alternative-action-label .monaco-keybinding-key:where(.inline-edit-alternative-key) {
 	padding: 2px 3px;
 }
 

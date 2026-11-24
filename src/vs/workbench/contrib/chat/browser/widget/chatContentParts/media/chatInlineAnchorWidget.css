@@ -38,8 +38,8 @@
 	background-color: var(--vscode-list-hoverBackground);
 }
 
-.chat-inline-anchor-widget .icon,
-.chat-codeblock-pill-widget .icon {
+.chat-inline-anchor-widget .icon:where(.chat-file-reference-icon),
+.chat-codeblock-pill-widget .icon:where(.chat-file-reference-icon) {
 	vertical-align: middle;
 	line-height: 1em;
 	font-size: 90% !important;
@@ -83,7 +83,7 @@
 	text-decoration: underline;
 }
 
-.chat-inline-references-link-style .chat-inline-anchor-widget .icon {
+.chat-inline-references-link-style .chat-inline-anchor-widget .icon:where(.chat-file-reference-icon) {
 	display: none;
 }
 

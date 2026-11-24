@@ -59,7 +59,7 @@
 	text-overflow: ellipsis;
 }
 
-.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .body .content .input .editor-placeholder.hidden {
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .body .content .input .hidden.editor-placeholder {
 	display: none;
 }
 
@@ -158,12 +158,8 @@
 	padding: 10px 5px;
 }
 
-.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .markdownMessage.hidden {
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .hidden.markdownMessage {
 	display: none;
-}
-
-.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .markdownMessage .message * {
-	margin: unset;
 }
 
 .monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .markdownMessage .message code {
@@ -275,9 +271,9 @@
 	margin: 0 2px 6px 2px;
 }
 
-.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .previewDiff.hidden,
-.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .previewCreate.hidden,
-.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .previewCreateTitle.hidden {
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .hidden.previewDiff,
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .hidden.previewCreate,
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .hidden.previewCreateTitle {
 	display: none;
 }
 

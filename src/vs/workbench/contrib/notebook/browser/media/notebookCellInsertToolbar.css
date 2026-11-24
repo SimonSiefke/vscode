@@ -44,7 +44,7 @@
 	opacity: 1;
 }
 
-.monaco-workbench .notebookOverlay .cell-list-top-cell-toolbar-container .monaco-toolbar {
+.monaco-workbench .notebookOverlay .cell-list-top-cell-toolbar-container .notebook-top-cell-toolbar-root {
 	margin-top: 3px; /* This is the minimum to keep the top edge from being cut off at the top of the editor */
 }
 

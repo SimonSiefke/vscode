@@ -135,6 +135,7 @@ export class VariablesView extends ViewPane implements IDebugViewWithVariables {
 			],
 			this.instantiationService.createInstance(VariablesDataSource), {
 			accessibilityProvider: new VariablesAccessibilityProvider(),
+			contentsClassName: 'debug-view-tree-contents',
 			identityProvider: { getId: (element: IExpression | IScope) => element.getId() },
 			keyboardNavigationLabelProvider: expressionAndScopeLabelProvider,
 			overrideStyles: this.getLocationBasedColors().listOverrideStyles

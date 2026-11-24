@@ -267,17 +267,17 @@ export class ChatEditingExplanationWidget extends Disposable implements IOverlay
 		this._isAllRead = allRead;
 
 		if (allRead) {
-			this._readIndicator.appendChild(renderIcon(Codicon.circle));
+			this._readIndicator.appendChild(renderIcon(Codicon.circle, undefined, 'chat-explanation-read-glyph'));
 			this._readIndicator.classList.add('read');
 			this._readIndicator.classList.remove('partial', 'unread');
 			this._readIndicator.title = nls.localize('markAsUnread', "Mark as unread");
 		} else if (someRead) {
-			this._readIndicator.appendChild(renderIcon(Codicon.circleFilledCompact));
+			this._readIndicator.appendChild(renderIcon(Codicon.circleFilledCompact, undefined, 'chat-explanation-read-glyph'));
 			this._readIndicator.classList.remove('read', 'unread');
 			this._readIndicator.classList.add('partial');
 			this._readIndicator.title = nls.localize('markAllAsRead', "Mark all as read");
 		} else {
-			this._readIndicator.appendChild(renderIcon(Codicon.circleFilledCompact));
+			this._readIndicator.appendChild(renderIcon(Codicon.circleFilledCompact, undefined, 'chat-explanation-read-glyph'));
 			this._readIndicator.classList.remove('read', 'partial');
 			this._readIndicator.classList.add('unread');
 			this._readIndicator.title = nls.localize('markAsRead', "Mark as read");
@@ -443,11 +443,11 @@ export class ChatEditingExplanationWidget extends Disposable implements IOverlay
 	private _updateItemReadIndicator(element: HTMLElement, read: boolean): void {
 		clearNode(element);
 		if (read) {
-			element.appendChild(renderIcon(Codicon.circle));
+			element.appendChild(renderIcon(Codicon.circle, undefined, 'chat-explanation-read-glyph'));
 			element.classList.add('read');
 			element.classList.remove('unread');
 		} else {
-			element.appendChild(renderIcon(Codicon.circleFilledCompact));
+			element.appendChild(renderIcon(Codicon.circleFilledCompact, undefined, 'chat-explanation-read-glyph'));
 			element.classList.remove('read');
 			element.classList.add('unread');
 		}

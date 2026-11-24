@@ -33,6 +33,46 @@ suite('MarkdownRenderer', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('element styling covers parsed code and preserves generated and raw theme icons', () => {
+		const rendered = store.add(renderMarkdown(new MarkdownString('$(add) [link](https://example.com) <span class="codicon codicon-check"></span>\n\n```text\ncode\n```', { supportHtml: true, supportThemeIcons: true }), { elementClassName: 'test-markdown-created-element' }));
+		const elements = Array.from(rendered.element.querySelectorAll('*'));
+		assert.ok(elements.length > 5);
+		assert.ok(elements.every(element => element.classList.contains('test-markdown-created-element')));
+		assert.deepStrictEqual(Array.from(rendered.element.querySelectorAll('span.codicon'), element => [element.classList.contains('codicon-add'), element.classList.contains('codicon-check')]), [[true, false], [false, true]]);
+		assert.strictEqual(rendered.element.querySelector('a')?.getAttribute('data-href'), 'https://example.com');
+		assert.strictEqual(rendered.element.querySelector('code')?.textContent, 'code\n');
+	});
+
+	test('link creation styling preserves rewriting and activation across target updates', () => {
+		const host = mainWindow.document.createElement('div');
+		host.style.cssText = 'position: fixed; top: 0; left: 0;';
+		mainWindow.document.body.appendChild(host);
+		store.add(toDisposable(() => host.remove()));
+		const style = mainWindow.document.createElement('style');
+		style.textContent = 'a:where(.markdown-created-link), a:where(.markdown-next-link) { padding-left: 6px; }';
+		host.appendChild(style);
+		const clicked: string[] = [];
+		const actionHandler = (link: string) => { clicked.push(link); };
+		const first = store.add(renderMarkdown(new MarkdownString('[one](https://example.com/one) <a href="https://example.com/two">two</a>', { supportHtml: true }), { linkClassName: 'markdown-created-link', actionHandler }));
+		host.appendChild(first.element);
+		const links = Array.from(first.element.querySelectorAll('a'));
+		const initial = links.map(link => ({ href: link.dataset.href, padding: mainWindow.getComputedStyle(link).paddingLeft }));
+		links[0].dispatchEvent(new MouseEvent('click', { button: 0, bubbles: true, cancelable: true }));
+		first.dispose();
+		const second = store.add(renderMarkdown(new MarkdownString('[three](https://example.com/three)'), { linkClassName: 'markdown-next-link', actionHandler }, first.element));
+		const updated = second.element.querySelector('a')!;
+		updated.dispatchEvent(new MouseEvent('click', { button: 0, bubbles: true, cancelable: true }));
+		assert.deepStrictEqual({
+			initial,
+			updated: { href: updated.dataset.href, padding: mainWindow.getComputedStyle(updated).paddingLeft, previousClass: updated.classList.contains('markdown-created-link') },
+			clicked,
+		}, {
+			initial: [{ href: 'https://example.com/one', padding: '6px' }, { href: 'https://example.com/two', padding: '6px' }],
+			updated: { href: 'https://example.com/three', padding: '6px', previousClass: false },
+			clicked: ['https://example.com/one', 'https://example.com/three'],
+		});
+	});
+
 	suite('Sanitization', () => {
 		test('Should not render images with unknown schemes', () => {
 			const markdown = { value: `![image](no-such://example.com/cat.gif)` };

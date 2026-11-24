@@ -19,7 +19,7 @@
 	margin-right: 8px;
 }
 
-.monaco-workbench .notebookOverlay .notebook-toolbar-container > .monaco-scrollable-element {
+.monaco-workbench .notebookOverlay .notebook-toolbar-container > .notebook-toolbar-scrollable {
 	flex: 1;
 }
 

@@ -599,6 +599,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 		));
 
 		const inputBox = this.stepDisposables.add(new InputBox(container, undefined, {
+			inputBoxClassName: 'onboarding-ghe-input-box',
 			placeholder: localize('onboarding.signIn.enterprise.placeholder', 'i.e. "octocat" or "https://octocat.ghe.com"...'),
 			ariaLabel: enterprisePromptLabel,
 			actions: [submitAction],
@@ -711,7 +712,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 			mark.classList.add(providerClass);
 			mark.setAttribute('aria-hidden', 'true');
 			if (providerClass === 'github' || providerClass === 'github-enterprise') {
-				mark.appendChild(renderIcon(Codicon.github));
+				mark.appendChild(renderIcon(Codicon.github, undefined, 'onboarding-provider-glyph'));
 			}
 		}
 
@@ -1093,7 +1094,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 			const iconEl = append(card, $('span.onboarding-a-ai-pref-card-icon'));
 			iconEl.setAttribute('aria-hidden', 'true');
 			const icon = Codicon[option.icon as keyof typeof Codicon] ?? Codicon.sparkle;
-			iconEl.appendChild(renderIcon(icon));
+			iconEl.appendChild(renderIcon(icon, undefined, 'onboarding-ai-preference-glyph'));
 
 			const titleEl = append(card, $('div.onboarding-a-ai-pref-card-title'));
 			titleEl.textContent = option.label;

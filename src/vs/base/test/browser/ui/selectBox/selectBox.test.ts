@@ -101,6 +101,35 @@ suite('SelectBoxList', () => {
 		});
 	}
 
+	test('keeps Markdown description margins reset across option changes', () => {
+		const contextViewProvider = disposables.add(new TestContextViewProvider());
+		const selectBox = disposables.add(new SelectBoxList([
+			{ text: 'First', description: '# Heading\n\nParagraph **strong** $(info)\n\n- Item\n\n```text\ncode\n```', descriptionIsMarkdown: true },
+			{ text: 'Second', description: '> Quote\n\nOther paragraph', descriptionIsMarkdown: true },
+		], 0, contextViewProvider, unthemedSelectBoxStyles));
+		const container = document.createElement('div');
+		container.style.cssText = 'position: fixed; top: 100px; left: 0; width: 200px;';
+		document.body.appendChild(container);
+		disposables.add(toDisposable(() => container.remove()));
+		selectBox.render(container);
+		container.querySelector('select')!.click();
+		const read = () => {
+			const description = contextViewProvider.container.querySelector('.select-box-description-markdown');
+			assert.ok(description);
+			const elements = Array.from(description.querySelectorAll('*'));
+			assert.ok(elements.length > 1);
+			assert.ok(elements.every(element => element.classList.contains('select-box-description-node')));
+			assert.deepStrictEqual(elements.map(element => {
+				const style = element.ownerDocument.defaultView!.getComputedStyle(element);
+				return [style.marginTop, style.marginBottom];
+			}), elements.map(() => ['0px', '0px']));
+			return description.textContent;
+		};
+		assert.ok(read()?.includes('Heading'));
+		contextViewProvider.container.querySelector('.monaco-list')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', keyCode: 35, bubbles: true }));
+		assert.ok(read()?.includes('Other paragraph'));
+	});
+
 	test('hides disabled options from the custom dropdown while retaining the closed value', () => {
 		const options: ISelectOptionItem[] = [
 			{ text: 'Pick an option', isDisabled: true },

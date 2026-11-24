@@ -186,6 +186,7 @@ export class MultiDiffEditorFileList extends Disposable {
 				new MultiDiffEditorFolderRenderer(labels, labelService),
 			],
 			{
+				rowClassName: 'multi-diff-file-list-row',
 				identityProvider: { getId: element => isFolder(element) ? `folder:${element.uri.toString()}` : element.getKey() },
 				keyboardNavigationLabelProvider: {
 					getKeyboardNavigationLabel: element => isFolder(element) ? element.name : basename(getItemUri(element)),
@@ -312,7 +313,7 @@ class MultiDiffEditorFileRenderer implements ICompressibleTreeRenderer<FileListE
 
 	renderTemplate(container: HTMLElement): IMultiDiffEditorFileTemplate {
 		container.classList.add('multi-diff-file-list-item');
-		const label = this._labels.create(container);
+		const label = this._labels.create(container, { extraClasses: ['multi-diff-file-list-label'] });
 		const status = append(container, $('.multi-diff-file-list-item-status'));
 		return { label, status };
 	}

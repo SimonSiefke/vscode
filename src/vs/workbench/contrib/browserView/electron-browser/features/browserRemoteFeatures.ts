@@ -37,6 +37,7 @@ class BrowserRemoteIndicatorContribution extends BrowserEditorContribution {
 		this._container.setAttribute('role', 'img');
 
 		const icon = renderIcon(Codicon.remote);
+		icon.classList.add('browser-remote-indicator-icon');
 		this._container.appendChild(icon);
 
 		this._register(hoverService.setupDelayedHover(

@@ -45,7 +45,7 @@ session with no pull requests shows one rule and a quick chat none. */
 	border-top: none;
 }
 
-.session-summary-hover-section.hidden {
+.hidden.session-summary-hover-section {
 	display: none;
 }
 
@@ -92,7 +92,7 @@ session with no pull requests shows one rule and a quick chat none. */
 wrapping row reads as a hanging indent under its icon. The line-height also
 overrides the `font` shorthand in codicon.css, whose `/1` would otherwise make
 the glyph box shorter than the text line it sits against. */
-.session-summary-hover-icon.codicon {
+.codicon.session-summary-hover-icon {
 	flex-shrink: 0;
 	font-size: var(--vscode-codiconFontSize);
 	line-height: 18px;

@@ -124,6 +124,8 @@ export class TextSearchResultRenderer extends Disposable implements ICompressibl
 
 		const instantiationService = disposables.add(this.instantiationService.createChild(new ServiceCollection([IContextKeyService, contextKeyServiceMain])));
 		const actions = disposables.add(instantiationService.createInstance(MenuWorkbenchToolBar, actionBarContainer, MenuId.SearchActionMenu, {
+			actionItemClassName: 'search-result-action-item',
+			actionBarClassName: 'search-result-action-bar',
 			menuOptions: {
 				shouldForwardArgs: true
 			},
@@ -211,7 +213,7 @@ export class FolderMatchRenderer extends Disposable implements ICompressibleTree
 		const disposables = new DisposableStore();
 
 		const folderMatchElement = DOM.append(container, DOM.$('.foldermatch'));
-		const label = this.labels.create(folderMatchElement, { supportDescriptionHighlights: true, supportHighlights: true });
+		const label = this.labels.create(folderMatchElement, { supportDescriptionHighlights: true, supportHighlights: true, extraClasses: ['search-result-resource-label'] });
 		disposables.add(label);
 		const badge = new CountBadge(DOM.append(folderMatchElement, DOM.$('.badge')), {}, defaultCountBadgeStyles);
 		disposables.add(badge);
@@ -228,6 +230,8 @@ export class FolderMatchRenderer extends Disposable implements ICompressibleTree
 
 		const instantiationService = disposables.add(this.instantiationService.createChild(new ServiceCollection([IContextKeyService, contextKeyServiceMain])));
 		const actions = disposables.add(instantiationService.createInstance(MenuWorkbenchToolBar, actionBarContainer, MenuId.SearchActionMenu, {
+			actionItemClassName: 'search-result-action-item',
+			actionBarClassName: 'search-result-action-bar',
 			menuOptions: {
 				shouldForwardArgs: true
 			},
@@ -315,7 +319,7 @@ export class FileMatchRenderer extends Disposable implements ICompressibleTreeRe
 		const elementDisposables = new DisposableStore();
 		disposables.add(elementDisposables);
 		const fileMatchElement = DOM.append(container, DOM.$('.filematch'));
-		const label = this.labels.create(fileMatchElement);
+		const label = this.labels.create(fileMatchElement, { extraClasses: ['search-result-resource-label'] });
 		disposables.add(label);
 		const badge = new CountBadge(DOM.append(fileMatchElement, DOM.$('.badge')), {}, defaultCountBadgeStyles);
 		disposables.add(badge);
@@ -329,6 +333,8 @@ export class FileMatchRenderer extends Disposable implements ICompressibleTreeRe
 
 		const instantiationService = disposables.add(this.instantiationService.createChild(new ServiceCollection([IContextKeyService, contextKeyServiceMain])));
 		const actions = disposables.add(instantiationService.createInstance(MenuWorkbenchToolBar, actionBarContainer, MenuId.SearchActionMenu, {
+			actionItemClassName: 'search-result-action-item',
+			actionBarClassName: 'search-result-action-bar',
 			menuOptions: {
 				shouldForwardArgs: true
 			},
@@ -423,6 +429,8 @@ export class MatchRenderer extends Disposable implements ICompressibleTreeRender
 
 		const instantiationService = disposables.add(this.instantiationService.createChild(new ServiceCollection([IContextKeyService, contextKeyServiceMain])));
 		const actions = disposables.add(instantiationService.createInstance(MenuWorkbenchToolBar, actionBarContainer, MenuId.SearchActionMenu, {
+			actionItemClassName: 'search-result-action-item',
+			actionBarClassName: 'search-result-action-bar',
 			menuOptions: {
 				shouldForwardArgs: true
 			},

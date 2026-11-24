@@ -31,7 +31,7 @@ import { InMemoryStorageService, IStorageService, StorageScope, StorageTarget } 
 import { NullTelemetryService } from '../../../telemetry/common/telemetryUtils.js';
 import { IThemeService } from '../../../theme/common/themeService.js';
 import { TestThemeService } from '../../../theme/test/common/testThemeService.js';
-import { DropdownWithDefaultActionViewItem, getFlatContextMenuActions } from '../../browser/menuEntryActionViewItem.js';
+import { DropdownWithDefaultActionViewItem, getFlatContextMenuActions, MenuEntryActionViewItem, TextOnlyMenuEntryActionViewItem } from '../../browser/menuEntryActionViewItem.js';
 import { IMenuService, MenuId, MenuItemAction, SubmenuItemAction } from '../../common/actions.js';
 
 suite('Context menu alternative actions', () => {
@@ -114,6 +114,43 @@ suite('Context menu alternative actions', () => {
 				});
 			});
 		}
+	}
+});
+
+suite('Menu action label styling', () => {
+	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
+
+	for (const constructor of [MenuEntryActionViewItem, TextOnlyMenuEntryActionViewItem]) {
+		test(`${constructor.name} preserves owner styling across alternative action and theme updates`, () => {
+			const modifiers = ModifierKeyEmitter.getInstance();
+			modifiers.resetKeyStatus();
+			disposables.add(toDisposable(() => modifiers.resetKeyStatus()));
+			const host = append(mainWindow.document.body, $('div'));
+			host.style.cssText = 'position: fixed; top: 0; left: 0;';
+			const style = append(host, $('style'));
+			style.textContent = '.test-menu-owned-label { padding-left: 9px; }';
+			disposables.add(toDisposable(() => host.remove()));
+			const contextKeyService = new MockContextKeyService();
+			const commandService = new class extends mock<ICommandService>() { };
+			const action = new MenuItemAction(
+				{ id: 'primary', title: 'Primary', icon: { id: 'add' } },
+				{ id: 'alternative', title: 'Alternative', icon: { id: 'remove' } },
+				undefined, undefined, undefined, contextKeyService, commandService,
+			);
+			const themeService = new TestThemeService();
+			const item = disposables.add(new constructor(action, { labelClassName: 'test-menu-owned-label' }, new MockKeybindingService(), new TestNotificationService(), contextKeyService, themeService, new class extends mock<IContextMenuService>() { }, new TestAccessibilityService()));
+			const container = append(host, $('div'));
+			item.render(container);
+			const label = container.querySelector<HTMLElement>('.action-label')!;
+			const padding = [mainWindow.getComputedStyle(label).paddingLeft];
+			mainWindow.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt', keyCode: 18, altKey: true }));
+			padding.push(mainWindow.getComputedStyle(label).paddingLeft);
+			mainWindow.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt', keyCode: 18, altKey: false }));
+			padding.push(mainWindow.getComputedStyle(label).paddingLeft);
+			themeService.fireThemeChange();
+			padding.push(mainWindow.getComputedStyle(label).paddingLeft);
+			assert.deepStrictEqual(padding, ['9px', '9px', '9px', '9px']);
+		});
 	}
 });
 

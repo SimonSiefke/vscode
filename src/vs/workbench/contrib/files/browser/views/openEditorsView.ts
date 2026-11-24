@@ -261,6 +261,7 @@ export class OpenEditorsView extends ViewPane {
 			new EditorGroupRenderer(this.keybindingService, this.instantiationService),
 			new OpenEditorRenderer(this.listLabels, this.instantiationService, this.keybindingService, this.configurationService)
 		], {
+			rowClassName: 'open-editors-list-row',
 			identityProvider: { getId: (element: OpenEditor | IEditorGroup) => this.getElementId(element) },
 			dnd: this.dnd,
 			overrideStyles: this.getLocationBasedColors().listOverrideStyles,
@@ -701,15 +702,15 @@ class EditorGroupRenderer implements IListRenderer<IEditorGroup, IEditorGroupTem
 		const editorGroupTemplate: IEditorGroupTemplateData = Object.create(null);
 		editorGroupTemplate.root = dom.append(container, $('.editor-group'));
 		editorGroupTemplate.name = dom.append(editorGroupTemplate.root, $('span.name'));
-		editorGroupTemplate.actionBar = new ActionBar(container);
+		editorGroupTemplate.actionBar = new ActionBar(container, { className: 'open-editors-row-action-bar' });
 
 		const saveAllInGroupAction = this.instantiationService.createInstance(SaveAllInGroupAction, SaveAllInGroupAction.ID, SaveAllInGroupAction.LABEL);
 		const saveAllInGroupKey = this.keybindingService.lookupKeybinding(saveAllInGroupAction.id);
-		editorGroupTemplate.actionBar.push(saveAllInGroupAction, { icon: true, label: false, keybinding: saveAllInGroupKey ? saveAllInGroupKey.getLabel() : undefined });
+		editorGroupTemplate.actionBar.push(saveAllInGroupAction, { labelClassName: 'open-editors-action-label', icon: true, label: false, keybinding: saveAllInGroupKey ? saveAllInGroupKey.getLabel() : undefined });
 
 		const closeGroupAction = this.instantiationService.createInstance(CloseGroupAction, CloseGroupAction.ID, CloseGroupAction.LABEL);
 		const closeGroupActionKey = this.keybindingService.lookupKeybinding(closeGroupAction.id);
-		editorGroupTemplate.actionBar.push(closeGroupAction, { icon: true, label: false, keybinding: closeGroupActionKey ? closeGroupActionKey.getLabel() : undefined });
+		editorGroupTemplate.actionBar.push(closeGroupAction, { labelClassName: 'open-editors-action-label', icon: true, label: false, keybinding: closeGroupActionKey ? closeGroupActionKey.getLabel() : undefined });
 
 		return editorGroupTemplate;
 	}
@@ -750,7 +751,7 @@ class OpenEditorRenderer implements IListRenderer<OpenEditor, IOpenEditorTemplat
 		const editorTemplate: IOpenEditorTemplateData = Object.create(null);
 		editorTemplate.container = container;
 		editorTemplate.actionRunner = new OpenEditorActionRunner();
-		editorTemplate.actionBar = new ActionBar(container, { actionRunner: editorTemplate.actionRunner });
+		editorTemplate.actionBar = new ActionBar(container, { className: 'open-editors-row-action-bar', actionRunner: editorTemplate.actionRunner });
 		editorTemplate.root = this.labels.create(container);
 
 		return editorTemplate;
@@ -777,7 +778,7 @@ class OpenEditorRenderer implements IListRenderer<OpenEditor, IOpenEditorTemplat
 			if (!templateData.actionBar.isEmpty()) {
 				templateData.actionBar.clear();
 			}
-			templateData.actionBar.push(editorAction, { icon: true, label: false, keybinding: this.keybindingService.lookupKeybinding(editorAction.id)?.getLabel() });
+			templateData.actionBar.push(editorAction, { labelClassName: 'open-editors-action-label', icon: true, label: false, keybinding: this.keybindingService.lookupKeybinding(editorAction.id)?.getLabel() });
 		}
 	}
 

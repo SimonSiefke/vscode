@@ -28,7 +28,7 @@ suite('ChatRestoreCheckpointActionViewItem', () => {
 		const viewItem = store.add(instantiationService.createInstance(
 			ChatRestoreCheckpointActionViewItem,
 			action,
-			undefined,
+			{ labelClassName: 'test-checkpoint-action-label' },
 			() => true,
 			'Cancel starting over',
 			'Confirm starting over and discarding all edits'
@@ -40,6 +40,8 @@ suite('ChatRestoreCheckpointActionViewItem', () => {
 
 		const label = container.querySelector<HTMLElement>('.action-label:first-child');
 		const cancel = container.querySelector<HTMLElement>('.chat-restore-checkpoint-cancel');
+		assert.ok(label?.classList.contains('test-checkpoint-action-label'));
+		assert.ok(cancel?.classList.contains('test-checkpoint-action-label'));
 		assert.deepStrictEqual({
 			confirming: container.classList.contains('confirming'),
 			label: label?.textContent,

@@ -242,7 +242,7 @@
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.chat-pet-color-card.monaco-button {
+.monaco-button.chat-pet-color-card {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -259,12 +259,12 @@
 	text-align: center;
 }
 
-.chat-pet-color-card.monaco-button:not(.disabled),
-.chat-pet-achievement-card.monaco-button:not(.disabled) {
+.monaco-button:not(.disabled).chat-pet-color-card,
+.monaco-button:not(.disabled).chat-pet-achievement-card {
 	cursor: pointer;
 }
 
-.chat-pet-color-card.monaco-button.selected {
+.monaco-button.selected.chat-pet-color-card {
 	border-color: var(--vscode-focusBorder);
 	background: var(--vscode-list-inactiveSelectionBackground);
 }
@@ -331,7 +331,7 @@
 	flex-wrap: wrap;
 }
 
-.chat-pet-custom-color-inputs .monaco-inputbox {
+.chat-pet-custom-color-inputs .chat-pet-color-input-box {
 	width: 120px;
 }
 
@@ -377,15 +377,15 @@
 	display: none;
 }
 
-.hc-black .chat-pet-color-card.monaco-button,
-.hc-light .chat-pet-color-card.monaco-button,
+.hc-black .monaco-button.chat-pet-color-card,
+.hc-light .monaco-button.chat-pet-color-card,
 .hc-black .chat-pet-custom-color,
 .hc-light .chat-pet-custom-color {
 	border-color: var(--vscode-contrastBorder);
 }
 
-.hc-black .chat-pet-color-card.monaco-button.selected,
-.hc-light .chat-pet-color-card.monaco-button.selected {
+.hc-black .monaco-button.selected.chat-pet-color-card,
+.hc-light .monaco-button.selected.chat-pet-color-card {
 	border-color: var(--vscode-focusBorder);
 }
 
@@ -393,7 +393,7 @@
 	grid-template-columns: minmax(0, 1fr);
 }
 
-.chat-pet-achievement-card.monaco-button {
+.monaco-button.chat-pet-achievement-card {
 	box-sizing: border-box;
 	display: block;
 	position: relative;
@@ -471,7 +471,7 @@
 	line-height: 1;
 }
 
-.chat-pet-achievement-new-badge.hidden {
+.hidden.chat-pet-achievement-new-badge {
 	display: none;
 }
 

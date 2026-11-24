@@ -171,7 +171,9 @@
  * inner tier so the whole workbench reads as a set of distinct rounded
  * surfaces. `overflow: hidden` clips their content to the rounded corners.
  */
-.modern-ui .monaco-grid-view .part:is(.sidebar, .panel, .auxiliarybar) {
+.modern-ui .monaco-grid-view .part.sidebar,
+.modern-ui .monaco-grid-view .part.panel,
+.modern-ui .monaco-grid-view .part.auxiliarybar {
 	overflow: hidden;
 }
 

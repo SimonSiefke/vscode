@@ -45,7 +45,7 @@
 	padding-bottom: 4px;
 }
 
-.monaco-dialog-box .dialog-toolbar-row .actions-container {
+.monaco-dialog-box .dialog-toolbar-row .actions-container:where(.dialog-header-actions) {
 	justify-content: flex-end;
 }
 
@@ -68,19 +68,19 @@
 	min-height: 0; /* allow flex item to shrink below content size in column layout */
 }
 
-.monaco-dialog-box .dialog-message-row > .dialog-icon.codicon {
+.monaco-dialog-box .dialog-message-row > .codicon.dialog-icon {
 	flex: 0 0 24px;
 	height: 24px;
 	font-size: 24px;
 }
 
-.monaco-dialog-box.align-vertical .dialog-message-row > .dialog-icon.codicon {
+.monaco-dialog-box.align-vertical .dialog-message-row > .codicon.dialog-icon {
 	flex: 0 0 64px;
 	height: 64px;
 	font-size: 64px;
 }
 
-.monaco-dialog-box:not(.align-vertical) .dialog-message-row > .dialog-icon.codicon {
+.monaco-dialog-box:not(.align-vertical) .dialog-message-row > .codicon.dialog-icon {
 	align-self: baseline;
 }
 
@@ -172,7 +172,7 @@
 	display: flex;
 }
 
-.monaco-dialog-box .dialog-message-row .dialog-message-container .dialog-message-input .monaco-inputbox {
+.monaco-dialog-box .dialog-message-row .dialog-message-container .dialog-message-input .dialog-message-input-box {
 	flex: 1;
 }
 
@@ -209,27 +209,27 @@
 	flex-direction: column;
 }
 
-.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button {
+.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > :where(.monaco-button).dialog-footer-action {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	margin: 4px; /* allows button focus outline to be visible */
 	outline-offset: 1px !important;
 }
 
-.monaco-dialog-box.align-vertical > .dialog-buttons-row > .dialog-buttons > .monaco-button {
+.monaco-dialog-box.align-vertical > .dialog-buttons-row > .dialog-buttons > :where(.monaco-button).dialog-footer-action {
 	margin: 4px 0; /* allows button focus outline to be visible */
 }
 
-.monaco-dialog-box:not(.align-vertical) > .dialog-buttons-row > .dialog-buttons > .monaco-button {
+.monaco-dialog-box:not(.align-vertical) > .dialog-buttons-row > .dialog-buttons > :where(.monaco-button).dialog-footer-action {
 	width: fit-content;
 }
 
 /** Dialog: Dropdown */
-.monaco-dialog-box:not(.align-vertical) > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown {
+.monaco-dialog-box:not(.align-vertical) > .dialog-buttons-row > .dialog-buttons > :where(.monaco-button-dropdown).dialog-footer-action {
 	margin: 4px 5px;
 }
 
-.monaco-dialog-box.align-vertical > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown {
+.monaco-dialog-box.align-vertical > .dialog-buttons-row > .dialog-buttons > :where(.monaco-button-dropdown).dialog-footer-action {
 	width: 100%;
 }
 
@@ -247,11 +247,11 @@
 }
 
 
-.monaco-dialog-box.align-vertical > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown > .monaco-text-button {
+.monaco-dialog-box.align-vertical > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown > :where(.monaco-text-button).dialog-footer-primary-action {
 	width: 100%;
 }
 
-.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown > .monaco-dropdown-button {
+.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown > :where(.monaco-dropdown-button).dialog-footer-menu-action {
 	padding: 0 4px;
 }
 

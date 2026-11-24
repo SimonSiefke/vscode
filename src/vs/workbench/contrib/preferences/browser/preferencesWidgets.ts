@@ -89,7 +89,7 @@ export class FolderSettingsActionViewItem extends BaseActionViewItem {
 		this.labelElement = DOM.$('.action-title');
 		this.detailsElement = DOM.$('.action-details');
 		this.dropDownElement = DOM.$('.dropdown-icon.hide' + ThemeIcon.asCSSSelector(settingsScopeDropDownIcon));
-		this.anchorElement = DOM.$('a.action-label.folder-settings', {
+		this.anchorElement = DOM.$('a.action-label.folder-settings.settings-tab-action-label', {
 			role: 'button',
 			'aria-haspopup': 'true',
 			'tabindex': '0'
@@ -259,6 +259,7 @@ export class SettingsTargetsWidget extends Widget {
 	private create(parent: HTMLElement): void {
 		const settingsTabsWidget = DOM.append(parent, DOM.$('.settings-tabs-widget'));
 		this.settingsSwitcherBar = this._register(new ActionBar(settingsTabsWidget, {
+			actionItemClassName: 'settings-tab-action-item',
 			orientation: ActionsOrientation.HORIZONTAL,
 			focusOnlyEnabledItems: true,
 			ariaLabel: localize('settingsSwitcherBarAriaLabel', "Settings Switcher"),
@@ -284,7 +285,7 @@ export class SettingsTargetsWidget extends Widget {
 		this.resetLabels();
 		this.update();
 
-		this.settingsSwitcherBar.push([this.userLocalSettings, this.userRemoteSettings, this.workspaceSettings, this.folderSettingsAction]);
+		this.settingsSwitcherBar.push([this.userLocalSettings, this.userRemoteSettings, this.workspaceSettings, this.folderSettingsAction], { labelClassName: 'settings-tab-action-label' });
 	}
 
 	get settingsTarget(): SettingsTarget | null {

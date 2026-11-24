@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /* Remove the outline and change border color on focus instead */
-.workbench-hover-container.locked:has(.chat-context-usage-details) .monaco-hover.workbench-hover {
+.workbench-hover-container.locked .monaco-hover.workbench-hover.chat-context-usage-hover {
 	outline: none;
 }
 .workbench-hover-container:focus-within.locked:has(.chat-context-usage-details) .monaco-hover.workbench-hover {
