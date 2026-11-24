@@ -1180,7 +1180,10 @@ suite('MainThreadChatSessions', function () {
 suite('ExtHostChatSessions', function () {
 	let disposables: DisposableStore;
 	let extHostChatSessions: ExtHostChatSessions;
+	let commands: ExtHostCommands;
 	let mainThreadChatSessionsProxy: {
+		$registerCommand: sinon.SinonStub;
+		$unregisterCommand: sinon.SinonStub;
 		$registerChatSessionItemController: sinon.SinonStub;
 		$updateChatSessionItemControllerCapabilities: sinon.SinonStub;
 		$unregisterChatSessionItemController: sinon.SinonStub;
@@ -1197,6 +1200,8 @@ suite('ExtHostChatSessions', function () {
 	setup(function () {
 		disposables = new DisposableStore();
 		mainThreadChatSessionsProxy = {
+			$registerCommand: sinon.stub(),
+			$unregisterCommand: sinon.stub(),
 			$registerChatSessionItemController: sinon.stub(),
 			$updateChatSessionItemControllerCapabilities: sinon.stub(),
 			$unregisterChatSessionItemController: sinon.stub(),
@@ -1211,7 +1216,7 @@ suite('ExtHostChatSessions', function () {
 		};
 
 		const rpcProtocol = AnyCallRPCProtocol(mainThreadChatSessionsProxy);
-		const commands = new ExtHostCommands(rpcProtocol, new NullLogService(), new class extends mock<IExtHostTelemetry>() { });
+		commands = new ExtHostCommands(rpcProtocol, new NullLogService(), new class extends mock<IExtHostTelemetry>() { });
 		const languageModels = new ExtHostLanguageModels(rpcProtocol, new NullLogService(), new class extends mock<IExtHostAuthentication>() { });
 
 		extHostChatSessions = disposables.add(new ExtHostChatSessions(commands, languageModels, rpcProtocol, new NullLogService()));
@@ -1229,6 +1234,87 @@ suite('ExtHostChatSessions', function () {
 			provideChatSessionContent: async () => session,
 		};
 	}
+
+	function optionGroups(value: string): vscode.ChatSessionProviderOptionGroup[] {
+		return [{
+			id: 'options', name: 'Options', items: [],
+			commands: [{ command: 'test.optionCommand', title: 'Option Command', arguments: [value] }]
+		}];
+	}
+
+	test('option commands are disposed when groups change and current commands remain usable', async function () {
+		const resource = URI.parse('test-session-type:/session');
+		const controller = disposables.add(extHostChatSessions.createChatSessionItemController(nullExtensionDescription, resource.scheme, async () => { }));
+		const inputState = controller.createChatSessionInputState(optionGroups('first'));
+		controller.getChatSessionInputState = async () => inputState;
+		const action = sinon.stub().callsFake((context: { inputState: vscode.ChatSessionInputState }, value: string) => ({ state: context.inputState, value }));
+		disposables.add(commands.registerCommand(false, 'test.optionCommand', action));
+
+		const first = await extHostChatSessions.$provideChatSessionInputState(0, resource, CancellationToken.None);
+		const firstCommand = first![0].commands![0].command;
+		inputState.groups = optionGroups('second');
+		const secondGroups: vscode.ChatSessionProviderOptionGroup[] = mainThreadChatSessionsProxy.$updateChatSessionInputState.lastCall.args[2];
+		const secondCommand = secondGroups[0].commands![0].command;
+
+		assert.deepStrictEqual(mainThreadChatSessionsProxy.$unregisterCommand.args, [[firstCommand]]);
+		assert.deepStrictEqual(await commands.executeCommand(secondCommand, resource), { state: inputState, value: 'second' });
+		assert.deepStrictEqual(await commands.executeCommand(secondCommand, resource), { state: inputState, value: 'second' });
+	});
+
+	test('option command cleanup is scoped to each input state and controller disposal', async function () {
+		const resourceA = URI.parse('test-session-type:/a');
+		const resourceB = URI.parse('test-session-type:/b');
+		const controller = disposables.add(extHostChatSessions.createChatSessionItemController(nullExtensionDescription, resourceA.scheme, async () => { }));
+		const stateA = controller.createChatSessionInputState(optionGroups('a'));
+		const stateB = controller.createChatSessionInputState(optionGroups('b'));
+		controller.getChatSessionInputState = async resource => resource?.path === '/a' ? stateA : stateB;
+		const groupsA = await extHostChatSessions.$provideChatSessionInputState(0, resourceA, CancellationToken.None);
+		const groupsB = await extHostChatSessions.$provideChatSessionInputState(0, resourceB, CancellationToken.None);
+		const commandA = groupsA![0].commands![0].command;
+		const commandB = groupsB![0].commands![0].command;
+
+		stateA.groups = [];
+		assert.deepStrictEqual(mainThreadChatSessionsProxy.$unregisterCommand.args, [[commandA]]);
+		controller.dispose();
+		assert.deepStrictEqual(mainThreadChatSessionsProxy.$unregisterCommand.args, [[commandA], [commandB]]);
+	});
+
+	test('providing the same input state replaces commands without disposing the live state', async function () {
+		const resource = URI.parse('test-session-type:/session');
+		const controller = disposables.add(extHostChatSessions.createChatSessionItemController(nullExtensionDescription, resource.scheme, async () => { }));
+		const inputState = controller.createChatSessionInputState(optionGroups('current'));
+		controller.getChatSessionInputState = async () => inputState;
+		const disposed = sinon.spy();
+		disposables.add(inputState.onDidDispose(disposed));
+		const first = await extHostChatSessions.$provideChatSessionInputState(0, resource, CancellationToken.None);
+		const second = await extHostChatSessions.$provideChatSessionInputState(0, resource, CancellationToken.None);
+
+		assert.deepStrictEqual({ disposed: disposed.callCount, unregistered: mainThreadChatSessionsProxy.$unregisterCommand.args }, {
+			disposed: 0, unregistered: [[first![0].commands![0].command]]
+		});
+		controller.dispose();
+		assert.deepStrictEqual({ disposed: disposed.callCount, unregistered: mainThreadChatSessionsProxy.$unregisterCommand.args }, {
+			disposed: 1, unregistered: [[first![0].commands![0].command], [second![0].commands![0].command]]
+		});
+	});
+
+	test('replaced input states release option commands and cannot register more commands', async function () {
+		const resource = URI.parse('test-session-type:/session');
+		const controller = disposables.add(extHostChatSessions.createChatSessionItemController(nullExtensionDescription, resource.scheme, async () => { }));
+		const previousState = controller.createChatSessionInputState(optionGroups('previous'));
+		let currentState = previousState;
+		controller.getChatSessionInputState = async () => currentState;
+		mainThreadChatSessionsProxy.$registerCommand.resetHistory();
+		const previous = await extHostChatSessions.$provideChatSessionInputState(0, resource, CancellationToken.None);
+		disposables.add(previousState.onDidDispose(() => { previousState.groups = optionGroups('during disposal'); }));
+		currentState = controller.createChatSessionInputState([]);
+		await extHostChatSessions.$provideChatSessionInputState(0, resource, CancellationToken.None);
+		previousState.groups = optionGroups('after disposal');
+
+		assert.deepStrictEqual({ registered: mainThreadChatSessionsProxy.$registerCommand.args, unregistered: mainThreadChatSessionsProxy.$unregisterCommand.args }, {
+			registered: [[previous![0].commands![0].command]], unregistered: [[previous![0].commands![0].command]]
+		});
+	});
 
 	test('controller only advertises resolve support after resolve handler is assigned', function () {
 		const sessionScheme = 'test-session-type';
