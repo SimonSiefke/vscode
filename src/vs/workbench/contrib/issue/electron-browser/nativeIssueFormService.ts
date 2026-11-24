@@ -453,7 +453,6 @@ export class NativeIssueFormService extends IssueFormService implements IIssueFo
 	 */
 	override async openAuxIssueReporterLegacy(data: IssueReporterData): Promise<void> {
 		const { IssueReporter } = await import('./issueReporterService.js');
-		const { IssueReporter } = await import('./issueReporterService.js');
 		const bounds = await this.nativeHostService.getActiveWindowPosition();
 		await this.openAuxIssueReporter(data, bounds);
 

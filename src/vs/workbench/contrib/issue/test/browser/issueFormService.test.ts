@@ -36,7 +36,6 @@ import { IEditorService } from '../../../../services/editor/common/editorService
 import { IHostService } from '../../../../services/host/browser/host.js';
 import { IWorkbenchGitHubService } from '../../../../services/github/common/githubService.js';
 import { IGitHubUploadService } from '../../browser/githubUploadService.js';
-import { IssueReporterData } from '../../common/issue.js';
 import { IRectangle } from '../../../../../platform/window/common/window.js';
 import { IssueFormService } from '../../browser/issueFormService.js';
 import { IssueWebReporter } from '../../browser/issueReporterService.js';
