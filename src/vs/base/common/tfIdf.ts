@@ -9,6 +9,11 @@ type SparseEmbedding = Record</* word */ string, /* weight */number>;
 type TermFrequencies = Map</* word */ string, /*occurrences*/ number>;
 type DocumentOccurrences = Map</* word */ string, /*documentOccurrences*/ number>;
 
+const wordTermRegex = /\b\p{Letter}[\p{Letter}\d]{2,}\b/gu;
+const camelCaseBoundaryRegex = /([a-z])([A-Z])/g;
+const whitespaceRegex = /\s+/g;
+const letterPartRegex = /\p{Letter}{3,}/u;
+
 function countMapFrom<K>(values: Iterable<K>): Map<K, number> {
 	const map = new Map<K, number>();
 	for (const value of values) {
@@ -85,14 +90,15 @@ export class TfIdfCalculator {
 		const normalize = (word: string) => word.toLowerCase();
 
 		// Only match on words that are at least 3 characters long and start with a letter
-		for (const [word] of input.matchAll(/\b\p{Letter}[\p{Letter}\d]{2,}\b/gu)) {
+		wordTermRegex.lastIndex = 0;
+		for (const [word] of input.matchAll(wordTermRegex)) {
 			yield normalize(word);
 
-			const camelParts = word.replace(/([a-z])([A-Z])/g, '$1 $2').split(/\s+/g);
+			const camelParts = word.replace(camelCaseBoundaryRegex, '$1 $2').split(whitespaceRegex);
 			if (camelParts.length > 1) {
 				for (const part of camelParts) {
 					// Require at least 3 letters in the parts of a camel case word
-					if (part.length > 2 && /\p{Letter}{3,}/gu.test(part)) {
+					if (part.length > 2 && letterPartRegex.test(part)) {
 						yield normalize(part);
 					}
 				}

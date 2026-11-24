@@ -13,6 +13,8 @@ export function getNLSLanguage(): string | undefined {
 
 declare const document: { location?: { hash?: string } } | undefined;
 const isPseudo = getNLSLanguage() === 'pseudo' || (typeof document !== 'undefined' && document.location && typeof document.location.hash === 'string' && document.location.hash.indexOf('pseudo=true') >= 0);
+const formatArgumentRegex = /\{(\d+)\}/g;
+const pseudoVowelsRegex = /[aouei]/g;
 
 export interface ILocalizeInfo {
 	/** Use a new key when changing the number or meaning of placeholders to avoid reusing incompatible translations. */
@@ -31,7 +33,7 @@ function _format(message: string, args: (string | number | boolean | undefined |
 	if (args.length === 0) {
 		result = message;
 	} else {
-		result = message.replace(/\{(\d+)\}/g, (match, rest) => {
+		result = message.replace(formatArgumentRegex, (match, rest) => {
 			const index = parseInt(rest, 10);
 			const arg = args[index];
 			let result = match;
@@ -46,7 +48,7 @@ function _format(message: string, args: (string | number | boolean | undefined |
 
 	if (isPseudo) {
 		// FF3B and FF3D is the Unicode zenkaku representation for [ and ]
-		result = '\uFF3B' + result.replace(/[aouei]/g, '$&$&') + '\uFF3D';
+		result = '\uFF3B' + result.replace(pseudoVowelsRegex, '$&$&') + '\uFF3D';
 	}
 
 	return result;
