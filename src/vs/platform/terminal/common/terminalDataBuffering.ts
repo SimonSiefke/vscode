@@ -48,11 +48,12 @@ export class TerminalDataBufferer implements IDisposable {
 			data: [],
 			timeoutId: undefined,
 			dispose: () => {
-				if (newBuffer.timeoutId) {
-					clearTimeout(newBuffer.timeoutId);
+				if (this._terminalBufferMap.get(id) !== newBuffer) {
+					return;
 				}
-				this.flushBuffer(id);
+				this._terminalBufferMap.delete(id);
 				disposable.dispose();
+				this.flushBufferData(id, newBuffer);
 			}
 		};
 		this._terminalBufferMap.set(id, newBuffer);
@@ -67,11 +68,19 @@ export class TerminalDataBufferer implements IDisposable {
 	flushBuffer(id: number): void {
 		const buffer = this._terminalBufferMap.get(id);
 		if (buffer) {
-			this._terminalBufferMap.delete(id);
+			this.flushBufferData(id, buffer);
+		}
+	}
+
+	private flushBufferData(id: number, buffer: TerminalDataBuffer): void {
+		if (buffer.timeoutId !== undefined) {
+			clearTimeout(buffer.timeoutId);
 			buffer.timeoutId = undefined;
-			if (buffer.data.length > 0) {
-				this._callback(id, buffer.data.join(''));
-			}
+		}
+		const data = buffer.data;
+		buffer.data = [];
+		if (data.length > 0) {
+			this._callback(id, data.join(''));
 		}
 	}
 }
