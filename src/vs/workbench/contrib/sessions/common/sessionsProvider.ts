@@ -26,6 +26,12 @@ import { AutomationUnavailableReasonCode, IAutomationProviderConfiguration, IAut
 import { ChatModelSource, IChat, ISession, ISessionCanvas, ISessionCanvasDefinition, ISessionCreationReference, ISessionEnvironment, ISessionType, ISessionWorkspace, ISessionWorkspaceBrowseAction, ISideChatSelection, type SessionCanvasDefinitionSnapshot } from '../../../services/sessions/common/session.js';
 import type { ICanvasOpenOptions } from '../../../common/canvasReference.js';
 
+/** Identity captured before a confirmed permanent deletion. */
+export interface ISessionDeletion {
+	readonly sessionId: string;
+	readonly chatResources: readonly URI[];
+}
+
 /**
  * Event fired when sessions change within a provider.
  */
@@ -48,6 +54,7 @@ export interface ISessionChangeEvent {
 	readonly added: readonly ISession[];
 	readonly removed: readonly ISession[];
 	readonly changed: readonly ISession[];
+	readonly deleted?: readonly ISessionDeletion[];
 }
 
 /** Creation context to inherit instead of an existing session's execution workspace and backend. */
