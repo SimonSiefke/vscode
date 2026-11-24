@@ -25,6 +25,7 @@ suite('ExtHostTask custom execution ownership', () => {
 	class TestExtHostTask extends WorkerExtHostTask {
 		get executionIds(): string[] { return [...this._providedCustomExecutions2.keys()].sort(); }
 		getExecution(id: string): CustomExecution | undefined { return this._providedCustomExecutions2.get(id); }
+		getActiveExecution(id: string): CustomExecution | undefined { return this._activeCustomExecutions2.get(id); }
 		dispose(): void {
 			this._onDidExecuteTask.dispose();
 			this._onDidTerminateTask.dispose();
@@ -72,8 +73,10 @@ suite('ExtHostTask custom execution ownership', () => {
 		await service.$provideTasks(0, { test: true });
 		await service.$provideTasks(1, { test: true });
 		first.dispose();
+		await Promise.resolve();
 		assert.deepStrictEqual(service.executionIds, ['second']);
 		second.dispose();
+		await Promise.resolve();
 		assert.deepStrictEqual(service.executionIds, []);
 	});
 
@@ -85,8 +88,10 @@ suite('ExtHostTask custom execution ownership', () => {
 		await service.$provideTasks(0, { test: true });
 		await service.$provideTasks(1, { test: true });
 		first.dispose();
+		await Promise.resolve();
 		assert.strictEqual(service.getExecution('first'), replacement.execution);
 		second.dispose();
+		await Promise.resolve();
 		assert.deepStrictEqual(service.executionIds, []);
 	});
 
@@ -98,8 +103,10 @@ suite('ExtHostTask custom execution ownership', () => {
 		await service.$provideTasks(0, { test: true });
 		await service.$provideTasks(1, { test: true });
 		first.dispose();
+		await Promise.resolve();
 		assert.strictEqual(service.getExecution('first'), task.execution);
 		second.dispose();
+		await Promise.resolve();
 		assert.deepStrictEqual(service.executionIds, []);
 	});
 
@@ -138,6 +145,7 @@ suite('ExtHostTask custom execution ownership', () => {
 		await service.$resolveTask(0, TaskDTO.from(customTask(), nullExtensionDescription)!);
 		assert.deepStrictEqual(service.executionIds, ['first']);
 		registration.dispose();
+		await Promise.resolve();
 		assert.deepStrictEqual(service.executionIds, []);
 	});
 
@@ -180,24 +188,18 @@ suite('ExtHostTask custom execution ownership', () => {
 		assert.strictEqual(service.getExecution('first'), replacement.execution);
 	});
 
-	test('preserves active and last-started callbacks until ordinary execution cleanup', async () => {
+	test('preserves an active callback after provider disposal until execution ends', async () => {
 		const service = createTaskService();
-		const firstTask = customTask();
-		const first = register(service, firstTask);
-		const secondTask = customTask('second');
-		const second = register(service, secondTask);
+		const task = customTask();
+		const provider = register(service, task);
 		await service.$provideTasks(0, { test: true });
-		await service.$provideTasks(1, { test: true });
-		const firstExecution = { id: 'first', task: { ...TaskDTO.from(firstTask, nullExtensionDescription)!, _id: 'first' } };
-		const secondExecution = { id: 'second', task: { ...TaskDTO.from(secondTask, nullExtensionDescription)!, _id: 'second' } };
-		await service.$onDidStartTask(firstExecution, 1, firstTask.definition);
-		first.dispose();
-		assert.strictEqual(service.getExecution('first'), firstTask.execution);
-		await service.$OnDidEndTask(firstExecution);
-		assert.strictEqual(service.getExecution('first'), firstTask.execution, 'the last task can still be rerun');
-		await service.$onDidStartTask(secondExecution, 2, secondTask.definition);
-		second.dispose();
-		await service.$OnDidEndTask(secondExecution);
-		assert.deepStrictEqual(service.executionIds, ['second']);
+		const execution = { id: 'first', task: { ...TaskDTO.from(task, nullExtensionDescription)!, _id: 'first' } };
+		await service.$onDidStartTask(execution, 1, task.definition);
+		provider.dispose();
+		await Promise.resolve();
+		assert.strictEqual(service.getExecution('first'), undefined);
+		assert.strictEqual(service.getActiveExecution('first'), task.execution);
+		await service.$OnDidEndTask(execution);
+		assert.strictEqual(service.getActiveExecution('first'), undefined);
 	});
 });
