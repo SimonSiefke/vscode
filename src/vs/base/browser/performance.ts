@@ -47,6 +47,11 @@ export namespace inputLatency {
 	export function onKeyDown() {
 		/** Direct Check C. See explanation in {@link recordIfFinished} */
 		recordIfFinished();
+		// Shortcut and navigation keys do not emit input events, so abandon an
+		// incomplete sample before recording the next keydown.
+		if (state.keydown !== EventPhase.Before || state.input !== EventPhase.Before || state.render !== EventPhase.Before) {
+			reset();
+		}
 		performance.mark('inputlatency/start');
 		performance.mark('keydown/start');
 		state.keydown = EventPhase.InProgress;
