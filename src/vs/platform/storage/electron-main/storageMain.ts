@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import { top } from '../../../base/common/arrays.js';
 import { DeferredPromise } from '../../../base/common/async.js';
 import { Emitter, Event } from '../../../base/common/event.js';
-import { Disposable, IDisposable, thenRegisterOrDispose } from '../../../base/common/lifecycle.js';
+import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
 import { join } from '../../../base/common/path.js';
 import { StopWatch } from '../../../base/common/stopwatch.js';
 import { URI } from '../../../base/common/uri.js';
@@ -156,10 +156,16 @@ abstract class BaseStorageMain extends Disposable implements IStorageMain {
 				try {
 
 					// Create storage via subclasses
-					const storage = await thenRegisterOrDispose(this.doCreate(), this._store);
+					const storage = await this.doCreate();
 					if (this._store.isDisposed) {
+						try {
+							await storage.close();
+						} finally {
+							storage.dispose();
+						}
 						return;
 					}
+					this._register(storage);
 
 					// Replace our in-memory storage with the real
 					// once as soon as possible without awaiting
