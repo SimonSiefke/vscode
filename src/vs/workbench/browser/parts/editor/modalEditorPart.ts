@@ -329,6 +329,7 @@ export class ModalEditorPart {
 			this.editorPartsView,
 			modalElement,
 			options,
+			() => toolbar.focus(),
 		));
 		disposables.add(this.editorPartsView.registerPart(editorPart));
 		editorPart.create(editorPartContainer);
@@ -436,7 +437,7 @@ export class ModalEditorPart {
 		disposables.add(modalEditorService.onDidEditorsChange(() => editorPart.enforceModalPartOptions()));
 
 		// Create global toolbar
-		disposables.add(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, actionBarContainer, MenuId.ModalEditorTitle, {
+		const toolbar = disposables.add(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, actionBarContainer, MenuId.ModalEditorTitle, {
 			hiddenItemStrategy: HiddenItemStrategy.NoHide,
 			highlightToggledItems: true,
 			menuOptions: { shouldForwardArgs: true }
@@ -989,6 +990,7 @@ class ModalEditorPartImpl extends EditorPart implements IModalEditorPart {
 		editorPartsView: IEditorPartsView,
 		public readonly modalElement: HTMLElement,
 		options: IModalEditorPartOptions | undefined,
+		public readonly focusToolbar: () => void,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@IThemeService themeService: IThemeService,
 		@IConfigurationService configurationService: IConfigurationService,

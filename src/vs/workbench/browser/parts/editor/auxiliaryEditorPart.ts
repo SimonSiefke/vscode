@@ -38,6 +38,8 @@ import { Categories } from '../../../../platform/action/common/actionCommonCateg
 
 export interface IAuxiliaryEditorPartOpenOptions extends IAuxiliaryWindowOpenOptions {
 	readonly state?: IEditorPartUIState;
+	/** A compact window stays compact when it is split (e.g. a chat with a document beside it), instead of leaving compact mode. */
+	readonly compactAllowsSplit?: boolean;
 }
 
 export interface ICreateAuxiliaryEditorPartResult {
@@ -129,6 +131,7 @@ export class AuxiliaryEditorPart {
 		const disposables = new DisposableStore();
 
 		let compact = Boolean(options?.compact);
+		const compactAllowsSplit = Boolean(options?.compactAllowsSplit);
 
 		function computeEditorPartHeightOffset(): number {
 			let editorPartHeightOffset = 0;
@@ -180,7 +183,7 @@ export class AuxiliaryEditorPart {
 			compact = newCompact;
 			auxiliaryWindow.updateOptions({ compact });
 			titlebarPart?.updateOptions({ compact });
-			editorPart.updateOptions({ compact });
+			editorPart.updateOptions({ compact, compactAllowsSplit });
 
 			const oldStatusbarVisible = statusbarVisible;
 			statusbarVisible = !compact && that.configurationService.getValue<boolean>(AuxiliaryEditorPart.STATUS_BAR_VISIBILITY) !== false;
@@ -198,7 +201,7 @@ export class AuxiliaryEditorPart {
 		auxiliaryWindow.container.appendChild(editorPartContainer);
 
 		const editorPart = disposables.add(this.instantiationService.createInstance(AuxiliaryEditorPartImpl, auxiliaryWindow.window.vscodeWindowId, this.editorPartsView, options?.state, label, () => auxiliaryWindow.confirmClose(), () => auxiliaryWindow.close()));
-		editorPart.updateOptions({ compact });
+		editorPart.updateOptions({ compact, compactAllowsSplit });
 		disposables.add(this.editorPartsView.registerPart(editorPart));
 		editorPart.create(editorPartContainer);
 
@@ -307,7 +310,9 @@ export class AuxiliaryEditorPart {
 		}));
 
 		disposables.add(editorPart.onDidAddGroup(group => {
-			updateCompact(false); // leave compact mode when a group is added
+			if (!compactAllowsSplit) {
+				updateCompact(false); // leave compact mode when a group is added
+			}
 
 			disposables.add(group.onDidActiveEditorChange(() => {
 				if (group.count > 1) {
@@ -350,6 +355,10 @@ export class AuxiliaryEditorPartImpl extends EditorPart implements IAuxiliaryEdi
 	private isCompact = false;
 	private closing = false;
 	private closePromise: Promise<boolean> | undefined;
+	private _compactAllowsSplit = false;
+
+	/** Whether the window stays compact when split; restored with the window. */
+	get compactAllowsSplit(): boolean { return this._compactAllowsSplit; }
 
 	constructor(
 		windowId: number,
@@ -377,8 +386,9 @@ export class AuxiliaryEditorPartImpl extends EditorPart implements IAuxiliaryEdi
 		super.handleContextKeys();
 	}
 
-	updateOptions(options: { compact: boolean }): void {
+	updateOptions(options: { compact: boolean; compactAllowsSplit?: boolean }): void {
 		this.isCompact = options.compact;
+		this._compactAllowsSplit = !!options.compactAllowsSplit;
 
 		if (options.compact) {
 			if (!this.optionsDisposable.value) {
@@ -394,7 +404,7 @@ export class AuxiliaryEditorPartImpl extends EditorPart implements IAuxiliaryEdi
 	}
 
 	override getAddGroupLocation(location: IEditorGroupView): IEditorGroupView {
-		if (this.isCompact) {
+		if (this.isCompact && !this._compactAllowsSplit) {
 			// When in compact mode, we prefer to open groups in the main part
 			// as compact mode is typically meant for showing just 1 editor.
 			return this.editorPartsView.mainPart.activeGroup;

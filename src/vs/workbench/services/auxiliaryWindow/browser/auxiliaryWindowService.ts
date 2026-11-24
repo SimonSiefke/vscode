@@ -56,6 +56,8 @@ export interface IAuxiliaryWindowOpenOptions {
 	readonly disableFullscreen?: boolean;
 	readonly frameless?: boolean;
 	readonly transparent?: boolean;
+	/** Whether the window has no native shadow, such as a transparent window whose content draws its own. Desktop only. */
+	readonly noShadow?: boolean;
 	readonly notResizable?: boolean;
 	readonly disableMaximize?: boolean;
 	readonly noBackgroundThrottling?: boolean;
@@ -477,6 +479,7 @@ export class BrowserAuxiliaryWindowService extends Disposable implements IAuxili
 			options?.mode === AuxiliaryWindowMode.Fullscreen ? 'window-fullscreen=yes' : undefined,
 			options?.frameless ? 'window-frameless=yes' : undefined,
 			options?.transparent ? 'window-transparent=yes' : undefined,
+			options?.noShadow ? 'window-no-shadow=yes' : undefined,
 			options?.notResizable ? 'window-not-resizable=yes' : undefined,
 			options?.disableMaximize ? 'window-disable-maximize=yes' : undefined,
 			options?.noBackgroundThrottling ? 'window-no-background-throttling=yes' : undefined,
