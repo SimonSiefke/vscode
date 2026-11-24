@@ -5,7 +5,6 @@
 
 import { CancellationToken } from '../../../../../../base/common/cancellation.js';
 import { Disposable } from '../../../../../../base/common/lifecycle.js';
-import { ResourceMap } from '../../../../../../base/common/map.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { ILanguageService } from '../../../../../../editor/common/languages/language.js';
 import { localize } from '../../../../../../nls.js';
@@ -16,6 +15,7 @@ import { Registry } from '../../../../../../platform/registry/common/platform.js
 import { Extensions as WorkbenchExtensions, IWorkbenchContributionsRegistry } from '../../../../../common/contributions.js';
 import { CHANGE_CELL_LANGUAGE, DETECT_CELL_LANGUAGE } from '../../notebookBrowser.js';
 import { INotebookCellStatusBarService } from '../../../common/notebookCellStatusBarService.js';
+import { NotebookCellTextModel } from '../../../common/model/notebookCellTextModel.js';
 import { CellKind, CellStatusbarAlignment, INotebookCellStatusBarItem, INotebookCellStatusBarItemList, INotebookCellStatusBarItemProvider } from '../../../common/notebookCommon.js';
 import { INotebookKernelService } from '../../../common/notebookKernelService.js';
 import { INotebookService } from '../../../common/notebookService.js';
@@ -72,11 +72,11 @@ class CellStatusBarLanguagePickerProvider implements INotebookCellStatusBarItemP
 	}
 }
 
-class CellStatusBarLanguageDetectionProvider implements INotebookCellStatusBarItemProvider {
+export class CellStatusBarLanguageDetectionProvider implements INotebookCellStatusBarItemProvider {
 
 	readonly viewType = '*';
 
-	private cache = new ResourceMap<{
+	private readonly cache = new WeakMap<NotebookCellTextModel, {
 		contentVersion: number;
 		updateTimestamp: number;
 		cellLanguage: string;
@@ -103,7 +103,6 @@ class CellStatusBarLanguageDetectionProvider implements INotebookCellStatusBarIt
 		if (!enabled) {
 			return;
 		}
-		const cellUri = cell.uri;
 		const contentVersion = cell.textModel?.getVersionId();
 		if (!contentVersion) {
 			return;
@@ -113,15 +112,15 @@ class CellStatusBarLanguageDetectionProvider implements INotebookCellStatusBarIt
 			'markdown' :
 			(this._languageService.getLanguageIdByLanguageName(cell.language) || cell.language);
 
-		if (!this.cache.has(cellUri)) {
-			this.cache.set(cellUri, {
+		if (!this.cache.has(cell)) {
+			this.cache.set(cell, {
 				cellLanguage: currentLanguageId, // force a re-compute upon a change in configured language
 				updateTimestamp: 0, // facilitates a disposable-free debounce operation
 				contentVersion: 1, // dont run for the initial contents, only on update
 			});
 		}
 
-		const cached = this.cache.get(cellUri)!;
+		const cached = this.cache.get(cell)!;
 		if (cached.cellLanguage !== currentLanguageId || (cached.updateTimestamp < Date.now() - 1000 && cached.contentVersion !== contentVersion)) {
 			cached.updateTimestamp = Date.now();
 			cached.cellLanguage = currentLanguageId;
