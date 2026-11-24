@@ -24,7 +24,7 @@ import { IResourceLabel, ResourceLabels } from '../../../browser/labels.js';
 import { FileKind } from '../../../../platform/files/common/files.js';
 import { IListVirtualDelegate, IIdentityProvider, IKeyboardNavigationLabelProvider } from '../../../../base/browser/ui/list/list.js';
 import { ITreeNode, ITreeRenderer, ITreeContextMenuEvent, ITreeElement } from '../../../../base/browser/ui/tree/tree.js';
-import { ViewPane, IViewPaneOptions } from '../../../browser/parts/views/viewPane.js';
+import { ViewPane, IViewPaneOptions, ViewAction } from '../../../browser/parts/views/viewPane.js';
 import { InlineEditInputBox } from '../../../browser/parts/views/inlineEditInputBox.js';
 import { WorkbenchListDoubleSelection, WorkbenchListMultiSelection, WorkbenchObjectTree } from '../../../../platform/list/browser/listService.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
@@ -32,12 +32,12 @@ import { IContextMenuService } from '../../../../platform/contextview/browser/co
 import { ContextKeyExpr, IContextKeyService, RawContextKey, IContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { IConfigurationService, IConfigurationChangeEvent } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
-import { ITimelineService, TimelineChangeEvent, TimelineItem, TimelineItemIdentifier, TimelineOptions, TimelineProvidersChangeEvent, TimelineRequest, Timeline, TimelineTriggerKind } from '../common/timeline.js';
+import { ITimelineService, TimelineChangeEvent, TimelineItem, TimelineItemIdentifier, TimelineOptions, TimelinePaneId, TimelineProvidersChangeEvent, TimelineRequest, Timeline, TimelineTriggerKind } from '../common/timeline.js';
 import { TimelineHasWorkspaceProviderContext } from '../common/timelineService.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { SideBySideEditor, EditorResourceAccessor } from '../../../common/editor.js';
 import { MultiDiffEditorInput } from '../../multiDiffEditor/browser/multiDiffEditorInput.js';
-import { ICommandService, CommandsRegistry } from '../../../../platform/commands/common/commands.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { IViewDescriptorService, ViewContainerLocation } from '../../../common/views.js';
@@ -1507,24 +1507,34 @@ const timelinePin = registerIcon('timeline-pin', Codicon.pin, localize('timeline
 const timelineUnpin = registerIcon('timeline-unpin', Codicon.pinned, localize('timelineUnpin', 'Icon for the unpin timeline action.'));
 
 export class TimelinePaneCommands extends Disposable {
-	private readonly sourceDisposables: DisposableStore;
+	private static globalActionsRegistered = false;
+	private static readonly sourceDisposables = new DisposableStore();
+	private static readonly providerDisposables = new DisposableStore();
 
 	constructor(
 		private readonly pane: TimelinePane,
 		@ITimelineService private readonly timelineService: ITimelineService,
-		@IStorageService private readonly storageService: IStorageService,
 		@IContextKeyService private readonly contextKeyService: IContextKeyService,
 		@IMenuService private readonly menuService: IMenuService,
 	) {
 		super();
 
-		this._register(this.sourceDisposables = new DisposableStore());
+		TimelinePaneCommands.ensureGlobalActions(this.timelineService);
+	}
 
-		this._register(registerAction2(class extends Action2 {
+	private static ensureGlobalActions(timelineService: ITimelineService): void {
+		if (TimelinePaneCommands.globalActionsRegistered) {
+			return;
+		}
+
+		TimelinePaneCommands.globalActionsRegistered = true;
+
+		registerAction2(class extends ViewAction<TimelinePane> {
 			constructor() {
 				super({
 					id: 'timeline.refresh',
 					title: localize2('refresh', "Refresh"),
+					viewId: TimelinePaneId,
 					icon: timelineRefresh,
 					category: localize2('timeline', "Timeline"),
 					menu: {
@@ -1534,16 +1544,17 @@ export class TimelinePaneCommands extends Disposable {
 					}
 				});
 			}
-			run(accessor: ServicesAccessor, ...args: unknown[]) {
+			runInView(accessor: ServicesAccessor, pane: TimelinePane, ...args: unknown[]) {
 				pane.reset();
 			}
-		}));
+		});
 
-		this._register(registerAction2(class extends Action2 {
+		registerAction2(class extends ViewAction<TimelinePane> {
 			constructor() {
 				super({
 					id: 'timeline.showWorkspaceTimeline',
 					title: localize2('timeline.showWorkspaceTimeline', "Pin Workspace Timeline"),
+					viewId: TimelinePaneId,
 					category: localize2('timeline', "Timeline"),
 					menu: {
 						id: MenuId.TimelineTitle,
@@ -1552,16 +1563,17 @@ export class TimelinePaneCommands extends Disposable {
 					}
 				});
 			}
-			run(accessor: ServicesAccessor, ...args: unknown[]) {
+			runInView(accessor: ServicesAccessor, pane: TimelinePane, ...args: unknown[]) {
 				pane.showWorkspaceTimeline();
 			}
-		}));
+		});
 
-		this._register(registerAction2(class extends Action2 {
+		registerAction2(class extends ViewAction<TimelinePane> {
 			constructor() {
 				super({
 					id: 'timeline.compareSelected',
 					title: localize2('timeline.compareSelected', "Compare Selected"),
+					viewId: TimelinePaneId,
 					menu: {
 						id: MenuId.TimelineItemContext,
 						group: '3_compare',
@@ -1570,16 +1582,27 @@ export class TimelinePaneCommands extends Disposable {
 					}
 				});
 			}
-			run(accessor: ServicesAccessor, ...args: unknown[]) {
+			runInView(accessor: ServicesAccessor, pane: TimelinePane, ...args: unknown[]) {
 				return pane.compareSelected();
 			}
-		}));
+		});
 
-		this._register(CommandsRegistry.registerCommand('timeline.toggleFollowActiveEditor',
-			(accessor: ServicesAccessor, ...args: unknown[]) => pane.followActiveEditor = !pane.followActiveEditor
-		));
+		registerAction2(class extends ViewAction<TimelinePane> {
+			constructor() {
+				super({
+					id: 'timeline.toggleFollowActiveEditor',
+					title: localize2('timeline.toggleFollowActiveEditor', "Pin or Unpin the Current Timeline"),
+					viewId: TimelinePaneId,
+					category: localize2('timeline', "Timeline"),
+				});
+			}
 
-		this._register(MenuRegistry.appendMenuItem(MenuId.TimelineTitle, ({
+			runInView(accessor: ServicesAccessor, pane: TimelinePane, ...args: unknown[]) {
+				pane.followActiveEditor = !pane.followActiveEditor;
+			}
+		});
+
+		MenuRegistry.appendMenuItem(MenuId.TimelineTitle, ({
 			command: {
 				id: 'timeline.toggleFollowActiveEditor',
 				title: localize2('timeline.toggleFollowActiveEditorCommand.follow', "Pin Current Timeline"),
@@ -1589,9 +1612,9 @@ export class TimelinePaneCommands extends Disposable {
 			group: 'navigation',
 			order: 98,
 			when: TimelineFollowActiveEditorContext
-		})));
+		}));
 
-		this._register(MenuRegistry.appendMenuItem(MenuId.TimelineTitle, ({
+		MenuRegistry.appendMenuItem(MenuId.TimelineTitle, ({
 			command: {
 				id: 'timeline.toggleFollowActiveEditor',
 				title: localize2('timeline.toggleFollowActiveEditorCommand.unfollow', "Unpin Current Timeline"),
@@ -1601,10 +1624,10 @@ export class TimelinePaneCommands extends Disposable {
 			group: 'navigation',
 			order: 98,
 			when: TimelineFollowActiveEditorContext.toNegated()
-		})));
+		}));
 
-		this._register(timelineService.onDidChangeProviders(() => this.updateTimelineSourceFilters()));
-		this.updateTimelineSourceFilters();
+		TimelinePaneCommands.providerDisposables.add(timelineService.onDidChangeProviders(() => TimelinePaneCommands.updateTimelineSourceFilters(timelineService)));
+		TimelinePaneCommands.updateTimelineSourceFilters(timelineService);
 	}
 
 	/**
@@ -1643,12 +1666,11 @@ export class TimelinePaneCommands extends Disposable {
 		return getContextMenuActions(menu, 'inline');
 	}
 
-	private updateTimelineSourceFilters() {
-		this.sourceDisposables.clear();
+	private static updateTimelineSourceFilters(timelineService: ITimelineService) {
+		TimelinePaneCommands.sourceDisposables.clear();
 
-		const excluded = new Set(JSON.parse(this.storageService.get('timeline.excludeSources', StorageScope.PROFILE, '[]')));
-		for (const source of this.timelineService.getSources()) {
-			this.sourceDisposables.add(registerAction2(class extends Action2 {
+		for (const source of timelineService.getSources()) {
+			TimelinePaneCommands.sourceDisposables.add(registerAction2(class extends Action2 {
 				constructor() {
 					super({
 						id: `timeline.toggleExcludeSource:${source.id}`,
@@ -1661,11 +1683,13 @@ export class TimelinePaneCommands extends Disposable {
 					});
 				}
 				run(accessor: ServicesAccessor, ...args: unknown[]) {
+					const storageService = accessor.get(IStorageService);
+					const excluded = new Set(JSON.parse(storageService.get('timeline.excludeSources', StorageScope.PROFILE, '[]')));
+
 					if (!excluded.delete(source.id)) {
 						excluded.add(source.id);
 					}
 
-					const storageService = accessor.get(IStorageService);
 					storageService.store('timeline.excludeSources', JSON.stringify([...excluded.keys()]), StorageScope.PROFILE, StorageTarget.USER);
 				}
 			}));
