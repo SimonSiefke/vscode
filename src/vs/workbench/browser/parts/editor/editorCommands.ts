@@ -51,6 +51,7 @@ import { IResolvedEditorCommandsContext, resolveCommandsContext } from './editor
 import { fillActiveEditorSelection, prepareMoveCopyEditors } from './editor.js';
 import { IRange } from '../../../../editor/common/core/range.js';
 import { getGroupTransferVeto, getModalToMainTransferVeto, showEditorTransferVeto, transferToNewWindow } from './editorTransferVeto.js';
+import { getEditorTelemetryId } from './editorTelemetry.js';
 
 export const CLOSE_SAVED_EDITORS_COMMAND_ID = 'workbench.action.closeUnmodifiedEditors';
 export const CLOSE_EDITORS_IN_GROUP_COMMAND_ID = 'workbench.action.closeEditorsInGroup';
@@ -1034,39 +1035,39 @@ function registerCloseEditorCommands() {
 						}
 					}
 
-					editorReplacementsInGroup.push({
-						editor: editor,
-						replacement: resolvedEditor.editor,
-						forceReplaceDirty,
-						options: resolvedEditor.options
-					});
+				editorReplacementsInGroup.push({
+					editor: editor,
+					replacement: resolvedEditor.editor,
+					forceReplaceDirty,
+					options: resolvedEditor.options
+				});
 
-					// Telemetry
-					type WorkbenchEditorReopenClassification = {
-						owner: 'rebornix';
-						comment: 'Identify how a document is reopened';
-						scheme: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'File system provider scheme for the resource' };
-						ext: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'File extension for the resource' };
-						from: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The editor view type the resource is switched from' };
-						to: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The editor view type the resource is switched to' };
-						untitledDocumentId: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The untitledDocumentId of the untitledDocument events, if the resource is untitled' };
-					};
+				// Telemetry
+				type WorkbenchEditorReopenClassification = {
+					owner: 'rebornix';
+					comment: 'Identify how a document is reopened';
+					scheme: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'File system provider scheme for the resource' };
+					ext: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'File extension for the resource' };
+					from: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The ID of the editor the resource is switched from if it is a known editor, \'other\' for any other editor, \'none\' if the editor has no ID' };
+					to: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The ID of the editor the resource is switched to if it is a known editor, \'other\' for any other editor, \'none\' if the editor has no ID' };
+					untitledDocumentId: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The untitledDocumentId of the untitledDocument events, if the resource is untitled' };
+				};
 
-					type WorkbenchEditorReopenEvent = {
-						scheme: string;
-						ext: string;
-						from: string;
-						to: string;
-						untitledDocumentId: string | undefined;
-					};
+				type WorkbenchEditorReopenEvent = {
+					scheme: string;
+					ext: string;
+					from: string;
+					to: string;
+					untitledDocumentId: string | undefined;
+				};
 
-					telemetryService.publicLog2<WorkbenchEditorReopenEvent, WorkbenchEditorReopenClassification>('workbenchEditorReopen', {
-						scheme: editorToResolve.resource?.scheme ?? '',
-						ext: editorToResolve.resource ? extname(editorToResolve.resource) : '',
-						from: editor.editorId ?? '',
-						to: resolvedEditor.editor.editorId ?? '',
-						untitledDocumentId: untitledDocumentTelemetryService.getUntitledDocumentId(editorToResolve.resource),
-					});
+				telemetryService.publicLog2<WorkbenchEditorReopenEvent, WorkbenchEditorReopenClassification>('workbenchEditorReopen', {
+					scheme: editorToResolve.resource?.scheme ?? '',
+					ext: editorToResolve.resource ? extname(editorToResolve.resource) : '',
+					from: getEditorTelemetryId(editor.editorId),
+					to: getEditorTelemetryId(resolvedEditor.editor.editorId),
+					untitledDocumentId: untitledDocumentTelemetryService.getUntitledDocumentId(editorToResolve.resource),
+				});
 				}
 			}
 
