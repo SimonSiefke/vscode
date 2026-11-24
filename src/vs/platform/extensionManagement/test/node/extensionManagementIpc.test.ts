@@ -26,7 +26,7 @@ suite('ExtensionManagementChannelClient', () => {
 		if (!process.env['VSCODE_TEST_MANIFEST_STRING_POOL_CHILD']) {
 			await new Promise<void>((resolve, reject) => {
 				execFile(process.execPath, [
-					fileURLToPath(new URL('../../../../../../test/unit/node/index.js', import.meta.url)),
+					fileURLToPath(new URL('../../../../../../test/unit/node/index.ts', import.meta.url)),
 					'--run', fileURLToPath(import.meta.url)
 				], {
 					env: { ...process.env, ELECTRON_RUN_AS_NODE: '1', VSCODE_TEST_MANIFEST_STRING_POOL_CHILD: '1' },
