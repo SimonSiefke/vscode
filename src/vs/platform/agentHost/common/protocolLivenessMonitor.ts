@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { TimeoutTimer } from '../../../base/common/async.js';
-import { Disposable } from '../../../base/common/lifecycle.js';
+import { Disposable, IReference, MutableDisposable } from '../../../base/common/lifecycle.js';
 import { ILoadEstimator, LoadEstimator } from '../../../base/parts/ipc/common/ipc.net.js';
 
 interface IProtocolLivenessOptions {
@@ -23,7 +23,7 @@ interface IProtocolLivenessOptions {
 export class ProtocolLivenessMonitor extends Disposable {
 	private readonly _pingTimer = this._register(new TimeoutTimer());
 	private readonly _closeTimer = this._register(new TimeoutTimer());
-	private readonly _loadEstimator: ILoadEstimator;
+	private readonly _defaultLoadEstimator = this._register(new MutableDisposable<IReference<LoadEstimator>>());
 	private _deferredSince: number | undefined;
 	private _lastReadTime = Date.now();
 
@@ -31,7 +31,6 @@ export class ProtocolLivenessMonitor extends Disposable {
 
 	constructor(private readonly _options: IProtocolLivenessOptions) {
 		super();
-		this._loadEstimator = _options.loadEstimator ?? LoadEstimator.getInstance();
 	}
 
 	recordInboundTraffic(): void {
@@ -40,13 +39,20 @@ export class ProtocolLivenessMonitor extends Disposable {
 	}
 
 	reset(): void {
-		this.stop();
+		this._clearTimers();
 		if (this._options.canCheck()) {
 			this._armTimers();
+		} else {
+			this._defaultLoadEstimator.clear();
 		}
 	}
 
 	stop(): void {
+		this._clearTimers();
+		this._defaultLoadEstimator.clear();
+	}
+
+	private _clearTimers(): void {
 		this._pingTimer.cancel();
 		this._closeTimer.cancel();
 		this._deferredSince = undefined;
@@ -55,6 +61,13 @@ export class ProtocolLivenessMonitor extends Disposable {
 	private _armTimers(): void {
 		this._pingTimer.cancelAndSet(() => this._onPingTimer(), this._options.pingIntervalMs);
 		this._closeTimer.cancelAndSet(() => this._onCloseTimer(), this._options.pingIntervalMs + this._options.timeoutMs);
+
+		// Connections that only send pings never consult the load estimate.
+		if (this._options.loadEstimator || this._options.canTimeout?.() === false) {
+			this._defaultLoadEstimator.clear();
+		} else {
+			this._defaultLoadEstimator.value ??= LoadEstimator.acquire();
+		}
 	}
 
 	private _onPingTimer(): void {
@@ -65,9 +78,11 @@ export class ProtocolLivenessMonitor extends Disposable {
 
 	private _onCloseTimer(): void {
 		if (!this._options.canCheck() || this._options.canTimeout?.() === false) {
+			this._defaultLoadEstimator.clear();
 			return;
 		}
-		if (this._options.shouldDefer?.() || this._loadEstimator.hasHighLoad()) {
+		const loadEstimator = this._options.loadEstimator ?? this._defaultLoadEstimator.value?.object;
+		if (this._options.shouldDefer?.() || loadEstimator?.hasHighLoad()) {
 			this._deferredSince ??= Date.now();
 			this._options.onDeferred?.(Date.now() - this._deferredSince);
 			this._pingTimer.cancelAndSet(() => this._onPingTimer(), this._options.pingIntervalMs);
@@ -79,6 +94,7 @@ export class ProtocolLivenessMonitor extends Disposable {
 			this._armTimers();
 			return;
 		}
+		this._defaultLoadEstimator.clear();
 		this._options.onTimeout(Date.now() - this._lastReadTime);
 	}
 }

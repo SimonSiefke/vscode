@@ -5,7 +5,7 @@
 
 import { VSBuffer } from '../../../common/buffer.js';
 import { Emitter, Event } from '../../../common/event.js';
-import { Disposable, DisposableStore, IDisposable } from '../../../common/lifecycle.js';
+import { Disposable, DisposableStore, IDisposable, ImmortalReference, IReference, ReferenceCollection } from '../../../common/lifecycle.js';
 import { IIPCLogger, IMessagePassingProtocol, IPCClient } from './ipc.js';
 
 export const enum SocketDiagnosticsEventType {
@@ -739,26 +739,33 @@ class Queue<T> {
 	}
 }
 
-export class LoadEstimator {
+export class LoadEstimator implements ILoadEstimator {
 
 	private static _HISTORY_LENGTH = 10;
-	private static _INSTANCE: LoadEstimator | null = null;
-	public static getInstance(): LoadEstimator {
-		if (!LoadEstimator._INSTANCE) {
-			LoadEstimator._INSTANCE = new LoadEstimator();
+	private static readonly _instances = new class extends ReferenceCollection<LoadEstimator> {
+		protected createReferencedObject(): LoadEstimator {
+			return new LoadEstimator();
 		}
-		return LoadEstimator._INSTANCE;
+
+		protected destroyReferencedObject(_key: string, estimator: LoadEstimator): void {
+			clearInterval(estimator._interval);
+		}
+	};
+
+	public static acquire(): IReference<LoadEstimator> {
+		return LoadEstimator._instances.acquire('loadEstimator');
 	}
 
-	private lastRuns: number[];
+	private readonly lastRuns: number[];
+	private readonly _interval: Timeout;
 
-	constructor() {
+	private constructor() {
 		this.lastRuns = [];
 		const now = Date.now();
 		for (let i = 0; i < LoadEstimator._HISTORY_LENGTH; i++) {
 			this.lastRuns[i] = now - 1000 * i;
 		}
-		setInterval(() => {
+		this._interval = setInterval(() => {
 			for (let i = LoadEstimator._HISTORY_LENGTH; i >= 1; i--) {
 				this.lastRuns[i] = this.lastRuns[i - 1];
 			}
@@ -839,7 +846,7 @@ export class PersistentProtocol implements IMessagePassingProtocol {
 	// eslint-disable-next-line local/code-no-potentially-unsafe-disposables
 	private _socketDisposables: DisposableStore;
 
-	private readonly _loadEstimator: ILoadEstimator;
+	private readonly _loadEstimator: IReference<ILoadEstimator>;
 	private readonly _shouldSendKeepAlive: boolean;
 
 	private readonly _onControlMessage = new BufferedEmitter<VSBuffer>();
@@ -862,7 +869,7 @@ export class PersistentProtocol implements IMessagePassingProtocol {
 	}
 
 	constructor(opts: PersistentProtocolOptions) {
-		this._loadEstimator = opts.loadEstimator ?? LoadEstimator.getInstance();
+		this._loadEstimator = opts.loadEstimator ? new ImmortalReference(opts.loadEstimator) : LoadEstimator.acquire();
 		this._shouldSendKeepAlive = opts.sendKeepAlive ?? true;
 		this._isReconnecting = false;
 		this._outgoingUnackMsg = new Queue<ProtocolMessage>();
@@ -911,6 +918,7 @@ export class PersistentProtocol implements IMessagePassingProtocol {
 			clearInterval(this._keepAliveInterval);
 			this._keepAliveInterval = null;
 		}
+		this._loadEstimator.dispose();
 		this._socketDisposables.dispose();
 	}
 
@@ -1151,7 +1159,7 @@ export class PersistentProtocol implements IMessagePassingProtocol {
 			// and a long time since we received some data
 
 			// But this might be caused by the event loop being busy and failing to read messages
-			if (!this._loadEstimator.hasHighLoad()) {
+			if (!this._loadEstimator.object.hasHighLoad()) {
 				// Trash the socket
 				this._lastSocketTimeoutTime = Date.now();
 				this._onSocketTimeout.fire({
@@ -1198,7 +1206,7 @@ export class PersistentProtocol implements IMessagePassingProtocol {
 			&& timeSinceLastTimeout >= ProtocolConstants.TimeoutTime
 		) {
 			// But this might be caused by the event loop being busy and failing to read messages
-			if (!this._loadEstimator.hasHighLoad()) {
+			if (!this._loadEstimator.object.hasHighLoad()) {
 				this._lastSocketTimeoutTime = now;
 				const unacknowledgedMsgCount = this._outgoingUnackMsg.length();
 				const oldestUnacknowledgedMsg = this._outgoingUnackMsg.peek();

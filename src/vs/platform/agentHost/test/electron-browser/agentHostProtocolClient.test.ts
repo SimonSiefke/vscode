@@ -12,10 +12,11 @@ import { CancellationToken, CancellationTokenSource } from '../../../../base/com
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { CancellationError, errorHandler, getErrorCode, setUnexpectedErrorHandler, transformErrorForSerialization, transformErrorFromSerialization } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
-import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, IReference, toDisposable } from '../../../../base/common/lifecycle.js';
 import { observableValue } from '../../../../base/common/observable.js';
 import { extUriBiasedIgnorePathCase } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
+import { LoadEstimator } from '../../../../base/parts/ipc/common/ipc.net.js';
 import { runWithFakedTimers } from '../../../../base/test/common/timeTravelScheduler.js';
 import { mock } from '../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -330,8 +331,16 @@ class ManagedPermissionsConfigurationService extends TestConfigurationService {
 suite('AgentHostProtocolClient', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 	const configurationRegistry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration);
-	suiteSetup(() => configurationRegistry.registerConfiguration(syncTestConfigurationNode));
-	suiteTeardown(() => configurationRegistry.deregisterConfigurations([syncTestConfigurationNode]));
+	let loadEstimator: IReference<LoadEstimator>;
+	suiteSetup(() => {
+		// Keep the shared load sampler outside the virtual watchdog clock.
+		loadEstimator = LoadEstimator.acquire();
+		configurationRegistry.registerConfiguration(syncTestConfigurationNode);
+	});
+	suiteTeardown(() => {
+		loadEstimator.dispose();
+		configurationRegistry.deregisterConfigurations([syncTestConfigurationNode]);
+	});
 
 	function createPermissionService(allow = true): IAgentHostResourceService {
 		return createResourceServiceStub({ granted: () => allow });
@@ -11109,8 +11118,7 @@ suite('AgentHostProtocolClient', () => {
 		test('watchdog dead-transport detection triggers soft reconnect', async function () {
 			this.timeout(60_000);
 			return runWithFakedTimers({ useFakeTimers: true, maxTaskCount: 10_000 }, async () => {
-				// Inject a no-load estimator: the shared LoadEstimator singleton
-				// installs a 1s interval that never drains under fake timers.
+				// Keep this timeout test independent of event-loop load.
 				const { client, transports } = createFactoryClient(createPermissionService(), undefined, NullTelemetryService, undefined, { hasHighLoad: () => false });
 				const reasons: IConnectionDiagnosticEvent['closeReason'][] = [];
 				disposables.add(client.onDidConnectionDiagnostic(event => {

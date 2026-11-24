@@ -2219,7 +2219,7 @@ suite('SSHRemoteAgentHostService lifecycle (renderer)', () => {
 
 	setup(() => {
 		// Keep the process-wide load estimator's interval outside virtual time.
-		LoadEstimator.getInstance();
+		disposables.add(LoadEstimator.acquire());
 		instantiationService = disposables.add(new TestInstantiationService());
 		const configurationService = new TestConfigurationService();
 		mainService = disposables.add(new LifecycleSSHMainService());
