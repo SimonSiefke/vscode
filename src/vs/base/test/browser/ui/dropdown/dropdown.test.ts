@@ -7,12 +7,24 @@ import assert from 'assert';
 import { IContextMenuDelegate, IContextMenuProvider } from '../../../../browser/contextmenu.js';
 import { $ } from '../../../../browser/dom.js';
 import { contextViewMenuCloseAnimation, CONTEXT_VIEW_MENU_MOTION_CLASS, IContextViewCloseAnimation } from '../../../../browser/ui/contextview/contextview.js';
+import { DropdownMenuActionViewItem } from '../../../../browser/ui/dropdown/dropdownActionViewItem.js';
+import { Action } from '../../../../common/actions.js';
+import { ThemeIcon } from '../../../../common/themables.js';
 import { DropdownMenu } from '../../../../browser/ui/dropdown/dropdown.js';
 import { toDisposable } from '../../../../common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../common/utils.js';
 
 suite('DropdownMenu', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('rendering accepts cached icon classes without changing them', () => {
+		const classes = ThemeIcon.asClassNameArray({ id: 'check' });
+		const action = disposables.add(new Action('test', 'Test'));
+		const item = disposables.add(new DropdownMenuActionViewItem(action, { getActions: () => [] }, { showContextMenu: () => { } }, { classNames: classes }));
+		const container = $('div');
+		item.render(container);
+		assert.deepStrictEqual([...classes], ['codicon', 'codicon-check']);
+	});
 
 	test('applies menu motion by default and preserves overrides', () => {
 		const delegates: IContextMenuDelegate[] = [];

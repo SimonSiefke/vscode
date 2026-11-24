@@ -76,7 +76,7 @@ export interface ICompositeBarActionItem {
 	id: string;
 	name: string;
 	keybindingId?: string;
-	classNames?: string[];
+	classNames?: readonly string[];
 	iconUrl?: URI;
 }
 

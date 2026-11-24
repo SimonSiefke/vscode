@@ -32,9 +32,9 @@ export function renderLabelWithIcons(text: string, renderIconsInDefaultColor?: b
 export function renderIcon(icon: ThemeIcon, renderDefaultColor?: boolean): HTMLSpanElement {
 	const node = dom.$(`span`);
 	const classes = ThemeIcon.asClassNameArray(icon);
-	if (renderDefaultColor) {
-		classes.push('codicon-colored');
-	}
 	node.classList.add(...classes);
+	if (renderDefaultColor) {
+		node.classList.add('codicon-colored');
+	}
 	return node;
 }
