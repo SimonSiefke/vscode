@@ -22,6 +22,74 @@ suite('DefaultSettings', () => {
 		configurationService = new TestConfigurationService();
 	});
 
+	test('initializes setting ranges without caching JSON content', () => {
+		const config: IConfigurationNode = {
+			id: 'lazySettings',
+			title: 'Lazy Settings',
+			properties: {
+				'test.lazySetting': { type: 'string', default: 'value', description: 'A setting description.' }
+			}
+		};
+		configurationRegistry.registerConfiguration(config);
+		disposables.add(toDisposable(() => configurationRegistry.deregisterConfigurations([config])));
+		const settings = disposables.add(new DefaultSettings(['test.lazySetting'], ConfigurationTarget.USER, configurationService));
+		const expected = disposables.add(new DefaultSettings(['test.lazySetting'], ConfigurationTarget.USER, configurationService));
+
+		const groups = settings.getSettingsGroups();
+		const commonlyUsedSetting = groups[0].sections[0].settings[0];
+		assert.deepStrictEqual({
+			key: [commonlyUsedSetting.keyRange.startLineNumber, commonlyUsedSetting.keyRange.startColumn],
+			value: [commonlyUsedSetting.valueRange.startLineNumber, commonlyUsedSetting.valueRange.startColumn],
+			description: commonlyUsedSetting.descriptionRanges.map(range => [range.startLineNumber, range.startColumn])
+		}, { key: [3, 4], value: [3, 23], description: [[2, 6]] });
+		assert.deepStrictEqual({
+			content: Reflect.get(settings, '_content'),
+			contentWithoutMostCommonlyUsed: Reflect.get(settings, '_contentWithoutMostCommonlyUsed')
+		}, { content: undefined, contentWithoutMostCommonlyUsed: undefined });
+
+		const content = expected.getContent();
+		const contentWithoutMostCommonlyUsed = expected.getContentWithoutMostCommonlyUsed();
+		const getRanges = (model: DefaultSettings) => model.getSettingsGroups().map(group => ({
+			range: group.range,
+			titleRange: group.titleRange,
+			settings: group.sections.flatMap(section => section.settings.map(setting => ({
+				key: setting.key,
+				range: setting.range,
+				keyRange: setting.keyRange,
+				valueRange: setting.valueRange,
+				descriptionRanges: setting.descriptionRanges
+			})))
+		}));
+		assert.deepStrictEqual(getRanges(settings), getRanges(expected));
+		assert.strictEqual(settings.getContent(), content);
+		assert.strictEqual(settings.getContentWithoutMostCommonlyUsed(), contentWithoutMostCommonlyUsed);
+		assert.strictEqual(settings.getSettingsGroups(), groups);
+		assert.deepStrictEqual(getRanges(settings), getRanges(expected));
+	});
+
+	test('refreshing setting groups invalidates previously cached JSON content', () => {
+		const config: IConfigurationNode = {
+			id: 'refreshedSettings',
+			title: 'Refreshed Settings',
+			properties: {
+				'test.refreshedSetting': { type: 'string', default: 'value' }
+			}
+		};
+		const settings = disposables.add(new DefaultSettings([], ConfigurationTarget.USER, configurationService));
+		const previousContent = settings.getContent();
+		configurationRegistry.registerConfiguration(config);
+		disposables.add(toDisposable(() => configurationRegistry.deregisterConfigurations([config])));
+
+		const groups = settings.getSettingsGroups(true);
+		assert.deepStrictEqual({
+			content: Reflect.get(settings, '_content'),
+			contentWithoutMostCommonlyUsed: Reflect.get(settings, '_contentWithoutMostCommonlyUsed')
+		}, { content: undefined, contentWithoutMostCommonlyUsed: undefined });
+		assert.notStrictEqual(settings.getContent(), previousContent);
+		assert.ok(settings.getContentWithoutMostCommonlyUsed().includes('"test.refreshedSetting"'));
+		assert.strictEqual(settings.getSettingsGroups(), groups);
+	});
+
 	test('preserves deprecation message presentation', () => {
 		const config: IConfigurationNode = {
 			id: 'deprecatedSettings',
