@@ -8,7 +8,7 @@ import { OperatingSystem, OS } from '../../../base/common/platform.js';
 import { CommandsRegistry, ICommandHandler, ICommandMetadata } from '../../commands/common/commands.js';
 import { ContextKeyExpression } from '../../contextkey/common/contextkey.js';
 import { Registry } from '../../registry/common/platform.js';
-import { combinedDisposable, DisposableStore, IDisposable, markAsDisposed, trackDisposable } from '../../../base/common/lifecycle.js';
+import { combinedDisposable, DisposableStore, IDisposable, markAsDisposed, toDisposable, trackDisposable } from '../../../base/common/lifecycle.js';
 import { LinkedList } from '../../../base/common/linkedList.js';
 
 export interface IKeybindingItem {
@@ -20,6 +20,8 @@ export interface IKeybindingItem {
 	weight2: number;
 	extensionId: string | null;
 	isBuiltinExtension: boolean;
+	/** See {@link IKeybindingRule.systemWide}. */
+	systemWide?: boolean;
 }
 
 export interface IKeybindings {
@@ -47,6 +49,12 @@ export interface IKeybindingRule extends IKeybindings {
 	 * Keybinding is disabled if expression returns false.
 	 */
 	when?: ContextKeyExpression | null | undefined;
+	/**
+	 * Also registers the keybinding as a system-wide shortcut on desktop, which works while another application is in
+	 * front, for as long as {@link when} holds in a window of VS Code. That window evaluates {@link when} without
+	 * regard to focus, so it should only depend on keys such as settings.
+	 */
+	systemWide?: boolean;
 }
 
 export interface IExtensionKeybindingRule {
@@ -73,12 +81,30 @@ export interface ICommandAndKeybindingRule<Args extends unknown[] = unknown[]> e
 	metadata?: ICommandMetadata | null;
 }
 
+/**
+ * Binds {@link command} to the keybindings of {@link source}, including the user's, where {@link when} holds.
+ */
+export interface IKeybindingAlias {
+	/** The command that is bound. */
+	readonly command: string;
+	/**
+	 * The command whose keybindings are inherited, without their when clauses, which describe where {@link source} applies.
+	 * Removing a keybinding of {@link source} also removes the default keybindings of {@link command} at that key, but not
+	 * those it inherits from the user's keybindings of {@link source}.
+	 */
+	readonly source: string;
+	/** Where the inherited keybindings apply. There, they outrank those of {@link source}. */
+	readonly when: ContextKeyExpression;
+}
+
 export interface IKeybindingsRegistry {
 	registerKeybindingRule(rule: IKeybindingRule): IDisposable;
 	setExtensionKeybindings(rules: IExtensionKeybindingRule[]): void;
 	registerCommandAndKeybindingRule<Args extends unknown[] = unknown[]>(desc: ICommandAndKeybindingRule<Args>): IDisposable;
+	registerKeybindingAlias(alias: IKeybindingAlias): IDisposable;
 	getDefaultKeybindings(): IKeybindingItem[];
 	getDefaultKeybindingsForOS(os: OperatingSystem): IKeybindingItem[];
+	getKeybindingAliases(): IKeybindingAlias[];
 }
 
 class DefaultKeybindingRegistration implements IDisposable {
@@ -110,6 +136,7 @@ class KeybindingsRegistryImpl implements IKeybindingsRegistry {
 	private _coreKeybindingRules: LinkedList<IKeybindingRule>;
 	private _extensionKeybindings: IKeybindingItem[];
 	private _cachedMergedKeybindings: IKeybindingItem[] | null;
+	private readonly _keybindingAliases = new LinkedList<IKeybindingAlias>();
 
 	constructor() {
 		this._coreKeybindings = new LinkedList();
@@ -149,7 +176,7 @@ class KeybindingsRegistryImpl implements IKeybindingsRegistry {
 		if (actualKb && actualKb.primary) {
 			const kk = decodeKeybinding(actualKb.primary, OS);
 			if (kk) {
-				result.add(this._registerDefaultKeybinding(kk, rule.id, rule.args, rule.weight, 0, rule.when));
+				result.add(this._registerDefaultKeybinding(kk, rule.id, rule.args, rule.weight, 0, rule.when, rule.systemWide));
 			}
 		}
 
@@ -158,7 +185,7 @@ class KeybindingsRegistryImpl implements IKeybindingsRegistry {
 				const k = actualKb.secondary[i];
 				const kk = decodeKeybinding(k, OS);
 				if (kk) {
-					result.add(this._registerDefaultKeybinding(kk, rule.id, rule.args, rule.weight, -i - 1, rule.when));
+					result.add(this._registerDefaultKeybinding(kk, rule.id, rule.args, rule.weight, -i - 1, rule.when, rule.systemWide));
 				}
 			}
 		}
@@ -197,7 +224,15 @@ class KeybindingsRegistryImpl implements IKeybindingsRegistry {
 		);
 	}
 
-	private _registerDefaultKeybinding(keybinding: Keybinding, commandId: string, commandArgs: any, weight1: number, weight2: number, when: ContextKeyExpression | null | undefined): IDisposable {
+	public registerKeybindingAlias(alias: IKeybindingAlias): IDisposable {
+		return toDisposable(this._keybindingAliases.push(alias));
+	}
+
+	public getKeybindingAliases(): IKeybindingAlias[] {
+		return Array.from(this._keybindingAliases);
+	}
+
+	private _registerDefaultKeybinding(keybinding: Keybinding, commandId: string, commandArgs: any, weight1: number, weight2: number, when: ContextKeyExpression | null | undefined, systemWide: boolean | undefined): IDisposable {
 		const registration = this._coreKeybindings.pushDisposable({
 			keybinding: keybinding,
 			command: commandId,
@@ -206,7 +241,8 @@ class KeybindingsRegistryImpl implements IKeybindingsRegistry {
 			weight1: weight1,
 			weight2: weight2,
 			extensionId: null,
-			isBuiltinExtension: false
+			isBuiltinExtension: false,
+			systemWide
 		});
 		this._cachedMergedKeybindings = null;
 
