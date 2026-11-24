@@ -49,6 +49,111 @@ suite('ContextKeyExpr', () => {
 		assert(a.equals(b), 'expressions should be equal');
 	});
 
+	test('key arrays are owned by their expression', () => {
+		const key = 'scmRepositoryVisible:scm123';
+		const first = ContextKeyExpr.has(key)!;
+		const second = ContextKeyExpr.has(key)!;
+		const firstKeys = first.keys();
+		firstKeys.push('other');
+		const emptyKeys = ContextKeyExpr.true().keys();
+		emptyKeys.push('other');
+		assert.deepStrictEqual({
+			first: first.keys(),
+			second: second.keys(),
+			cached: firstKeys === first.keys(),
+			constant: ContextKeyExpr.true().keys(),
+			falseConstant: ContextKeyExpr.false().keys()
+		}, {
+			first: [key, 'other'],
+			second: [key],
+			cached: true,
+			constant: [],
+			falseConstant: []
+		});
+	});
+
+	for (const expression of ['a =~ /foo/', 'a not in b']) {
+		for (const mutateNegative of [true, false]) {
+			test(`negation key arrays are expression-local: ${expression}, mutate negative: ${mutateNegative}`, () => {
+				const expr = ContextKeyExpr.deserialize(expression)!;
+				const negative = expression.includes('not in') ? expr : expr.negate();
+				const positive = negative.negate();
+				const expected = expression.includes('not in') ? ['a', 'b'] : ['a'];
+				const mutated = mutateNegative ? negative : positive;
+				const untouched = mutateNegative ? positive : negative;
+				const keys = mutated.keys();
+				keys.length = 0;
+				const collected: string[] = [];
+				mutated.collectKeys({ add: key => collected.push(key) });
+
+				assert.deepStrictEqual({
+					mutated: mutated.keys(),
+					cached: keys === mutated.keys(),
+					untouched: untouched.keys(),
+					collected,
+					positive: positive.evaluate(createContext({ a: 'foo', b: ['foo'] })),
+					negative: negative.evaluate(createContext({ a: 'foo', b: ['foo'] }))
+				}, {
+					mutated: [],
+					cached: true,
+					untouched: expected,
+					collected: expected,
+					positive: true,
+					negative: false
+				});
+			});
+		}
+	}
+
+	test('collectKeys and keys report every dependency', () => {
+		const expressions: [string, string[]][] = [
+			['true', []],
+			['false', []],
+			['a', ['a']],
+			['!a', ['a']],
+			['a == b', ['a']],
+			['a != b', ['a']],
+			['a in b', ['a', 'b']],
+			['a not in b', ['a', 'b']],
+			['a > 1', ['a']],
+			['a >= 1', ['a']],
+			['a < 1', ['a']],
+			['a <= 1', ['a']],
+			['a =~ /foo/', ['a']],
+			['!(a =~ /foo/)', ['a']],
+			['a && b && c', ['a', 'b', 'c']],
+			['a || b || c', ['a', 'b', 'c']],
+			['a && b || c && d', ['a', 'b', 'c', 'd']],
+			['a && (b || c)', ['a', 'b', 'c']]
+		];
+
+		for (const [expression, expected] of expressions) {
+			const expr = ContextKeyExpr.deserialize(expression)!;
+			const keys = new Set<string>();
+			expr.collectKeys(keys);
+			assert.deepStrictEqual({ collected: [...keys].sort(), keys: [...new Set(expr.keys())].sort() }, { collected: expected, keys: expected }, expression);
+		}
+	});
+
+	test('keys are cached and remain consistent across expression operations', () => {
+		const expression = 'a && b || c && d';
+		const expr = ContextKeyExpr.deserialize(expression)!;
+		const firstKeys = expr.keys();
+		const secondKeys = expr.keys();
+		const collectedKeys = new Set<string>();
+
+		expr.collectKeys(collectedKeys);
+
+		assert.strictEqual(firstKeys, secondKeys, 'keys should be cached per expression instance');
+		assert.deepStrictEqual([...firstKeys].sort(), ['a', 'b', 'c', 'd']);
+		assert.deepStrictEqual([...collectedKeys].sort(), ['a', 'b', 'c', 'd']);
+		assert.strictEqual(expr.serialize(), 'a && b || c && d');
+		assert.strictEqual(expr.negate().serialize(), '!a && !c || !a && !d || !b && !c || !b && !d');
+		assert.strictEqual(expr.substituteConstants(), expr);
+		assert.ok(expr.equals(ContextKeyExpr.deserialize(expression)!));
+		assert.strictEqual(expr.keys(), firstKeys, 'negate/substitute/equals should not invalidate cached keys');
+	});
+
 	test('issue #134942: Equals in comparator expressions', () => {
 		function testEquals(expr: ContextKeyExpression | undefined, str: string): void {
 			const deserialized = ContextKeyExpr.deserialize(str);
