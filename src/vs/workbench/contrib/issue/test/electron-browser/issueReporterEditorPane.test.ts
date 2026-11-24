@@ -20,7 +20,7 @@ suite('IssueReporterController', () => {
 	for (const cancel of [false, true]) {
 		test(`closing an input during lazy wizard initialization does not reopen it (cancel=${cancel})`, async () => {
 			const instantiationService = disposables.add(new TestInstantiationService());
-			for (const { id } of _util.getServiceDependencies(IssueReporterController)) {
+			for (const { id } of _util.getServiceDependencies(IssueReporterController as typeof IssueReporterController & _util.DI_TARGET_OBJ)) {
 				instantiationService.stub(id, {});
 			}
 			let reveals = 0;
