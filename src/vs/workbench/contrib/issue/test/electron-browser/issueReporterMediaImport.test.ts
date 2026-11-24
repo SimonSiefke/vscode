@@ -277,7 +277,7 @@ suite('Issue reporter media import lifecycle', () => {
 			reveal: async () => { await openEditor(input); },
 			close: () => input.dispose(),
 		}));
-		pane.setInput(input);
+		await pane.setInput(input);
 		const editor = input.descriptionInput;
 		return { pane, input, files, container, submit, openEditor, errors, warnings, editor, screenshotTool };
 	}
@@ -1052,7 +1052,7 @@ suite('Issue reporter media import lifecycle', () => {
 		second.editor.focus();
 		second.editor.select();
 		document.execCommand('insertText', false, 'Text changed in the other pane');
-		first.pane.setInput(first.input);
+		await first.pane.setInput(first.input);
 		first.container.querySelectorAll<HTMLElement>('.wizard-description-tabs [role=tab]')[1].click();
 		const identifiers = [first.container, second.container].flatMap(container => [...container.querySelectorAll('[id]')].map(element => element.id));
 		assert.deepStrictEqual({
@@ -1094,7 +1094,7 @@ suite('Issue reporter media import lifecycle', () => {
 			attachments: savedFiles(first.input)?.map(file => file.name), exists: first.files.files.has(owned),
 			submitted: first.submit.callCount, capturing: second.pane.getWizard()!.hasPendingOperations(), writes: first.files.writes.length,
 		};
-		first.pane.setInput(first.input);
+		await first.pane.setInput(first.input);
 		const returnedWizard = first.pane.getWizard()!;
 		const returned = {
 			controller: IssueReporterController.getAnyLiveInstance() === first.pane,
@@ -1103,7 +1103,7 @@ suite('Issue reporter media import lifecycle', () => {
 			bars: document.querySelectorAll('.issue-reporter-floating-bar').length,
 			attachments: returnedWizard.getFileAttachments().map(file => file.name),
 		};
-		first.pane.setInput(first.input);
+		await first.pane.setInput(first.input);
 		assert.deepStrictEqual({ moved, afterStaleActions, returned, sameOwnerRetained: first.pane.getWizard() === returnedWizard }, {
 			moved: { controller: true, released: true, oldGroupOpen: true, bars: 1 },
 			afterStaleActions: { attachments: ['report.json'], exists: true, submitted: 0, capturing: false, writes: 1 },
@@ -1119,7 +1119,7 @@ suite('Issue reporter media import lifecycle', () => {
 		file.readGate = new DeferredPromise<void>();
 		wizard['requestAddAttachments']([file]);
 		await file.reading.p;
-		pane.setInput(input);
+		await pane.setInput(input);
 		await file.readGate.complete();
 		await pane.waitForImports();
 		assert.deepStrictEqual({ sameWizard: pane.getWizard() === wizard, attachments: savedFiles(input)?.length }, { sameWizard: true, attachments: 1 });
@@ -1134,7 +1134,7 @@ suite('Issue reporter media import lifecycle', () => {
 		pending.readGate = new DeferredPromise<void>();
 		wizard['requestAddAttachments']([pending]);
 		await pending.reading.p;
-		pane.setInput(input);
+		await pane.setInput(input);
 		await pending.readGate.complete();
 		await pane.waitForImports();
 		assert.deepStrictEqual(savedFiles(input)?.map(file => file.name), ['first.png', 'second.png']);
@@ -1149,7 +1149,7 @@ suite('Issue reporter media import lifecycle', () => {
 			const second = await createPane(first.input, first.files);
 			second.pane.getWizard()!.markPreviewOpened();
 			const movedController = IssueReporterController.getAnyLiveInstance();
-			first.pane.setInput(first.input);
+			await first.pane.setInput(first.input);
 			const wizard = first.pane.getWizard()!;
 			wizard.markPreviewOpened();
 			if (otherPane === 'disposed') {
@@ -1248,7 +1248,7 @@ suite('Issue reporter media import lifecycle', () => {
 		pane.getWizard()!['requestAddAttachments']([video()]);
 		await pane.waitForImports();
 		input.savedAttachments = [];
-		pane.setInput(input);
+		await pane.setInput(input);
 		assert.deepStrictEqual({ recordings: pane.getWizard()!.getFileAttachments(), filesLeft: files.files.size }, { recordings: [], filesLeft: 0 });
 	});
 
@@ -1272,7 +1272,7 @@ suite('Issue reporter media import lifecycle', () => {
 		pane.getWizard()!['requestAddAttachments']([file]);
 		await file.reading.p;
 		const replacement = createInput();
-		pane.setInput(replacement);
+		await pane.setInput(replacement);
 		await pane.waitForImports();
 		await file.readGate.complete();
 		assert.deepStrictEqual({ old: savedFiles(input), current: pane.getWizard()!.getFileAttachments(), writes: files.writes }, { old: undefined, current: [], writes: [] });
@@ -1294,7 +1294,7 @@ suite('Issue reporter media import lifecycle', () => {
 		files.writeGate = new DeferredPromise<void>();
 		pane.getWizard()!['requestAddAttachments']([video()]);
 		await files.writeStarted.p;
-		pane.setInput(createInput());
+		await pane.setInput(createInput());
 		await files.writeGate.complete();
 		await pane.waitForImports();
 		assert.deepStrictEqual({ old: savedFiles(input), current: pane.getWizard()!.getFileAttachments(), filesLeft: files.files.size, deletions: files.deletions }, { old: undefined, current: [], filesLeft: 0, deletions: files.writes });

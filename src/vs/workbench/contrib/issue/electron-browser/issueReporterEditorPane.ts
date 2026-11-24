@@ -56,7 +56,7 @@ export class IssueReporterEditorPane extends EditorPane {
 	override async setInput(input: IssueReporterEditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		await super.setInput(input, options, context, token);
 		if (!token.isCancellationRequested) {
-			await this.controller?.setInput(input);
+			await this.controller?.setInput(input, token);
 		}
 	}
 

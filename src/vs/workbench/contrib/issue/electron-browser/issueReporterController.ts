@@ -135,7 +135,7 @@ export class IssueReporterController extends Disposable {
 			|| this.updateService.state.type === StateType.Downloaded;
 	}
 
-	async setInput(input: IssueReporterEditorInput): Promise<void> {
+	async setInput(input: IssueReporterEditorInput, token = CancellationToken.None): Promise<void> {
 		if (input.isDisposed() || this._store.isDisposed) {
 			return;
 		}
@@ -171,7 +171,7 @@ export class IssueReporterController extends Disposable {
 		}
 
 		const { IssueReporterOverlay } = await import('../browser/issueReporterOverlay.js');
-		if (this._store.isDisposed || this.wizardInput !== input || input.isDisposed() || this.wizard) {
+		if (token.isCancellationRequested || this._store.isDisposed || this.wizardInput !== input || input.isDisposed() || this.wizard) {
 			return;
 		}
 
