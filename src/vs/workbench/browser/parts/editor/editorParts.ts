@@ -967,13 +967,13 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 
 		const preservedState = workingSetState === 'empty' ? undefined : EditorPane.preserveEditorGroupState(getSerializedEditorGroupIds(this.getWorkingSetLayouts(workingSetState)));
 		try {
-			return await this.doApplyWorkingSet(workingSetState, options);
+			return await this.applyResolvedWorkingSet(workingSetState, options);
 		} finally {
 			preservedState?.dispose();
 		}
 	}
 
-	private async doApplyWorkingSet(workingSetState: IEditorWorkingSetState | 'empty', options?: IEditorWorkingSetOptions): Promise<boolean> {
+	private async applyResolvedWorkingSet(workingSetState: IEditorWorkingSetState | 'empty', options?: IEditorWorkingSetOptions): Promise<boolean> {
 		// Applying removes the editors in place, so focus that is inside of an editor
 		// part would be lost: it is recovered afterwards if it ended up lost or still in an editor.
 		const isEditorFocus = () => this.parts.some(part => {
