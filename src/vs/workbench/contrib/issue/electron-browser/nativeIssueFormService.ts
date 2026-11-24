@@ -283,7 +283,9 @@ export class NativeIssueFormService extends IssueFormService implements IIssueFo
 			window.controller = controller;
 			window.add(auxiliaryWindow.onDidLayout(dimension => controller.layout(dimension)));
 			await controller.setInput(input);
-			auxiliaryWindow.layout();
+			if (!window.isDisposed) {
+				auxiliaryWindow.layout();
+			}
 		} catch (error) {
 			if (auxiliaryWindow && reporterWindow) {
 				this.reporterWindows.deleteAndDispose(auxiliaryWindow.window.vscodeWindowId);

@@ -73,6 +73,7 @@ export class IssueReporterController extends Disposable {
 
 	private wizard: IssueReporterOverlay | undefined;
 	private wizardInput: IssueReporterEditorInput | undefined;
+	private inputGeneration = 0;
 	private readonly inputDisposables = this._register(new DisposableStore());
 	private readonly inputStateCallbacks = this._register(new MutableDisposable());
 	private hasRequestedScreenCapturePermission = false;
@@ -136,7 +137,7 @@ export class IssueReporterController extends Disposable {
 	}
 
 	async setInput(input: IssueReporterEditorInput, token = CancellationToken.None): Promise<void> {
-		if (input.isDisposed() || this._store.isDisposed) {
+		if (token.isCancellationRequested || input.isDisposed() || this._store.isDisposed) {
 			return;
 		}
 
@@ -170,8 +171,13 @@ export class IssueReporterController extends Disposable {
 			return;
 		}
 
+		const generation = this.inputGeneration;
 		const { IssueReporterOverlay } = await import('../browser/issueReporterOverlay.js');
-		if (token.isCancellationRequested || this._store.isDisposed || this.wizardInput !== input || input.isDisposed() || this.wizard) {
+		if (this._store.isDisposed || generation !== this.inputGeneration) {
+			return;
+		}
+		if (token.isCancellationRequested || input.isDisposed()) {
+			this.destroyWizard();
 			return;
 		}
 
@@ -590,6 +596,7 @@ export class IssueReporterController extends Disposable {
 	}
 
 	private destroyWizard(): void {
+		this.inputGeneration++;
 		this.recordingGeneration++;
 		this.pendingRecordingStart = undefined;
 		this.pendingRecordingStop = undefined;
