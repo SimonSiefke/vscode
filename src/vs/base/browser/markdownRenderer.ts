@@ -5,19 +5,19 @@
 
 import { onUnexpectedError } from '../common/errors.js';
 import { isUNC } from '../common/extpath.js';
-import { escapeDoubleQuotes, IMarkdownString, isPortableLinkTarget, MarkdownStringTrustedOptions, parseHrefAndDimensions, removeMarkdownEscapes } from '../common/htmlContent.js';
+import { escapeDoubleQuotes, IMarkdownString, isPortableLinkTarget, parseHrefAndDimensions, removeMarkdownEscapes, resolveWithBaseUri } from '../common/htmlContent.js';
 import { markdownEscapeEscapedIcons } from '../common/iconLabels.js';
 import { defaultGenerator } from '../common/idGenerator.js';
 import { KeyCode } from '../common/keyCodes.js';
 import { DisposableStore, IDisposable } from '../common/lifecycle.js';
 import * as marked from '../common/marked/marked.js';
 import { parse } from '../common/marshalling.js';
-import { FileAccess, Schemas } from '../common/network.js';
+import { FileAccess, matchesSomeScheme, Schemas } from '../common/network.js';
 import { cloneAndChange } from '../common/objects.js';
 import { basename as pathBasename } from '../common/path.js';
-import { basename, dirname, resolvePath } from '../common/resources.js';
+import { basename } from '../common/resources.js';
 import { escape } from '../common/strings.js';
-import { URI, UriComponents } from '../common/uri.js';
+import { URI } from '../common/uri.js';
 import * as DOM from './dom.js';
 import * as domSanitize from './domSanitize.js';
 import { convertTagToPlaintext } from './domSanitize.js';
@@ -239,6 +239,10 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 		};
 		const tokens = markedInstance.lexer(value, opts);
 		const newTokens = fillInIncompleteTokens(tokens);
+		// Unlike parse(), lexer() and parser() skip extension walkTokens hooks
+		if (opts.walkTokens) {
+			markedInstance.walkTokens(newTokens, opts.walkTokens);
+		}
 		renderedMarkdown = markedInstance.parser(newTokens, opts);
 	} else {
 		renderedMarkdown = markedInstance.parse(value, { ...options?.markedOptions, renderer, async: false });
@@ -275,7 +279,7 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 				return;
 			}
 			const renderedElements = new Map(tuples);
-			// eslint-disable-next-line no-restricted-syntax
+			// eslint-disable-next-line eslint-js/no-restricted-syntax
 			const placeholderElements = outElement.querySelectorAll<HTMLDivElement>(`div[data-code]`);
 			for (const placeholderElement of placeholderElements) {
 				const renderedElement = renderedElements.get(placeholderElement.dataset['code'] ?? '');
@@ -287,7 +291,7 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 		});
 	} else if (syncCodeBlocks.length > 0) {
 		const renderedElements = new Map(syncCodeBlocks);
-		// eslint-disable-next-line no-restricted-syntax
+		// eslint-disable-next-line eslint-js/no-restricted-syntax
 		const placeholderElements = outElement.querySelectorAll<HTMLDivElement>(`div[data-code]`);
 		for (const placeholderElement of placeholderElements) {
 			const renderedElement = renderedElements.get(placeholderElement.dataset['code'] ?? '');
@@ -299,7 +303,7 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 
 	// Signal size changes for image tags
 	if (options.asyncRenderCallback) {
-		// eslint-disable-next-line no-restricted-syntax
+		// eslint-disable-next-line eslint-js/no-restricted-syntax
 		for (const img of outElement.getElementsByTagName('img')) {
 			const listener = disposables.add(DOM.addDisposableListener(img, 'load', () => {
 				listener.dispose();
@@ -331,7 +335,7 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 	}
 
 	// Remove/disable inputs
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line eslint-js/no-restricted-syntax
 	for (const input of [...outElement.getElementsByTagName('input')]) {
 		if (input.attributes.getNamedItem('type')?.value === 'checkbox') {
 			input.setAttribute('disabled', '');
@@ -365,7 +369,7 @@ function replaceChildrenPreservingCodeBlocks(target: HTMLElement, source: HTMLEl
 	const existingToNew = new Map<HTMLElement, HTMLElement>();
 	const preservedCodeBlocks = new Set<HTMLElement>();
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line eslint-js/no-restricted-syntax
 	for (const placeholder of source.querySelectorAll<HTMLElement>('div[data-code]')) {
 		const renderedElement = renderedElements.get(placeholder.dataset.code ?? '');
 		if (!renderedElement || !target.contains(renderedElement)) {
@@ -443,7 +447,7 @@ function replaceChildrenPreservingCodeBlocks(target: HTMLElement, source: HTMLEl
 }
 
 function rewriteRenderedLinks(markdown: IMarkdownString, options: MarkdownRenderOptions, root: HTMLElement, disposables: DisposableStore) {
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line eslint-js/no-restricted-syntax
 	for (const el of root.querySelectorAll('img, audio, video, source')) {
 		const src = el.getAttribute('src'); // Get the raw 'src' attribute value as text, not the resolved 'src'
 		if (src) {
@@ -455,6 +459,10 @@ function rewriteRenderedLinks(markdown: IMarkdownString, options: MarkdownRender
 			} catch (err) { }
 
 			const uri = URI.revive(markdown.uris?.[href]) ?? URI.parse(href);
+			if (!matchesSomeScheme(uri, Schemas.http, Schemas.https, Schemas.data)) {
+				// The browser loads other resources through a transport URL, so keep the resource the element shows
+				el.setAttribute('data-src', uri.toString());
+			}
 			const resolved = FileAccess.resolveBrowserUri(uri);
 			if (resolved) {
 				el.removeAttribute('src');
@@ -477,7 +485,7 @@ function rewriteRenderedLinks(markdown: IMarkdownString, options: MarkdownRender
 		}
 	}
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line eslint-js/no-restricted-syntax
 	for (const el of root.querySelectorAll('a')) {
 		const href = el.getAttribute('href'); // Get the raw 'href' attribute value as text, not the resolved 'href'
 		el.setAttribute('href', ''); // Clear out href. We use the `data-href` for handling clicks instead
@@ -652,24 +660,7 @@ function postProcessCodeBlockLanguageId(lang: string | undefined): string {
 	return lang;
 }
 
-function resolveWithBaseUri(baseUri: URI, href: string): string {
-	const hasScheme = /^\w[\w\d+.-]*:/.test(href);
-	if (hasScheme) {
-		return href;
-	}
-
-	if (baseUri.path.endsWith('/')) {
-		return resolvePath(baseUri, href).toString();
-	} else {
-		return resolvePath(dirname(baseUri), href).toString();
-	}
-}
-
-type MdStrConfig = {
-	readonly isTrusted?: boolean | MarkdownStringTrustedOptions;
-	readonly baseUri?: UriComponents;
-	readonly uris?: IMarkdownString['uris'];
-};
+type MdStrConfig = Pick<IMarkdownString, 'isTrusted' | 'baseUri' | 'uris'>;
 
 function isLocalFileUri(uri: URI): boolean {
 	return uri.scheme === Schemas.file && !uri.authority && !isUNC(uri.fsPath);
@@ -677,6 +668,7 @@ function isLocalFileUri(uri: URI): boolean {
 
 function isMediaSourceAllowed(mdStrConfig: MdStrConfig, source: string, remoteImageIsAllowed: (uri: URI) => boolean, customSchemes: readonly string[]): boolean {
 	let uri: URI;
+	let mappedUri: URI | undefined;
 	try {
 		const baseUri = mdStrConfig.baseUri ? URI.from(mdStrConfig.baseUri) : undefined;
 		const hasScheme = /^\w[\w\d+.-]*:/.test(source);
@@ -685,14 +677,20 @@ function isMediaSourceAllowed(mdStrConfig: MdStrConfig, source: string, remoteIm
 		}
 		const href = baseUri ? resolveWithBaseUri(baseUri, source) : source;
 		uri = URI.parse(href);
+		mappedUri = href.startsWith(`${Schemas.data}:`) ? undefined : URI.revive(mdStrConfig.uris?.[href]);
 		if (customSchemes.includes(uri.scheme)) {
-			return remoteImageIsAllowed(URI.revive(mdStrConfig.uris?.[href]) ?? uri);
+			return remoteImageIsAllowed(mappedUri ?? uri);
 		}
 	} catch {
 		return false;
 	}
 
-	return isLocalFileUri(uri) || uri.scheme === Schemas.data || remoteImageIsAllowed(uri);
+	const isAllowed = (uri: URI) => isLocalFileUri(uri) || uri.scheme === Schemas.data || remoteImageIsAllowed(uri);
+	// Remote extension host RPC maps local files to the same file on its remote authority.
+	const isRemoteFileMapping = isLocalFileUri(uri) && mappedUri?.scheme === Schemas.vscodeRemote
+		&& mappedUri.path === uri.path && mappedUri.query === uri.query && mappedUri.fragment === uri.fragment;
+	// Some media attributes are not rewritten, so both the source and its mapped destination must be safe.
+	return isAllowed(uri) && (!mappedUri || isRemoteFileMapping || isAllowed(mappedUri));
 }
 
 function sanitizeRenderedMarkdown(
@@ -753,7 +751,7 @@ export const allowedMarkdownHtmlAttributes = Object.freeze<Array<string | domSan
 		}
 	},
 
-	// Only allow codicons for classes
+	// Only allow codicons for classes, and the class of code block placeholders
 	{
 		attributeName: 'class',
 		shouldKeep: (element, data) => {
@@ -761,6 +759,9 @@ export const allowedMarkdownHtmlAttributes = Object.freeze<Array<string | domSan
 				if (data.attrName === 'class') {
 					return /^codicon codicon-[a-z\-]+( codicon-modifier-[a-z\-]+)?$/.test(data.attrValue);
 				}
+			}
+			if (element.tagName === 'DIV' && element.hasAttribute('data-code')) {
+				return data.attrValue === 'code';
 			}
 			return false;
 		},
@@ -844,6 +845,14 @@ export function renderAsPlaintext(str: IMarkdownString | string, options?: {
 	 * default because it changes long-standing output for every caller.
 	 */
 	readonly omitMarkdownSyntax?: boolean;
+	/**
+	 * Provides the text of a code block that is displayed as something other than its source.
+	 * `raw` is the block's Markdown source, including its fences. Return `undefined` to keep the code.
+	 *
+	 * Code blocks inside list items and block quotes are offered too. Such a container is emitted
+	 * as its source, as it is without this option, apart from the blocks in it that get a text.
+	 */
+	readonly codeBlockText?: (languageId: string, text: string, raw: string) => string | undefined;
 }) {
 	if (typeof str === 'string') {
 		return str;
@@ -858,6 +867,19 @@ export function renderAsPlaintext(str: IMarkdownString | string, options?: {
 	const renderer = createPlainTextRenderer();
 	if (options?.includeCodeBlocksFences) {
 		renderer.code = codeBlockFences;
+	}
+	const codeBlockText = options?.codeBlockText;
+	if (codeBlockText) {
+		const renderCode = options?.includeCodeBlocksFences ? codeBlockFences : plainCodeBlock;
+		const describe = (token: marked.Tokens.Code) => {
+			const text = codeBlockText(postProcessCodeBlockLanguageId(token.lang), token.text, token.raw);
+			return text === undefined ? undefined : `\n${escape(text)}\n`;
+		};
+		renderer.code = token => describe(token) ?? renderCode(token);
+		// A list item and a block quote are emitted as their source, which would leave the blocks
+		// inside them undescribed. Where one is described, they are emitted piece by piece instead.
+		renderer.listitem = item => `${describedSource(item.tokens, describe) ?? item.text}\n`;
+		renderer.blockquote = quote => `${describedSource(quote.tokens, describe) ?? quote.text}\n`;
 	}
 	if (options?.useLinkFormatter) {
 		renderer.link = linkFormatter;
@@ -888,9 +910,7 @@ const unescapeInfo = new Map<string, string>([
 function createPlainTextRenderer(): marked.Renderer {
 	const renderer = new marked.Renderer();
 
-	renderer.code = ({ text }: marked.Tokens.Code): string => {
-		return escape(text);
-	};
+	renderer.code = plainCodeBlock;
 	renderer.blockquote = ({ text }: marked.Tokens.Blockquote): string => {
 		return text + '\n';
 	};
@@ -948,6 +968,10 @@ function createPlainTextRenderer(): marked.Renderer {
 	return renderer;
 }
 
+const plainCodeBlock = ({ text }: marked.Tokens.Code): string => {
+	return escape(text);
+};
+
 const codeBlockFences = ({ text }: marked.Tokens.Code): string => {
 	return `\n\`\`\`\n${escape(text)}\n\`\`\`\n`;
 };
@@ -963,6 +987,29 @@ const linkFormatter = ({ text, href }: marked.Tokens.Link): string => {
 	}
 	return text;
 };
+
+/**
+ * Returns the source of the given tokens in which the code blocks that `describe` has a text for
+ * are replaced by that text, including those in nested lists and block quotes. Returns `undefined`
+ * when no code block is described, so that the caller keeps the source it already emits.
+ */
+function describedSource(tokens: marked.Token[], describe: (token: marked.Tokens.Code) => string | undefined): string | undefined {
+	let isDescribed = false;
+	const source = tokens.map(token => {
+		let described: string | undefined;
+		if (token.type === 'code') {
+			described = describe(token as marked.Tokens.Code);
+		} else if (token.type === 'blockquote') {
+			described = describedSource((token as marked.Tokens.Blockquote).tokens, describe);
+		} else if (token.type === 'list') {
+			const items = (token as marked.Tokens.List).items.map(item => ({ text: item.text, described: describedSource(item.tokens, describe) }));
+			described = items.some(item => item.described !== undefined) ? items.map(item => `${item.described ?? item.text}\n`).join('') : undefined;
+		}
+		isDescribed ||= described !== undefined;
+		return described ?? token.raw;
+	}).join('');
+	return isDescribed ? source : undefined;
+}
 
 /**
  * Renders a list item from its parsed tokens rather than its raw source, so inline markdown is
