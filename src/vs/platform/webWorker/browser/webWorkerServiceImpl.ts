@@ -36,6 +36,12 @@ export class WebWorkerService implements IWebWorkerService {
 		const workerUrlWithNls = getWorkerBootstrapUrl(descriptor.label, workerRunnerUrl, this._getWorkerLoadingFailedErrorMessage(descriptor));
 		try {
 			const worker = createBlobWorker(workerUrlWithNls, { name: descriptor.label, type: 'module' });
+			try {
+				worker.postMessage(getNLSMessages());
+			} catch (error) {
+				worker.terminate();
+				throw error;
+			}
 			return whenESMWorkerReady(worker).finally(() => URL.revokeObjectURL(workerUrlWithNls));
 		} catch (error) {
 			URL.revokeObjectURL(workerUrlWithNls);
@@ -105,7 +111,10 @@ function getWorkerBootstrapUrl(label: string, workerScriptUrl: string, workerLoa
 	// terminating characters (such as ' or ").
 	const blob = new Blob([coalesce([
 		`/*${label}*/`,
-		`globalThis._VSCODE_NLS_MESSAGES = ${JSON.stringify(getNLSMessages())};`,
+		// Receive the messages as data instead of parsing them as JavaScript source.
+		`globalThis._VSCODE_NLS_MESSAGES = await new Promise(resolve => {`,
+		`globalThis.onmessage = e => { globalThis.onmessage = null; resolve(e.data); };`,
+		`});`,
 		`globalThis._VSCODE_NLS_LANGUAGE = ${JSON.stringify(getNLSLanguage())};`,
 		`globalThis._VSCODE_FILE_ROOT = ${JSON.stringify(globalThis._VSCODE_FILE_ROOT)};`,
 		`globalThis._VSCODE_PRODUCT_JSON = ${JSON.stringify(globalThis._VSCODE_PRODUCT_JSON)};`,

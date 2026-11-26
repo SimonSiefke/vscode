@@ -28,6 +28,7 @@ interface INodeCompileCacheStatus {
 	readonly configuredDirectory: string;
 	readonly activeDirectory?: string;
 	readonly isPackagedCacheEnabled: boolean;
+	readonly isRuntimeCacheEnabled?: boolean;
 	readonly message?: string;
 }
 
@@ -67,6 +68,24 @@ export function enableNodeCompileCache(kind: NodeCompileCacheKind): boolean {
 	const hasRuntimeCache = fs.existsSync(cacheDirectory) && fs.readdirSync(cacheDirectory).some(entry => entry.startsWith(runtimeCachePrefix));
 
 	if (!isGeneratingCache && !hasRuntimeCache) {
+		if (process.platform !== 'win32') {
+			const result = enableCompileCache();
+			const activeDirectory = getCompileCacheDir() ?? result.directory;
+			const isRuntimeCacheEnabled = result.status === constants.compileCacheStatus.ENABLED || result.status === constants.compileCacheStatus.ALREADY_ENABLED;
+			setNodeCompileCacheStatus({
+				kind,
+				status: result.status === constants.compileCacheStatus.ENABLED ? 'enabled'
+					: result.status === constants.compileCacheStatus.ALREADY_ENABLED ? 'already-enabled'
+						: result.status === constants.compileCacheStatus.DISABLED ? 'disabled' : 'failed',
+				configuredDirectory: activeDirectory ?? cacheDirectory,
+				activeDirectory,
+				isPackagedCacheEnabled: false,
+				isRuntimeCacheEnabled,
+				message: result.message,
+			});
+			return false;
+		}
+
 		setNodeCompileCacheStatus({
 			kind,
 			status: 'missing',
@@ -129,18 +148,18 @@ export function logNodeCompileCacheStatus(log: (message: string) => void = conso
 
 	didLogNodeCompileCacheStatus = true;
 	const status = nodeCompileCacheStatus;
-	log(`[node-compile-cache] ${status.kind}: ${status.isPackagedCacheEnabled ? 'packaged cache enabled' : 'packaged cache inactive'} (status: ${status.status}, configured: ${status.configuredDirectory}, active: ${status.activeDirectory ?? 'none'})`);
+	log(`[node-compile-cache] ${status.kind}: ${status.isPackagedCacheEnabled ? 'packaged cache enabled' : status.isRuntimeCacheEnabled ? 'runtime cache enabled' : 'packaged cache inactive'} (status: ${status.status}, configured: ${status.configuredDirectory}, active: ${status.activeDirectory ?? 'none'})`);
 }
 
 export function markNodeCompileCacheReady(log?: (message: string) => void): void {
 	logNodeCompileCacheStatus(log);
 
-	const kind = enabledKind ?? process.env['VSCODE_NODE_COMPILE_CACHE_KIND'] as NodeCompileCacheKind | undefined;
+	const kind = enabledKind ?? processWithNodeCompileCacheStatus._vscodeNodeCompileCacheStatus?.kind ?? process.env['VSCODE_NODE_COMPILE_CACHE_KIND'] as NodeCompileCacheKind | undefined;
 	if (!kind || !nodeCompileCacheKinds.includes(kind)) {
 		return;
 	}
 
-	if (process.env['VSCODE_GENERATE_NODE_COMPILE_CACHE'] === '1') {
+	if (process.env['VSCODE_GENERATE_NODE_COMPILE_CACHE'] === '1' && processWithNodeCompileCacheStatus._vscodeNodeCompileCacheStatus?.isPackagedCacheEnabled) {
 		flushCompileCache();
 		// eslint-disable-next-line local/code-no-sync-fs -- The generator treats this marker as proof that flushCompileCache completed; publish it before synchronous readiness returns.
 		fs.writeFileSync(getNodeCompileCacheReadyMarkerPath(kind), '');
