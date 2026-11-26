@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ISharedResourceReference, SharedResourceMap } from '../../../base/common/sharedResourceMap.js';
 import { ResourceMap } from '../../../base/common/map.js';
 import { URI } from '../../../base/common/uri.js';
 import { Event } from '../../../base/common/event.js';
@@ -20,11 +21,11 @@ export interface ILoggerMainService extends ILoggerService {
 
 	getOnDidChangeLoggersEvent(windowId: number): Event<DidChangeLoggersEvent>;
 
-	createLogger(resource: URI, options?: ILoggerOptions, windowId?: number): ILogger;
+	/** Acquire an independent handle; the shared backend closes after the final release. */
+	acquireLogger(resource: URI, options?: ILoggerOptions, windowId?: number): ISharedResourceReference<ILogger>;
 
-	createLogger(id: string, options?: Omit<ILoggerOptions, 'id'>, windowId?: number): ILogger;
-
-	registerLogger(resource: ILoggerResource, windowId?: number): void;
+	/** Retain registration metadata without opening a local file writer. */
+	acquireLoggerResource(resource: ILoggerResource, windowId?: number): ISharedResourceReference<URI>;
 
 	getGlobalLoggers(): ILoggerResource[];
 
@@ -34,36 +35,57 @@ export interface ILoggerMainService extends ILoggerService {
 
 export class LoggerMainService extends LoggerService implements ILoggerMainService {
 
-	private readonly loggerResourcesByWindow = new ResourceMap<number>();
+	private readonly references = this._register(new SharedResourceMap<URI, URI, number | undefined>(
+		resource => resource,
+		resource => {
+			this.globalRegistrations.delete(resource);
+			super.deregisterLogger(resource);
+		},
+		resource => resource.toString(),
+	));
+	private readonly globalRegistrations = new ResourceMap<ISharedResourceReference<URI>>();
+	private acquiringResource: URI | undefined;
 
-	override createLogger(idOrResource: URI | string, options?: ILoggerOptions, windowId?: number): ILogger {
-		if (windowId !== undefined) {
-			this.loggerResourcesByWindow.set(this.toResource(idOrResource), windowId);
-		}
+	acquireLogger(resource: URI, options?: ILoggerOptions, windowId?: number): ISharedResourceReference<ILogger> {
+		const reference = this.references.acquire(resource, windowId);
+		const acquiringResource = this.acquiringResource;
+		this.acquiringResource = resource;
 		try {
-			return super.createLogger(idOrResource, options);
+			return { object: super.createLogger(resource, options), get isDisposed() { return reference.isDisposed; }, onDidDispose: reference.onDidDispose, dispose: reference.dispose };
 		} catch (error) {
-			this.loggerResourcesByWindow.delete(this.toResource(idOrResource));
+			reference.dispose();
 			throw error;
+		} finally {
+			this.acquiringResource = acquiringResource;
 		}
 	}
 
-	override registerLogger(resource: ILoggerResource, windowId?: number): void {
-		if (windowId !== undefined) {
-			this.loggerResourcesByWindow.set(resource.resource, windowId);
+	acquireLoggerResource(resource: ILoggerResource, windowId?: number): ISharedResourceReference<URI> {
+		const reference = this.references.acquire(resource.resource, windowId);
+		super.registerLogger(resource);
+		return reference;
+	}
+
+	override registerLogger(resource: ILoggerResource): void {
+		if (this.acquiringResource?.toString() === resource.resource.toString()) {
+			this.acquiringResource = undefined;
+		} else if (!this.globalRegistrations.has(resource.resource)) {
+			this.globalRegistrations.set(resource.resource, this.references.acquire(resource.resource, undefined));
 		}
 		super.registerLogger(resource);
 	}
 
-	override deregisterLogger(resource: URI): void {
-		this.loggerResourcesByWindow.delete(resource);
-		super.deregisterLogger(resource);
+	override deregisterLogger(idOrResource: URI | string): void {
+		const resource = this.toResource(idOrResource);
+		const reference = this.globalRegistrations.get(resource);
+		this.globalRegistrations.delete(resource);
+		reference?.dispose();
 	}
 
 	getGlobalLoggers(): ILoggerResource[] {
 		const resources: ILoggerResource[] = [];
 		for (const resource of super.getRegisteredLoggers()) {
-			if (!this.loggerResourcesByWindow.has(resource.resource)) {
+			if (this.isGlobalLoggerResource(resource.resource)) {
 				resources.push(resource);
 			}
 		}
@@ -90,21 +112,20 @@ export class LoggerMainService extends LoggerService implements ILoggerMainServi
 	}
 
 	deregisterLoggers(windowId: number): void {
-		for (const [resource, resourceWindow] of this.loggerResourcesByWindow) {
-			if (resourceWindow === windowId) {
-				this.deregisterLogger(resource);
-			}
-		}
+		this.references.releaseOwner(windowId);
+	}
+
+	private isGlobalLoggerResource(resource: URI): boolean {
+		return !this.references.has(resource) || this.references.hasOwner(resource, undefined);
 	}
 
 	private isInterestedLoggerResource(resource: URI, windowId: number | undefined): boolean {
-		const loggerWindowId = this.loggerResourcesByWindow.get(resource);
-		return loggerWindowId === undefined || loggerWindowId === windowId;
+		return this.isGlobalLoggerResource(resource) || this.references.hasOwner(resource, windowId);
 	}
 
 	override dispose(): void {
+		this.references.dispose();
+		this.globalRegistrations.clear();
 		super.dispose();
-		this.loggerResourcesByWindow.clear();
 	}
 }
-

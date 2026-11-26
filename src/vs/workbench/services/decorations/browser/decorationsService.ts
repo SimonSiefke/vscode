@@ -6,6 +6,7 @@
 import { URI } from '../../../../base/common/uri.js';
 import { Emitter, DebounceEmitter, Event } from '../../../../base/common/event.js';
 import { IDecorationsService, IDecoration, IResourceDecorationChangeEvent, IDecorationsProvider, IDecorationData } from '../common/decorations.js';
+import { SharedResourceMap } from '../../../../base/common/sharedResourceMap.js';
 import { TernarySearchTree } from '../../../../base/common/ternarySearchTree.js';
 import { IDisposable, toDisposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { isThenable } from '../../../../base/common/async.js';
@@ -49,7 +50,6 @@ class DecorationRule {
 	readonly bubbleBadgeClassName: string;
 	badgeText: string | undefined;
 
-	private _refCounter: number = 0;
 
 	constructor(readonly themeService: IThemeService, data: IDecorationData | IDecorationData[], key: string) {
 		this.data = data;
@@ -58,14 +58,6 @@ class DecorationRule {
 		this.itemBadgeClassName = `${DecorationRule._classNamesPrefix}-itemBadge-${suffix}`;
 		this.bubbleBadgeClassName = `${DecorationRule._classNamesPrefix}-bubbleBadge-${suffix}`;
 		this.iconBadgeClassName = `${DecorationRule._classNamesPrefix}-iconBadge-${suffix}`;
-	}
-
-	acquire(): void {
-		this._refCounter += 1;
-	}
-
-	release(): boolean {
-		return --this._refCounter === 0;
 	}
 
 	appendCSSRules(element: HTMLStyleElement): void {
@@ -164,12 +156,15 @@ class DecorationStyles {
 
 	private readonly _dispoables = new DisposableStore();
 	private readonly _styleElement = createStyleSheet(undefined, undefined, this._dispoables);
-	private readonly _decorationRules = new Map<string, DecorationRule>();
+	private readonly _decorationRules = this._dispoables.add(new SharedResourceMap<string, DecorationRule, undefined>(
+		undefined, (_key, rule) => rule.removeCSSRules(this._styleElement),
+	));
 
 	constructor(private readonly _themeService: IThemeService) {
 	}
 
 	dispose(): void {
+		this._decorationRules.dispose();
 		this._dispoables.dispose();
 	}
 
@@ -179,16 +174,12 @@ class DecorationStyles {
 		data.sort((a, b) => (b.weight || 0) - (a.weight || 0));
 
 		const key = DecorationRule.keyOf(data);
-		let rule = this._decorationRules.get(key);
-
-		if (!rule) {
-			// new css rule
-			rule = new DecorationRule(this._themeService, data, key);
-			this._decorationRules.set(key, rule);
+		const reference = this._decorationRules.acquire(key, undefined, () => {
+			const rule = new DecorationRule(this._themeService, data, key);
 			rule.appendCSSRules(this._styleElement);
-		}
-
-		rule.acquire();
+			return rule;
+		});
+		const rule = reference.object;
 
 		const labelClassName = rule.itemColorClassName;
 		let badgeClassName = rule.itemBadgeClassName;
@@ -213,13 +204,7 @@ class DecorationStyles {
 			isTextBadge,
 			badgeText: isTextBadge ? rule.badgeText : undefined,
 			tooltip,
-			dispose: () => {
-				if (rule?.release()) {
-					this._decorationRules.delete(key);
-					rule.removeCSSRules(this._styleElement);
-					rule = undefined;
-				}
-			}
+			dispose: reference.dispose
 		};
 	}
 }
