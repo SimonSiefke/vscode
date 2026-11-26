@@ -36,6 +36,7 @@ import { TestMenuService, workbenchInstantiationService } from '../../../../test
 import { TestSharedProcessService } from '../../../../test/electron-browser/workbenchTestServices.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { ILogService, NullLogService } from '../../../../../platform/log/common/log.js';
+import { Severity } from '../../../../../platform/notification/common/notification.js';
 import { NativeURLService } from '../../../../../platform/url/common/urlService.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
@@ -393,13 +394,20 @@ suite('ExtensionsViews Tests', () => {
 		await view.show('@workspaceUnsupported:untrusted');
 		assert.strictEqual(view.count(), 1);
 		assert.strictEqual(extensionsChanged.hasListeners(), true);
-		assert.strictEqual((await view.show('@workspaceUnsupported:untrustedPartial')).length, 0);
+		const { publications } = observeModelPublications(view);
+		const empty = await view.show('@workspaceUnsupported:untrustedPartial');
+		assert.strictEqual(empty.length, 0);
 		assert.deepStrictEqual({ count: view.count(), listeners: extensionsChanged.hasListeners() }, { count: 0, listeners: false });
 
 		const cancelled = assert.rejects(view.show('@workspaceUnsupported:untrusted'), isCancellationError);
-		await view.show('@workspaceUnsupported:untrustedPartial');
+		const emptyAfterPending = await view.show('@workspaceUnsupported:untrustedPartial');
 		await local.complete([extension]);
 		await Promise.all([cancelled, query.secondCall.returnValue]);
+		assert.strictEqual(emptyAfterPending.length, 0);
+		assert.deepStrictEqual(publications, [
+			{ model: empty, count: 0, featureId: undefined, message: undefined },
+			{ model: emptyAfterPending, count: 0, featureId: undefined, message: undefined },
+		]);
 		assert.deepStrictEqual({ count: view.count(), listeners: extensionsChanged.hasListeners() }, { count: 0, listeners: false });
 	});
 
@@ -470,14 +478,22 @@ suite('ExtensionsViews Tests', () => {
 		services.stub(IExtensionFeaturesManagementService, { getAccessData: () => ({ accessTimes: [] }) });
 		services.set(IWorkbenchExtensionEnablementService, instantiationService.get(IWorkbenchExtensionEnablementService));
 		const view = disposableStore.add(services.createInstance(ExtensionsListView, {}, { id: 'test.extensions.list', title: 'Extensions', expanded: false }));
-		const state = view as unknown as { extensionsViewState?: IExtensionsViewState };
 		view.render();
-		const result = await view.show(`@contribute:${featureId}`);
+		const featureQuery = `@contribute:${featureId}`;
+		const result = await view.show(featureQuery);
 		assert.strictEqual(result.get(0).identifier.id, extension.identifier.id);
 		assert.strictEqual(view.element.querySelector('.extensions-list'), null);
 
+		const { publications } = observeModelPublications(view);
 		view.setExpanded(true);
-		assert.strictEqual(state.extensionsViewState?.filters.featureId, featureId);
+		const installed = await view.show('@installed');
+		const feature = await view.show(featureQuery);
+		assert.strictEqual(feature.get(0).identifier.id, extension.identifier.id);
+		assert.deepStrictEqual(publications, [
+			{ model: result, count: 1, featureId, message: undefined },
+			{ model: installed, count: 1, featureId: undefined, message: undefined },
+			{ model: feature, count: 1, featureId, message: undefined },
+		]);
 	});
 
 	for (const outcome of ['result', 'error']) {
@@ -493,14 +509,8 @@ suite('ExtensionsViews Tests', () => {
 			};
 			const child = disposableStore.add(instantiationService.createChild(new ServiceCollection([IExtensionService, extensionService])));
 			const view = disposableStore.add(child.createInstance(ExtensionsListView, {}, { id: '', title: '' }));
-			const viewMethods = view as unknown as {
-				query(): Promise<unknown>;
-				setModel(model: IPagedModel<IWorkbenchExtension>, message?: { text: string }): void;
-				updateModel(model: IPagedModel<IWorkbenchExtension>): void;
-			};
-			const query = spy(viewMethods, 'query');
-			const setModel = spy(viewMethods, 'setModel');
-			const updateModel = spy(viewMethods, 'updateModel');
+			const query = spy(view as unknown as { query(): Promise<unknown> }, 'query');
+			const { publications, updates } = observeModelPublications(view);
 
 			const workbenchService = instantiationService.get(IExtensionsWorkbenchService);
 			const installed = await workbenchService.queryLocal();
@@ -527,7 +537,7 @@ suite('ExtensionsViews Tests', () => {
 				await previousResult.complete(installed);
 			}
 			await Promise.all([cancelled, handled]);
-			assert.deepStrictEqual(setModel.args, [[currentModel, undefined]]);
+			assert.deepStrictEqual(publications, [{ model: currentModel, count: 1, featureId: undefined, message: undefined }]);
 			assert.strictEqual(listenerCount, 1);
 
 			stub(workbenchService, 'local').get(() => [currentExtension, addedExtension]);
@@ -535,9 +545,11 @@ suite('ExtensionsViews Tests', () => {
 			try {
 				extensionsChanged.fire({ added: [toExtensionDescription(localDisabledLanguage)], removed: [] });
 				await clock.tickAsync(100);
-				assert.ok(updateModel.calledOnce);
-				const updatedModel = updateModel.firstCall.args[0];
-				assert.deepStrictEqual([updatedModel.get(0).identifier.id, updatedModel.get(1).identifier.id], [currentExtension.identifier.id, addedExtension.identifier.id]);
+				assert.strictEqual(updates.length, 1);
+				const { model, count } = updates[0];
+				assert.deepStrictEqual({ count, extensions: [model.get(0).identifier.id, model.get(1).identifier.id] }, {
+					count: 2, extensions: [currentExtension.identifier.id, addedExtension.identifier.id],
+				});
 			} finally {
 				clock.restore();
 			}
@@ -828,6 +840,28 @@ suite('ExtensionsViews Tests', () => {
 			assert.strictEqual(result.get(i).identifier.id, realResults[i].identifier.id);
 		}
 	});
+
+	function observeModelPublications(view: ExtensionsListView) {
+		type Message = { text: string; severity: Severity };
+		const target = view as unknown as {
+			extensionsViewState?: IExtensionsViewState;
+			setModel(model: IPagedModel<IWorkbenchExtension>, message?: Message, donotResetScrollTop?: boolean): void;
+			updateModel(model: IPagedModel<IWorkbenchExtension>): void;
+		};
+		const publications: { model: IPagedModel<IWorkbenchExtension>; count: number; featureId: string | undefined; message: Message | undefined }[] = [];
+		const updates: { model: IPagedModel<IWorkbenchExtension>; count: number }[] = [];
+		const setModel = target.setModel.bind(target);
+		const updateModel = target.updateModel.bind(target);
+		stub(target, 'setModel').callsFake((...args) => {
+			publications.push({ model: args[0], count: view.count(), featureId: target.extensionsViewState?.filters.featureId, message: args[1] });
+			setModel(...args);
+		});
+		stub(target, 'updateModel').callsFake(model => {
+			updates.push({ model, count: view.count() });
+			updateModel(model);
+		});
+		return { publications, updates };
+	}
 
 	function registerTestFeature(): void {
 		disposableStore.add(Registry.as<IExtensionFeaturesRegistry>(ExtensionFeatureExtensions.ExtensionFeaturesRegistry).registerExtensionFeature({
