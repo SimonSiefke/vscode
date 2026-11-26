@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { $, addDisposableListener, EventType } from '../../base/browser/dom.js';
+import { numberHash } from '../../base/common/hash.js';
 import { raceTimeout } from '../../base/common/async.js';
 import { DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../base/common/lifecycle.js';
 import { LinkedMap, Touch } from '../../base/common/map.js';
@@ -151,7 +152,7 @@ function createImageThumbnail(data: Uint8Array, maxSize: number, mimeType: strin
 }
 
 function getOrCreateImageThumbnail(cacheKey: string, data: Uint8Array, maxSize: number, mimeType: string): IChatImageThumbnail {
-	const source = `${maxSize}:${data.byteLength}:${mimeType}`;
+	const source = `${maxSize}:${data.byteLength}:${mimeType}:${hashImageBytes(data)}`;
 	const cached = thumbnails.get(cacheKey, Touch.AsNew);
 	if (cached?.source === source) {
 		return cached;
@@ -174,6 +175,14 @@ function getOrCreateImageThumbnail(cacheKey: string, data: Uint8Array, maxSize: 
 		revokeUnusedThumbnailUrl(dropped);
 	}
 	return thumbnail;
+}
+
+function hashImageBytes(data: Uint8Array): number {
+	let result = 0;
+	for (const value of data) {
+		result = numberHash(value, result);
+	}
+	return result;
 }
 
 /** Revokes the URL of a thumbnail that left the cache, once no image shows it anymore. */
