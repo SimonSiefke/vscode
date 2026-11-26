@@ -127,6 +127,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	private list: WorkbenchPagedList<IExtension> | null = null;
 	private queryRequest: { query: string; request: CancelablePromise<IPagedModel<IExtension>> } | null = null;
 	private queryResult: IQueryResult | undefined;
+	private readonly queryResultListeners = this._register(new DisposableStore());
 	private extensionsViewState: ExtensionsViewState | undefined;
 
 	private readonly contextMenuActionRunner = this._register(new ActionRunner());
@@ -230,6 +231,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 		}
 
 		if (this.queryResult) {
+			this.queryResultListeners.clear();
 			this.queryResult.disposables.dispose();
 			this.queryResult = undefined;
 			if (this.extensionsViewState) {
@@ -262,7 +264,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 
 				this.queryResult = result;
 				if (result.onDidChangeModel) {
-					result.disposables.add(result.onDidChangeModel(model => {
+					this.queryResultListeners.add(result.onDidChangeModel(model => {
 						result.model = model;
 						this.updateModel(model);
 					}));
