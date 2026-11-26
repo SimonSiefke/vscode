@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ConfigurationTarget, IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { ContextKeyService } from '../../../../../platform/contextkey/browser/contextKeyService.js';
@@ -23,10 +24,146 @@ import { mainWindow } from '../../../../../base/browser/window.js';
 import { IManagedHoverOptions } from '../../../../../base/browser/ui/hover/hover.js';
 import { $ } from '../../../../../base/browser/dom.js';
 import { StatusbarEntryItem } from '../../../../browser/parts/statusbar/statusbarItem.js';
-import { ShowTooltipCommand } from '../../../../services/statusbar/browser/statusbar.js';
+import { ShowTooltipCommand, StatusbarAlignment } from '../../../../services/statusbar/browser/statusbar.js';
 
 suite('StatusbarPart', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function createItemsTestPart(configurationService: TestConfigurationService): { part: MainStatusbarPart; container: HTMLElement; entryDisposables: DisposableStore } {
+		const entryDisposables = store.add(new DisposableStore());
+		const instantiationService = store.add(workbenchInstantiationService(undefined, store));
+		instantiationService.stub(IConfigurationService, configurationService);
+		const part = store.add(new MainStatusbarPart(
+			instantiationService, new TestThemeService(), new TestContextService(), store.add(new TestStorageService()),
+			new TestLayoutService(), new TestContextMenuService(), store.add(new ContextKeyService(configurationService)),
+			configurationService, new TestHostService(),
+		));
+		const container = document.createElement('div');
+		return { part, container, entryDisposables };
+	}
+
+	function itemIds(container: HTMLElement): { left: string[]; right: string[] } {
+		return {
+			left: Array.from(container.querySelectorAll('.left-items > .statusbar-item'), item => item.id),
+			right: Array.from(container.querySelectorAll('.right-items > .statusbar-item'), item => item.id).reverse(),
+		};
+	}
+
+	test('live item locations apply before creation and preserve entry accessors and visibility', async () => {
+		const configurationService = new TestConfigurationService({ 'workbench.statusBar.items': { left: ['encoding'], right: ['branch'] } });
+		const { part, container, entryDisposables } = createItemsTestPart(configurationService);
+		const branch = entryDisposables.add(part.addEntry({ name: 'Branch', text: 'main', ariaLabel: 'Branch' }, 'branch', StatusbarAlignment.LEFT, 100));
+		entryDisposables.add(part.addEntry({ name: 'Encoding', text: 'UTF-8', ariaLabel: 'Encoding' }, 'encoding', StatusbarAlignment.RIGHT, 100));
+		entryDisposables.add(part.addEntry({ name: 'Position', text: 'Ln 1', ariaLabel: 'Position' }, 'position', StatusbarAlignment.RIGHT, 50));
+		part.updateEntryVisibility('encoding', false);
+		part.create(container);
+		const initial = itemIds(container);
+		const originalBranch = container.querySelector('#branch');
+
+		await configurationService.setUserConfiguration('workbench.statusBar.items', { left: ['position', 'branch'], right: ['encoding'] });
+		fireConfigChange(configurationService, 'workbench.statusBar.items');
+		branch.update({ name: 'Branch', text: 'feature', ariaLabel: 'Branch' });
+		const updated = itemIds(container);
+		const sameNode = originalBranch === container.querySelector('#branch');
+		const updatedText = container.querySelector('#branch')?.textContent;
+		const encodingHidden = !part.isEntryVisible('encoding');
+
+		await configurationService.setUserConfiguration('workbench.statusBar.items', undefined);
+		fireConfigChange(configurationService, 'workbench.statusBar.items');
+		const restored = itemIds(container);
+		branch.dispose();
+		assert.deepStrictEqual({ initial, updated, sameNode, updatedText, encodingHidden, restored, afterDispose: itemIds(container) }, {
+			initial: { left: ['encoding'], right: ['branch', 'position'] },
+			updated: { left: ['position', 'branch'], right: ['encoding'] },
+			sameNode: true, updatedText: 'feature', encodingHidden: true,
+			restored: { left: ['branch'], right: ['encoding', 'position'] },
+			afterDispose: { left: [], right: ['encoding', 'position'] },
+		});
+	});
+
+	test('configuration changes before creation affect pending and late entries', async () => {
+		const configurationService = new TestConfigurationService();
+		const { part, container, entryDisposables } = createItemsTestPart(configurationService);
+		entryDisposables.add(part.addEntry({ name: 'First', text: 'First', ariaLabel: 'First' }, 'first', StatusbarAlignment.LEFT));
+		await configurationService.setUserConfiguration('workbench.statusBar.items', { right: ['late', 'first'] });
+		fireConfigChange(configurationService, 'workbench.statusBar.items');
+		part.create(container);
+		entryDisposables.add(part.addEntry({ name: 'Late', text: 'Late', ariaLabel: 'Late' }, 'late', StatusbarAlignment.LEFT));
+		assert.deepStrictEqual(itemIds(container), { left: [], right: ['late', 'first'] });
+	});
+
+	test('custom locations stop compact styling when entries are separated', async () => {
+		const configurationService = new TestConfigurationService();
+		const { part, container, entryDisposables } = createItemsTestPart(configurationService);
+		part.create(container);
+		entryDisposables.add(part.addEntry({ name: 'Reference', text: 'Reference', ariaLabel: 'Reference' }, 'reference', StatusbarAlignment.LEFT, 100));
+		entryDisposables.add(part.addEntry({ name: 'Relative', text: 'Relative', ariaLabel: 'Relative' }, 'relative', StatusbarAlignment.LEFT, { location: { id: 'reference', priority: 100 }, alignment: StatusbarAlignment.RIGHT, compact: true }));
+		const initiallyCompact = container.querySelector('#relative')?.classList.contains('compact-left');
+		await configurationService.setUserConfiguration('workbench.statusBar.items', { right: ['relative'] });
+		fireConfigChange(configurationService, 'workbench.statusBar.items');
+		assert.deepStrictEqual({ initiallyCompact, nowCompact: container.querySelector('#relative')?.classList.contains('compact-left'), locations: itemIds(container) }, {
+			initiallyCompact: true, nowCompact: false, locations: { left: ['reference'], right: ['relative'] },
+		});
+	});
+
+	test('custom locations preserve default compact SCM chains', async () => {
+		const configurationService = new TestConfigurationService();
+		const { part, container, entryDisposables } = createItemsTestPart(configurationService);
+		part.create(container);
+		for (let i = 0; i < 3; i++) {
+			entryDisposables.add(part.addEntry({ name: 'SCM', text: String(i), ariaLabel: 'SCM' }, `status.scm.${i}`, StatusbarAlignment.LEFT, i === 0 ? 100 : {
+				location: { id: `status.scm.${i - 1}`, priority: 100 }, alignment: StatusbarAlignment.RIGHT, compact: true,
+			}));
+		}
+		const compactClasses = () => Array.from(container.querySelectorAll('[id^="status.scm."]'), item => ({
+			id: item.id, left: item.classList.contains('compact-left'), right: item.classList.contains('compact-right'),
+		})).sort((a, b) => a.id.localeCompare(b.id));
+		const defaults = compactClasses();
+		assert.deepStrictEqual(defaults, [
+			{ id: 'status.scm.0', left: false, right: true },
+			{ id: 'status.scm.1', left: true, right: true },
+			{ id: 'status.scm.2', left: true, right: false },
+		]);
+		entryDisposables.add(part.addEntry({ name: 'Other', text: 'Other', ariaLabel: 'Other' }, 'other', StatusbarAlignment.RIGHT));
+		await configurationService.setUserConfiguration('workbench.statusBar.items', { left: ['other'] });
+		fireConfigChange(configurationService, 'workbench.statusBar.items');
+		assert.deepStrictEqual(compactClasses(), defaults);
+		await configurationService.setUserConfiguration('workbench.statusBar.items', { right: ['status.scm.1'] });
+		fireConfigChange(configurationService, 'workbench.statusBar.items');
+		assert.ok(compactClasses().every(item => !item.left && !item.right));
+		await configurationService.setUserConfiguration('workbench.statusBar.items', {});
+		fireConfigChange(configurationService, 'workbench.statusBar.items');
+		assert.deepStrictEqual(compactClasses(), defaults);
+	});
+
+	test('repeated live location changes preserve keyboard focus and DOM entries', async () => {
+		const configurationService = new TestConfigurationService();
+		const { part, container, entryDisposables } = createItemsTestPart(configurationService);
+		document.body.appendChild(container);
+		try {
+			part.create(container);
+			entryDisposables.add(part.addEntry({ name: 'First', text: 'First', ariaLabel: 'First', command: 'first.command' }, 'first', StatusbarAlignment.LEFT));
+			entryDisposables.add(part.addEntry({ name: 'Second', text: 'Second', ariaLabel: 'Second', command: 'second.command' }, 'second', StatusbarAlignment.RIGHT));
+			const first = container.querySelector<HTMLElement>('#first .statusbar-item-label')!;
+			const second = container.querySelector<HTMLElement>('#second .statusbar-item-label')!;
+			first.focus();
+			for (let i = 0; i < 37; i++) {
+				await configurationService.setUserConfiguration('workbench.statusBar.items', { left: ['second'], right: ['first'] });
+				fireConfigChange(configurationService, 'workbench.statusBar.items');
+				assert.strictEqual(document.activeElement, first);
+				await configurationService.setUserConfiguration('workbench.statusBar.items', {});
+				fireConfigChange(configurationService, 'workbench.statusBar.items');
+			}
+			await configurationService.setUserConfiguration('workbench.statusBar.items', { left: ['second'], right: ['first'] });
+			fireConfigChange(configurationService, 'workbench.statusBar.items');
+			part.focusPreviousEntry();
+			assert.deepStrictEqual({ focused: document.activeElement === second, count: container.querySelectorAll('.statusbar-item').length, locations: itemIds(container) }, {
+				focused: true, count: 2, locations: { left: ['second'], right: ['first'] },
+			});
+		} finally {
+			container.remove();
+		}
+	});
 
 	test('forwards tooltip onDidShow through native status entry updates', () => {
 		const instantiationService = store.add(workbenchInstantiationService(undefined, store));
