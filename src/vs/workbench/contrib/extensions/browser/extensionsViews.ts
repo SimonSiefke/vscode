@@ -92,6 +92,7 @@ export interface ExtensionsListViewOptions {
 interface IQueryResult {
 	model: IPagedModel<IExtension>;
 	message?: { text: string; severity: Severity };
+	readonly featureId?: string;
 	readonly onDidChangeModel?: Event<IPagedModel<IExtension>>;
 	readonly disposables: DisposableStore;
 }
@@ -209,6 +210,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 		};
 
 		if (this.queryResult) {
+			this.extensionsViewState.filters.featureId = this.queryResult.featureId;
 			this.setModel(this.queryResult.model);
 		}
 	}
@@ -222,22 +224,15 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	async show(query: string, refresh?: boolean): Promise<IPagedModel<IExtension>> {
-		if (this.queryRequest) {
-			if (!refresh && this.queryRequest.query === query) {
-				return this.queryRequest.request;
-			}
-			this.queryRequest.request.cancel();
-			this.queryRequest = null;
+		if (this._store.isDisposed) {
+			return new PagedModel([]);
 		}
 
-		if (this.queryResult) {
-			this.queryResultListeners.clear();
-			this.queryResult.disposables.dispose();
-			this.queryResult = undefined;
-			if (this.extensionsViewState) {
-				this.extensionsViewState.filters = {};
-			}
+		if (!refresh && this.queryRequest?.query === query) {
+			return this.queryRequest.request;
 		}
+
+		this.clearQuery();
 
 		const parsedQuery = Query.parse(query);
 
@@ -263,6 +258,9 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 				}
 
 				this.queryResult = result;
+				if (this.extensionsViewState) {
+					this.extensionsViewState.filters.featureId = result.featureId;
+				}
 				if (result.onDidChangeModel) {
 					this.queryResultListeners.add(result.onDidChangeModel(model => {
 						result.model = model;
@@ -297,8 +295,22 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 
 	protected showEmptyModel(): Promise<IPagedModel<IExtension>> {
 		const emptyModel = new PagedModel([]);
-		this.setModel(emptyModel);
+		if (!this._store.isDisposed) {
+			this.clearQuery();
+			this.setModel(emptyModel);
+		}
 		return Promise.resolve(emptyModel);
+	}
+
+	private clearQuery(): void {
+		this.queryRequest?.request.cancel();
+		this.queryRequest = null;
+		this.queryResultListeners.clear();
+		this.queryResult?.disposables.dispose();
+		this.queryResult = undefined;
+		if (this.extensionsViewState) {
+			this.extensionsViewState.filters = {};
+		}
 	}
 
 	private async query(query: Query, options: IQueryOptions, token: CancellationToken): Promise<IQueryResult> {
@@ -348,11 +360,12 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 
 	private async queryLocal(query: Query, options: IQueryOptions): Promise<IQueryResult> {
 		const local = await this.extensionsWorkbenchService.queryLocal(this.options.server);
-		let { extensions, canIncludeInstalledExtensions, description } = await this.filterLocal(local, this.extensionService.extensions, query, options);
+		const result = await this.filterLocal(local, this.extensionService.extensions, query, options);
+		let extensions = result.extensions;
 		const disposables = new DisposableStore();
 		const onDidChangeModel = disposables.add(new Emitter<IPagedModel<IExtension>>());
 
-		if (canIncludeInstalledExtensions) {
+		if (result.canIncludeInstalledExtensions) {
 			let isDisposed: boolean = false;
 			disposables.add(toDisposable(() => isDisposed = true));
 			disposables.add(Event.debounce(Event.any(
@@ -373,16 +386,18 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 
 		return {
 			model: new PagedModel(extensions),
-			message: description ? { text: description, severity: Severity.Info } : undefined,
+			message: result.description ? { text: result.description, severity: Severity.Info } : undefined,
+			featureId: result.featureId,
 			onDidChangeModel: onDidChangeModel.event,
 			disposables
 		};
 	}
 
-	private async filterLocal(local: IExtension[], runningExtensions: readonly IExtensionDescription[], query: Query, options: IQueryOptions): Promise<{ extensions: IExtension[]; canIncludeInstalledExtensions: boolean; description?: string }> {
+	private async filterLocal(local: IExtension[], runningExtensions: readonly IExtensionDescription[], query: Query, options: IQueryOptions): Promise<{ extensions: IExtension[]; canIncludeInstalledExtensions: boolean; description?: string; featureId?: string }> {
 		const value = query.value;
 		let extensions: IExtension[] = [];
 		let description: string | undefined;
+		let featureId: string | undefined;
 		const includeBuiltin = /@builtin/i.test(value);
 		const canIncludeInstalledExtensions = !includeBuiltin;
 
@@ -419,14 +434,14 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 		}
 
 		else if (/@contribute:/i.test(query.value)) {
-			extensions = this.filterExtensionsByFeature(local, query);
+			({ extensions, featureId } = this.filterExtensionsByFeature(local, query));
 		}
 
 		else if (includeBuiltin) {
 			extensions = this.filterBuiltinExtensions(local, query, options);
 		}
 
-		return { extensions, canIncludeInstalledExtensions, description };
+		return { extensions, canIncludeInstalledExtensions, description, featureId };
 	}
 
 	private filterBuiltinExtensions(local: IExtension[], query: Query, options: IQueryOptions): IExtension[] {
@@ -692,15 +707,12 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 		return this.sortExtensions(result, options);
 	}
 
-	private filterExtensionsByFeature(local: IExtension[], query: Query): IExtension[] {
+	private filterExtensionsByFeature(local: IExtension[], query: Query): { extensions: IExtension[]; featureId?: string } {
 		const value = query.value.replace(/@contribute:/g, '').trim();
 		const featureId = value.split(' ')[0];
 		const feature = Registry.as<IExtensionFeaturesRegistry>(Extensions.ExtensionFeaturesRegistry).getExtensionFeature(featureId);
 		if (!feature) {
-			return [];
-		}
-		if (this.extensionsViewState) {
-			this.extensionsViewState.filters.featureId = featureId;
+			return { extensions: [] };
 		}
 		const renderer = feature.renderer ? this.instantiationService.createInstance<IExtensionFeatureRenderer>(feature.renderer) : undefined;
 		try {
@@ -715,7 +727,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 					result.push([e, accessData?.accessTimes.length ?? 0]);
 				}
 			}
-			return result.sort(([, a], [, b]) => b - a).map(([e]) => e);
+			return { extensions: result.sort(([, a], [, b]) => b - a).map(([e]) => e), featureId };
 		} finally {
 			renderer?.dispose();
 		}
@@ -1165,14 +1177,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 
 	override dispose(): void {
 		super.dispose();
-		if (this.queryRequest) {
-			this.queryRequest.request.cancel();
-			this.queryRequest = null;
-		}
-		if (this.queryResult) {
-			this.queryResult.disposables.dispose();
-			this.queryResult = undefined;
-		}
+		this.clearQuery();
 		this.list = null;
 	}
 

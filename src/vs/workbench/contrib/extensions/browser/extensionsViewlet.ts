@@ -772,7 +772,9 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 
 	async refresh(): Promise<void> {
 		await this.updateInstalledExtensionsContexts();
-		this.doSearch(true);
+		if (!this._store.isDisposed) {
+			this.doSearch(true);
+		}
 		if (this.configurationService.getValue(AutoCheckUpdatesConfigurationKey)) {
 			this.extensionsWorkbenchService.checkForUpdates();
 		}
@@ -903,7 +905,9 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 
 	private async updateInstalledExtensionsContexts(): Promise<void> {
 		const result = await this.extensionsWorkbenchService.queryLocal();
-		this.hasInstalledExtensionsContextKey.set(result.some(r => !r.isBuiltin));
+		if (!this._store.isDisposed) {
+			this.hasInstalledExtensionsContextKey.set(result.some(r => !r.isBuiltin));
+		}
 	}
 
 	private triggerSearch(): void {
