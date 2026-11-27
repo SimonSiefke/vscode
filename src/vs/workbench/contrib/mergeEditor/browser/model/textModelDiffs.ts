@@ -30,6 +30,10 @@ export class TextModelDiffs extends Disposable {
 		return this._barrier.isOccupied;
 	}
 
+	get computationGeneration(): number {
+		return this._recomputeCount;
+	}
+
 	constructor(
 		private readonly baseTextModel: ITextModel,
 		private readonly textModel: ITextModel,

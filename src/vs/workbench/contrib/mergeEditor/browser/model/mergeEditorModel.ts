@@ -8,8 +8,10 @@ import { raceCancellationError } from '../../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { BugIndicatingError, CancellationError } from '../../../../../base/common/errors.js';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
+import { Schemas } from '../../../../../base/common/network.js';
 import { autorunHandleChanges, derived, IObservable, IReader, ISettableObservable, ITransaction, keepObserved, observableValue, transaction, waitForState } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { generateUuid } from '../../../../../base/common/uuid.js';
 import { Range } from '../../../../../editor/common/core/range.js';
 import { ILanguageService } from '../../../../../editor/common/languages/language.js';
 import { ITextModel } from '../../../../../editor/common/model.js';
@@ -223,34 +225,74 @@ export class MergeEditorModel extends EditorModel {
 
 	private async initialize(diffs: readonly TextModelDiffs[]): Promise<void> {
 		if (this.options.resetResult) {
-			const resultVersion = this.resultTextModel.getVersionId();
-			await this.waitForDiffs(this.inputDiffComputingState, [this.input1TextModelDiffs, this.input2TextModelDiffs]);
-			if (this.initializationToken.isCancellationRequested || this.resultTextModel.isDisposed()
-				|| this.resultTextModel.getVersionId() !== resultVersion || this.inputDiffComputingState.get() !== MergeEditorModelState.upToDate) {
-				throw new CancellationError();
-			}
-
-			// Verify the reset in a private model before changing the shared result
-			// or its undo history. A failed attempt can then retry from the same text.
-			const inputs = [this.base, this.input1.textModel, this.input2.textModel];
-			const inputVersions = inputs.map(input => input.getVersionId());
-			transaction(tx => this.resetConflictStates(tx));
-			const text = this.computeAutoMergedResult();
-			const prepared = this.modelService.createModel(text, this.languageService.createById(this.resultTextModel.getLanguageId()));
-			try {
-				const computing = derived(reader => this.diffComputer.computeDiff(this.base, prepared, reader)).get();
-				const { diffs: preparedDiffs } = await raceCancellationError(computing, this.initializationToken);
-				if (!preparedDiffs || this.initializationToken.isCancellationRequested
-					|| this.resultTextModel.isDisposed() || this.resultTextModel.getVersionId() !== resultVersion
-					|| inputs.some((input, index) => input.isDisposed() || input.getVersionId() !== inputVersions[index])) {
-					throw new CancellationError();
-				}
-				transaction(tx => this.resultTextModelDiffs.applyPreparedReset(text, preparedDiffs, tx));
-			} finally {
-				prepared.dispose();
-			}
+			await this.initializeResult(diffs);
 		}
 		await this.waitForDiffs(this.diffComputingState, diffs);
+	}
+
+	private async initializeResult(diffs: readonly TextModelDiffs[]): Promise<void> {
+		const resultVersion = this.resultTextModel.getVersionId();
+		const inputs = [this.base, this.input1.textModel, this.input2.textModel];
+		const ensurePreparationIsActive = () => {
+			if (this.initializationToken.isCancellationRequested || this.resultTextModel.isDisposed()
+				|| this.resultTextModel.getVersionId() !== resultVersion || inputs.some(input => input.isDisposed())) {
+				throw new CancellationError();
+			}
+		};
+		while (true) {
+			await this.waitForDiffs(this.inputDiffComputingState, [this.input1TextModelDiffs, this.input2TextModelDiffs]);
+			ensurePreparationIsActive();
+			if (this.inputDiffComputingState.get() !== MergeEditorModelState.upToDate) {
+				continue;
+			}
+
+			const inputVersions = inputs.map(input => input.getVersionId());
+			const generations = diffs.map(diff => diff.computationGeneration);
+			const sourcesAreCurrent = () => inputs.every((input, index) => input.getVersionId() === inputVersions[index])
+				&& diffs.every((diff, index) => diff.computationGeneration === generations[index]);
+			transaction(tx => this.resetConflictStates(tx));
+			const text = this.computeAutoMergedResult();
+
+			let preparedDiffs: DetailedLineRangeMapping[] | null;
+			try {
+				preparedDiffs = await this.computePreparedDiffs(text);
+			} catch (error) {
+				ensurePreparationIsActive();
+				if (!sourcesAreCurrent()) {
+					continue;
+				}
+				throw error;
+			}
+
+			ensurePreparationIsActive();
+			if (!sourcesAreCurrent()) {
+				continue;
+			}
+			if (!preparedDiffs) {
+				throw new CancellationError();
+			}
+			transaction(tx => this.resultTextModelDiffs.applyPreparedReset(text, preparedDiffs, tx));
+			return;
+		}
+	}
+
+	private async computePreparedDiffs(text: string): Promise<DetailedLineRangeMapping[] | null> {
+		// These calculations are internal to the editor worker. Use a distinct
+		// resource so the simple-widget option has its own model cache entry.
+		const resource = URI.from({ scheme: Schemas.inMemory, path: `/merge-editor/${generateUuid()}` });
+		const language = this.languageService.createById(this.resultTextModel.getLanguageId());
+		const prepared = this.modelService.createModel('', language, resource, true);
+		try {
+			// Insert text as an edit so a leading U+FEFF is content, as it is
+			// when the same edit is applied to the live result.
+			prepared.setEOL(this.resultTextModel.getEndOfLineSequence());
+			prepared.applyEdits([{ range: prepared.getFullModelRange(), text }]);
+			const computing = derived(reader => this.diffComputer.computeDiff(this.base, prepared, reader)).get();
+			const { diffs } = await raceCancellationError(computing, this.initializationToken);
+			return diffs;
+		} finally {
+			prepared.dispose();
+		}
 	}
 
 	public async reset(): Promise<void> {

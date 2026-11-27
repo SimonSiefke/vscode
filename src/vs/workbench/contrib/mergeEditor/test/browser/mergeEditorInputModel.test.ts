@@ -12,16 +12,21 @@ import { Schemas } from '../../../../../base/common/network.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { transaction } from '../../../../../base/common/observable.js';
+import { Range } from '../../../../../editor/common/core/range.js';
 import { IDocumentDiff, IDocumentDiffProviderOptions } from '../../../../../editor/common/diff/documentDiffProvider.js';
 import { linesDiffComputers } from '../../../../../editor/common/diff/linesDiffComputers.js';
-import { IEditorWorkerService } from '../../../../../editor/common/services/editorWorker.js';
+import { shouldSynchronizeModel } from '../../../../../editor/common/model.js';
+import { DiffAlgorithmName, IEditorWorkerService } from '../../../../../editor/common/services/editorWorker.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../../editor/common/services/resolverService.js';
 import { TestEditorWorkerService } from '../../../../../editor/test/common/services/testEditorWorkerService.js';
+import { ConfigurationTarget } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IResolvedTextFileEditorModel, ITextFileEditorModel, ITextFileEditorModelManager, ITextFileService } from '../../../../services/textfile/common/textfiles.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { MergeEditorInput, MergeEditorInputData } from '../../browser/mergeEditorInput.js';
+import { ModifiedBaseRangeState } from '../../browser/model/modifiedBaseRange.js';
 
 const conflictText = '<<<<<<< HEAD\nleft\n=======\nright\n>>>>>>> branch\n';
 
@@ -33,11 +38,11 @@ suite('Merge Editor input model factories', () => {
 		resultContent?: string;
 		beforeRead?: (uri: URI) => Promise<void>;
 		beforeSave?: (text: string) => Promise<void>;
-		beforeDiff?: (modified: URI) => Promise<void>;
+		beforeDiff?: (modified: URI, algorithm: DiffAlgorithmName) => Promise<void>;
+		onReadModel?: (uri: URI) => void;
 	} = {}) {
-		const services = workbenchInstantiationService({
-			configurationService: () => new TestConfigurationService({ 'mergeEditor.useWorkingCopy': options.useWorkingCopy ?? false }),
-		}, disposables);
+		const configuration = new TestConfigurationService({ 'mergeEditor.useWorkingCopy': options.useWorkingCopy ?? false });
+		const services = workbenchInstantiationService({ configurationService: () => configuration }, disposables);
 		const modelService = services.get(IModelService);
 		const makeModel = (name: string, content: string) => disposables.add(modelService.createModel(content, null, URI.from({ scheme: 'test-merge', path: `/${name}` })));
 		const base = makeModel('base', 'original');
@@ -54,7 +59,10 @@ suite('Merge Editor input model factories', () => {
 				references.push(record);
 				return {
 					object: new class extends mock<IResolvedTextEditorModel>() {
-						override readonly textEditorModel = textEditorModel;
+						override get textEditorModel() {
+							options.onReadModel?.(uri);
+							return textEditorModel;
+						}
 					},
 					dispose: () => { record.disposals++; },
 				};
@@ -77,8 +85,8 @@ suite('Merge Editor input model factories', () => {
 			},
 		});
 		services.stub(IEditorWorkerService, new class extends TestEditorWorkerService {
-			override async computeDiff(original: URI, modified: URI, diffOptions: IDocumentDiffProviderOptions): Promise<IDocumentDiff> {
-				await options.beforeDiff?.(modified);
+			override async computeDiff(original: URI, modified: URI, diffOptions: IDocumentDiffProviderOptions, algorithm: DiffAlgorithmName): Promise<IDocumentDiff> {
+				await options.beforeDiff?.(modified, algorithm);
 				const diff = linesDiffComputers.getDefault().computeDiff(modelService.getModel(original)!.getLinesContent(), modelService.getModel(modified)!.getLinesContent(), diffOptions);
 				return { identical: diff.changes.length === 0, quitEarly: diff.hitTimeout, changes: diff.changes, moves: diff.moves };
 			}
@@ -86,7 +94,7 @@ suite('Merge Editor input model factories', () => {
 
 		const data = (uri: URI) => new MergeEditorInputData(uri, undefined, undefined, undefined);
 		const input = disposables.add(services.createInstance(MergeEditorInput, base.uri, data(left.uri), data(right.uri), result.uri));
-		return { input, result, references, modelService };
+		return { input, base, left, right, result, references, modelService, configuration };
 	}
 
 	for (const useWorkingCopy of [false, true]) {
@@ -175,27 +183,34 @@ suite('Merge Editor input model factories', () => {
 
 	for (const useWorkingCopy of [false, true]) {
 		test(`closing a ${useWorkingCopy ? 'temporary' : 'workspace'} merge cancels the open while a provider is held`, async () => {
-			const started = new DeferredPromise<void>();
+			const leftOwned = new DeferredPromise<void>();
 			const heldRead = new DeferredPromise<void>();
 			const { input, references } = createInput({
 				useWorkingCopy,
 				async beforeRead(uri) {
 					if (uri.path === '/right') {
-						void started.complete();
 						await heldRead.p;
+					}
+				},
+				onReadModel(uri) {
+					// The successful providers return in call order. Reading the
+					// left model starts after its reference and both earlier ones
+					// have been registered with the construction attempt.
+					if (uri.path === '/left') {
+						void leftOwned.complete();
 					}
 				},
 			});
 			const opening = assert.rejects(input.resolve(), CancellationError);
 			const matching = assert.rejects(input.resolve(), CancellationError);
-			await started.p;
+			await leftOwned.p;
+			assert.strictEqual(references.length, 3);
 			input.dispose();
 
 			try {
+				assert.ok(references.every(ref => ref.disposals === 1));
 				await Promise.all([opening, matching]);
 				assert.ok(!heldRead.isSettled);
-				assert.strictEqual(references.length, 3);
-				assert.ok(references.every(ref => ref.disposals === 1));
 			} finally {
 				await heldRead.error(new Error('Provider failed after close'));
 			}
@@ -273,6 +288,123 @@ suite('Merge Editor input model factories', () => {
 		await opening;
 
 		assert.strictEqual(result.getValue(), edited);
+	});
+
+	test('refreshes a live preparation after a source-only edit', async () => {
+		const started = new DeferredPromise<void>();
+		const firstPreparedDiff = new DeferredPromise<void>();
+		let preparations = 0;
+		const { input, left, result } = createInput({
+			resultContent: conflictText,
+			async beforeDiff(modified) {
+				if (modified.scheme === Schemas.inMemory && ++preparations === 1) {
+					void started.complete();
+					await firstPreparedDiff.p;
+				}
+			},
+		});
+		const opening = input.resolve();
+		await started.p;
+		left.setValue('original');
+		await firstPreparedDiff.complete();
+
+		const { model } = await opening;
+		assert.strictEqual(preparations, 2);
+		assert.ok(model.isUpToDate.get());
+		assert.strictEqual(result.getValue(), 'right');
+		input.dispose();
+	});
+
+	test('a new diff algorithm failure preserves the rollback text and undo history', async () => {
+		const setting = 'mergeEditor.diffAlgorithm';
+		const advancedStarted = new DeferredPromise<void>();
+		const legacyStarted = new DeferredPromise<void>();
+		const heldAdvanced = new DeferredPromise<void>();
+		const heldLegacy = new DeferredPromise<void>();
+		const failure = new Error('Legacy input diff failed');
+		const saves: string[] = [];
+		const preparedAlgorithms: DiffAlgorithmName[] = [];
+		let holdLegacy = true;
+		const { input, result, configuration } = createInput({
+			resultContent: conflictText,
+			async beforeSave(text) { saves.push(text); },
+			async beforeDiff(modified, algorithm) {
+				if (modified.scheme === Schemas.inMemory) {
+					preparedAlgorithms.push(algorithm);
+					if (algorithm === 'advanced') {
+						void advancedStarted.complete();
+						await heldAdvanced.p;
+					}
+				}
+				if (modified.path === '/left' && algorithm === 'legacy' && holdLegacy) {
+					holdLegacy = false;
+					void legacyStarted.complete();
+					await heldLegacy.p;
+				}
+			},
+		});
+		const opening = assert.rejects(input.resolve(), error => error === failure);
+		await advancedStarted.p;
+
+		await configuration.setUserConfiguration(setting, 'legacy');
+		configuration.onDidChangeConfigurationEmitter.fire({
+			source: ConfigurationTarget.USER,
+			affectedKeys: new Set([setting]),
+			change: { keys: [setting], overrides: [] },
+			affectsConfiguration: section => section === setting,
+		});
+		await legacyStarted.p;
+		await heldAdvanced.complete();
+		await heldLegacy.error(failure);
+		await opening;
+
+		assert.strictEqual(result.getValue(), conflictText);
+		assert.strictEqual(result.canUndo(), false);
+		const { model } = await input.resolve();
+		assert.ok(model.isUpToDate.get());
+		assert.deepStrictEqual(preparedAlgorithms, ['advanced', 'legacy']);
+		assert.deepStrictEqual(saves, [conflictText, conflictText]);
+		input.dispose();
+	});
+
+	test('preserves literal leading U+FEFF and keeps preparation out of document synchronization', async () => {
+		const { input, base, result, modelService } = createInput({ resultContent: conflictText });
+		base.applyEdits([{ range: new Range(1, 1, 1, 1), text: '\uFEFF' }]);
+		const eligible: boolean[] = [];
+		disposables.add(modelService.onModelAdded(model => {
+			if (model.uri.scheme === Schemas.inMemory) {
+				eligible.push(shouldSynchronizeModel(model));
+			}
+		}));
+
+		const { model } = await input.resolve();
+		assert.strictEqual(result.getValue(), '\uFEFForiginal');
+		assert.strictEqual(model.baseResultDiffs.get().length, 0);
+		assert.deepStrictEqual(eligible, [false]);
+		assert.ok(modelService.getModels().every(model => model.uri.scheme !== Schemas.inMemory));
+		input.dispose();
+	});
+
+	test('projects nonempty prepared mappings onto the live result before accepting a conflict', async () => {
+		const { input, base, left, right, result, modelService } = createInput({ resultContent: conflictText });
+		base.setValue('first\nshared\noriginal\nlast');
+		left.setValue('left-only\nshared\nleft\nlast');
+		right.setValue('first\nshared\nright\nlast');
+
+		const { model } = await input.resolve();
+		assert.strictEqual(result.getValue(), 'left-only\nshared\noriginal\nlast');
+		const [change] = model.baseResultDiffs.get();
+		assert.strictEqual(model.baseResultDiffs.get().length, 1);
+		assert.ok(change.outputTextModel === result);
+		assert.deepStrictEqual(change.getLineEdit().newLines, ['left-only']);
+		assert.ok(modelService.getModels().every(model => model.uri.scheme !== Schemas.inMemory));
+
+		const conflict = model.modifiedBaseRanges.get().find(range => range.isConflicting);
+		assert.ok(conflict);
+		transaction(tx => model.setState(conflict, ModifiedBaseRangeState.base.withInputValue(2, true), true, tx));
+		assert.strictEqual(result.getValue(), 'left-only\nshared\nright\nlast');
+		assert.strictEqual(model.unhandledConflictsCount.get(), 0);
+		input.dispose();
 	});
 
 	test('reports a current diff worker failure after the model is live', async () => {
