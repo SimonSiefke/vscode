@@ -19,11 +19,12 @@ import { IDocumentDiff, IDocumentDiffProviderOptions } from '../../../../../edit
 import { linesDiffComputers } from '../../../../../editor/common/diff/linesDiffComputers.js';
 import { IEditorWorkerService } from '../../../../../editor/common/services/editorWorker.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
+import { ITextResourceConfigurationService } from '../../../../../editor/common/services/textResourceConfiguration.js';
 import { TestEditorWorkerService } from '../../../../../editor/test/common/services/testEditorWorkerService.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { IUserInteractionService, MockUserInteractionService } from '../../../../../platform/userInteraction/browser/userInteractionService.js';
-import { EditorPane } from '../../../../browser/parts/editor/editorPane.js';
-import { AbstractTextEditor } from '../../../../browser/parts/editor/textEditor.js';
+import { EditorMemento } from '../../../../browser/parts/editor/editorPane.js';
+import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { TestEditorGroupView, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { MergeEditorInput, MergeEditorInputData } from '../../browser/mergeEditorInput.js';
 import { IMergeEditorInputModel } from '../../browser/mergeEditorInputModel.js';
@@ -49,29 +50,16 @@ suite('Merge Editor pane', () => {
 		const container = document.createElement('div');
 		document.body.appendChild(container);
 		disposables.add(toDisposable(() => container.remove()));
-		/* eslint-disable local/code-no-bracket-notation-for-identifiers -- Isolate the pane fixture's cached view state and dispose its factories. */
-		const mementos = EditorPane['EDITOR_MEMENTOS'];
-		const mementoKey = `${MergeEditor.ID}${AbstractTextEditor['VIEW_STATE_PREFERENCE_KEY']}`;
-		const previousMemento = mementos.get(mementoKey);
-		mementos.delete(mementoKey);
-		const pane = disposables.add(instantiationService.createInstance(MergeEditor, new TestEditorGroupView(1)));
-		disposables.add(toDisposable(() => {
-			mementos.delete(mementoKey);
-			if (previousMemento) {
-				mementos.set(mementoKey, previousMemento);
+		class TestMergeEditor extends MergeEditor {
+			protected override getEditorMemento<T>(groups: IEditorGroupsService, configuration: ITextResourceConfigurationService, key: string, limit = 10): EditorMemento<T> {
+				return this._register(new EditorMemento<T>(this.getId(), key, Object.create(null), limit, groups, configuration));
 			}
-		}));
+		}
+
+		const pane = disposables.add(instantiationService.createInstance(TestMergeEditor, new TestEditorGroupView(1)));
 		pane.create(container);
 		pane.setVisible(true);
-		const zoneComputer = pane['viewZoneComputer'];
-		disposables.add(zoneComputer['conflictActionsFactoryInput1']);
-		disposables.add(zoneComputer['conflictActionsFactoryInput2']);
-		disposables.add(zoneComputer['conflictActionsFactoryResult']);
-		/* eslint-enable local/code-no-bracket-notation-for-identifiers */
 		const codeEditorService = instantiationService.get(ICodeEditorService);
-		for (const editor of codeEditorService.listCodeEditors()) {
-			disposables.add(editor);
-		}
 		pane.layout(new Dimension(1000, 600));
 
 		function createInput(name: string, conflictLine = 2) {
@@ -202,4 +190,40 @@ suite('Merge Editor pane', () => {
 		assert.strictEqual(resultEditor.getPosition()?.lineNumber, 3);
 		pane.clearInput();
 	});
+
+	for (const closeFirst of [false, true]) {
+		test(`releases pane-owned widgets and styles on disposal ${closeFirst ? 'after close' : 'while a session is open'}`, async () => {
+			const listStyles = () => [...document.head.querySelectorAll('style')].filter(style => style.textContent?.includes('._conflictActionsFactory_'));
+			const existingStyles = new Set(listStyles());
+			const { pane, createInput, codeEditorService } = createPane();
+			const { input, inputModel, model } = createInput('dispose');
+			stub(input, 'resolve').resolves(inputModel);
+			await model.onInitialized;
+			await pane.setInput(input, undefined, {}, CancellationToken.None);
+			pane.setLayout({ kind: 'mixed', showBase: true, showBaseAtTop: true });
+
+			const sessionModels = new Set([model.base, model.input1.textModel, model.input2.textModel, model.resultTextModel]);
+			const editors = codeEditorService.listCodeEditors().filter(editor => {
+				const model = editor.getModel();
+				return model && sessionModels.has(model);
+			});
+			const styles = listStyles().filter(style => !existingStyles.has(style));
+			assert.strictEqual(editors.length, 4);
+			assert.strictEqual(styles.length, 3);
+
+			if (closeFirst) {
+				pane.clearInput();
+				assert.ok(editors.every(editor => codeEditorService.listCodeEditors().includes(editor)));
+			}
+			pane.dispose();
+
+			assert.deepStrictEqual({
+				registered: editors.filter(editor => codeEditorService.listCodeEditors().includes(editor)).length,
+				modelsAttached: editors.filter(editor => editor.getModel() !== null).length,
+				stylesConnected: styles.filter(style => style.isConnected).length,
+				retainedViewModel: pane.viewModel.get() !== undefined,
+				retainedInputModel: pane.inputModel.get() !== undefined,
+			}, { registered: 0, modelsAttached: 0, stylesConnected: 0, retainedViewModel: false, retainedInputModel: false });
+		});
+	}
 });

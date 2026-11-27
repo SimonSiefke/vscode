@@ -124,11 +124,11 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 		this._ctxBaseUri = ctxMergeBaseUri.bindTo(this.contextKeyService);
 		this._ctxShowNonConflictingChanges = ctxMergeEditorShowNonConflictingChanges.bindTo(this.contextKeyService);
 		this._inputModel = observableValue<IMergeEditorInputModel | undefined>(this, undefined);
-		this.viewZoneComputer = new ViewZoneComputer(
+		this.viewZoneComputer = this._register(new ViewZoneComputer(
 			this.input1View.editor,
 			this.input2View.editor,
 			this.inputResultView.editor,
-		);
+		));
 		this.scrollSynchronizer = this._register(new ScrollSynchronizer(this._viewModel, this.input1View, this.input2View, this.baseView, this.inputResultView, this._layoutModeObs));
 		this._onDidChangeSizeConstraints = this._register(new Emitter<void>());
 		this.onDidChangeSizeConstraints = this._onDidChangeSizeConstraints.event;
@@ -138,6 +138,7 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 	}
 
 	override dispose(): void {
+		this.clearSession();
 		this._sessionDisposables.dispose();
 		this._ctxIsMergeEditor.reset();
 		this._ctxUsesColumnLayout.reset();
@@ -611,7 +612,6 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 						this.viewModel
 					)
 				);
-				this.baseViewDisposables.add(baseView.editor);
 				this.baseViewDisposables.add(autorun(reader => {
 					/** @description Update base view options */
 					const options = this.baseViewOptions.read(reader);

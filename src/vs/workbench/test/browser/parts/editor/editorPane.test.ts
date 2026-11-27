@@ -532,6 +532,87 @@ suite('EditorPane', () => {
 		});
 	}
 
+	for (const fail of [false, true]) {
+		test(`a superseded open does not publish ${fail ? 'its load error' : 'focus'} after loading completes`, async () => {
+			class PendingPublicationInput extends EditorInput {
+				readonly finished = new DeferredPromise<void>();
+				readonly progressStopped = new DeferredPromise<void>();
+
+				constructor(readonly resource: URI) {
+					super();
+				}
+
+				override get typeId() { return 'pendingPublicationInput'; }
+			}
+
+			const focused: EditorInput[] = [];
+			class PendingPublicationEditor extends TestEditor {
+				override getId() { return 'pendingPublicationEditor'; }
+
+				override focus(): void {
+					if (this.input) {
+						focused.push(this.input);
+					}
+				}
+
+				override setInput(input: PendingPublicationInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
+					void super.setInput(input, options, context, token);
+					disposables.add(token.onCancellationRequested(() => void input.progressStopped.complete()));
+					return input.finished.p;
+				}
+			}
+
+			const instantiationService = workbenchInstantiationService(undefined, disposables);
+			const part = await createEditorPart(instantiationService, disposables);
+			instantiationService.stub(IEditorGroupsService, part);
+			const group = part.activeGroup;
+			const descriptor = EditorPaneDescriptor.create(PendingPublicationEditor, 'pendingPublicationEditor', 'Pending Publication Editor');
+			disposables.add(editorRegistry.registerEditorPane(descriptor, [new SyncDescriptor(PendingPublicationInput)]));
+
+			const failureEvents: EditorInput[] = [];
+			const activationEvents: EditorInput[] = [];
+			disposables.add(group.onDidOpenEditorFail(input => failureEvents.push(input)));
+			disposables.add(group.onDidActiveEditorChange(({ editor }) => { if (editor) { activationEvents.push(editor); } }));
+			const first = disposables.add(new PendingPublicationInput(URI.file('/pending-first.txt')));
+			const second = disposables.add(new PendingPublicationInput(URI.file('/pending-second.txt')));
+			const opening = group.openEditor(first, { pinned: true });
+			assert.ok(group.activeEditorPane?.input === first);
+
+			if (fail) {
+				void first.finished.error(new Error('Failed to load input'));
+			} else {
+				void first.finished.complete();
+			}
+
+			// Progress stops after the load settles but before its result is applied to the pane.
+			await first.progressStopped.p;
+			const replacing = group.openEditor(second, { pinned: true });
+			await second.finished.complete();
+
+			assert.deepStrictEqual({
+				oldOpenReturnedPane: (await opening) !== undefined,
+				newOpenReturnedPane: (await replacing)?.input === second,
+				oldInputAlive: !first.isDisposed(),
+				activeInputIsReplacement: group.activeEditor === second,
+				visibleInputIsReplacement: group.activeEditorPane?.input === second,
+				focusCalls: focused.length,
+				focusedReplacement: focused[0] === second,
+				oldInputActivated: activationEvents.includes(first),
+				failures: failureEvents.length,
+			}, {
+				oldOpenReturnedPane: false,
+				newOpenReturnedPane: true,
+				oldInputAlive: true,
+				activeInputIsReplacement: true,
+				visibleInputIsReplacement: true,
+				focusCalls: 1,
+				focusedReplacement: true,
+				oldInputActivated: false,
+				failures: 0,
+			});
+		});
+	}
+
 	test('WorkspaceTrustRequiredEditor', async function () {
 
 		class TrustRequiredTestEditor extends EditorPane {
