@@ -462,6 +462,39 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 		}
 	});
 
+	test('reports the original error to both callers when the current pending open fails', async () => {
+		const { panes, input, open, close } = await createMatchingRevealFixture('current-error-overlap');
+		const requested = new DeferredPromise<void>();
+		const ready = new DeferredPromise<MultiDiffEditorViewModel>();
+		const failure = new Error('The current model failed to load');
+		input.getViewModel = () => {
+			void requested.complete();
+			return ready.p;
+		};
+
+		const first = open();
+		await requested.p;
+		const pane = panes.activeEditorPane;
+		assert.ok(pane instanceof MultiDiffEditor);
+		let setOptionsCalls = 0;
+		const setOptions = pane.setOptions.bind(pane);
+		pane.setOptions = options => {
+			setOptionsCalls++;
+			setOptions(options);
+		};
+		const matching = open();
+
+		try {
+			await ready.error(failure);
+			const [firstResult, matchingResult] = await Promise.all([first, matching]);
+			assert.strictEqual(firstResult.error, failure);
+			assert.strictEqual(matchingResult.error, failure);
+			assert.strictEqual(setOptionsCalls, 0);
+		} finally {
+			close();
+		}
+	});
+
 	for (const outcome of ['resolves', 'rejects'] as const) {
 		test(`keeps the latest reveal when a superseded open ${outcome} after the reload`, async () => {
 			const { input, model, firstResource, secondResource, open, reveal, activeResource, close } = await createMatchingRevealFixture(`late-reveal-overlap-${outcome}`);
