@@ -11,6 +11,8 @@ import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
 import { StopWatch } from '../../../../base/common/stopwatch.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IMessagePassingProtocol } from '../../../../base/parts/ipc/common/ipc.js';
+import { StructuredCloneRPCProtocol } from './structuredCloneRPCProtocol.js';
+import { isStructuredCloneRPCTransport } from './rpcMessagePort.js';
 import * as nls from '../../../../nls.js';
 import { Categories } from '../../../../platform/action/common/actionCommonCategories.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
@@ -67,7 +69,7 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
 	 */
 	private readonly _cachedActivationEvents: Map<string, Promise<void>>;
 	private readonly _resolvedActivationEvents: Set<string>;
-	private _rpcProtocol: RPCProtocol | null;
+	private _rpcProtocol: RPCProtocol | StructuredCloneRPCProtocol | null;
 	private readonly _customers: IDisposable[];
 	private readonly _extensionHost: IExtensionHost;
 	private _proxy: Promise<IExtensionHostProxy | null> | null;
@@ -255,7 +257,7 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
 			logger = new TelemetryRPCLogger(this._telemetryService);
 		}
 
-		this._rpcProtocol = new RPCProtocol(protocol, logger);
+		this._rpcProtocol = isStructuredCloneRPCTransport(protocol) ? new StructuredCloneRPCProtocol(protocol, logger) : new RPCProtocol(protocol, logger);
 		this._register(this._rpcProtocol.onDidChangeResponsiveState((responsiveState: ResponsiveState) => this._onDidChangeResponsiveState.fire(responsiveState)));
 		let extensionHostProxy: IExtensionHostProxy | null = null as IExtensionHostProxy | null;
 		let mainProxyIdentifiers: ProxyIdentifier<any>[] = [];

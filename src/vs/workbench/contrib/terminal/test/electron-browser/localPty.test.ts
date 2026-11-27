@@ -8,7 +8,7 @@ import { DeferredPromise } from '../../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ProxyChannel } from '../../../../../base/parts/ipc/common/ipc.js';
-import { Client as MessagePortClient } from '../../../../../base/parts/ipc/common/ipc.mp.js';
+import { Client as MessagePortClient } from '../../../../../base/parts/ipc/common/ipc.structuredClone.mp.js';
 import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IPtyHostProcessReplayEvent } from '../../../../../platform/terminal/common/capabilities/capabilities.js';

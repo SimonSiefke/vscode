@@ -102,9 +102,13 @@ export class ChatAgentResponseStream {
 					queueMicrotask(() => {
 						const toNotify = notify;
 						notify = [];
-						that._proxy.$handleProgressChunk(that._request.requestId, sendQueue).finally(() => {
-							toNotify.forEach(f => f());
-						});
+						if (toNotify.length === 0) {
+							that._proxy.$handleProgressChunkNotification(that._request.requestId, sendQueue);
+						} else {
+							that._proxy.$handleProgressChunk(that._request.requestId, sendQueue).finally(() => {
+								toNotify.forEach(f => f());
+							});
+						}
 						sendQueue.length = 0;
 					});
 				}
