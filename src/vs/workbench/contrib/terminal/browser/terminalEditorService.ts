@@ -111,13 +111,8 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 			if ((e.context === EditorCloseContext.MOVE && !input.isDisposed()) || remainingGroups.length > 0) {
 				return;
 			}
-			const instanceIndex = this.instances.findIndex(e => e === instance);
-			if (instanceIndex !== -1) {
-				const wasActiveInstance = this.instances[instanceIndex] === this.activeInstance;
+			if (this.instances.includes(instance)) {
 				this._removeInstance(instance);
-				if (wasActiveInstance) {
-					this.setActiveInstance(undefined);
-				}
 			}
 		}));
 	}
@@ -211,9 +206,10 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 		const inputKey = instance.resource.path;
 		this._editorInputs.delete(inputKey);
 		const instanceIndex = this.instances.findIndex(e => e === instance);
+		const wasActiveInstance = instanceIndex !== -1 && instanceIndex === this._activeInstanceIndex;
 		if (instanceIndex !== -1) {
 			this.instances.splice(instanceIndex, 1);
-			if (instanceIndex === this._activeInstanceIndex) {
+			if (wasActiveInstance) {
 				this._activeInstanceIndex = -1;
 			} else if (instanceIndex < this._activeInstanceIndex) {
 				this._activeInstanceIndex--;
@@ -225,6 +221,9 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 			dispose(disposables);
 		}
 		this._onDidChangeInstances.fire();
+		if (wasActiveInstance && this._activeInstanceIndex === -1) {
+			this._onDidChangeActiveInstance.fire(undefined);
+		}
 	}
 
 	getInstanceFromResource(resource?: URI): ITerminalInstance | undefined {
