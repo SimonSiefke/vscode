@@ -213,6 +213,9 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 		const instanceIndex = this.instances.findIndex(e => e === instance);
 		if (instanceIndex !== -1) {
 			this.instances.splice(instanceIndex, 1);
+			if (instanceIndex < this._activeInstanceIndex) {
+				this._activeInstanceIndex--;
+			}
 		}
 		const disposables = this._instanceDisposables.get(inputKey);
 		this._instanceDisposables.delete(inputKey);

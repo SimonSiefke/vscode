@@ -319,19 +319,33 @@ suite('Workbench - TerminalEditorService - editor groups', () => {
 		const { instance, isDisposed, onDisposed } = createContextTrackedTerminal();
 		const input = store.add(terminalEditorService.getInputFromResource(terminalEditorService.resolveResource(instance)));
 		await source.openEditor(input, { pinned: true });
-		const file = store.add(new TestFileEditorInput(URI.file('/keep-source-open'), TEST_EDITOR_ID));
-		await source.openEditor(file, { pinned: true });
+		const activeInstance = createTerminalInstance(2);
+		const activeInput = store.add(terminalEditorService.getInputFromResource(terminalEditorService.resolveResource(activeInstance)));
+		await source.openEditor(activeInput, { pinned: true });
+		const lastInstance = createTerminalInstance(3);
+		const lastInput = store.add(terminalEditorService.getInputFromResource(terminalEditorService.resolveResource(lastInstance)));
+		await source.openEditor(lastInput, { pinned: true });
+		await source.openEditor(activeInput, { pinned: true });
+		strictEqual(source.activeEditor === activeInput, true);
+		strictEqual(terminalEditorService.activeInstance?.instanceId, activeInstance.instanceId);
+		deepStrictEqual(terminalEditorService.instances.map(instance => instance.instanceId), [1, 2, 3]);
 		strictEqual(input.group?.id, source.id);
 		strictEqual(terminalEditorService.getInputFromResource(instance.resource) === input, true);
 		strictEqual(onDisposed.hasListeners(), true);
 		const closeListeners = store.add(new DisposableStore());
 		const sourceClose = Event.toPromise(Event.filter(source.onDidCloseEditor, event => event.editor === input), closeListeners);
+		const selectionOnChange: (number | undefined)[] = [];
+		store.add(terminalEditorService.onDidChangeInstances(() => selectionOnChange.push(terminalEditorService.activeInstance?.instanceId)));
 
 		instance.dispose();
 		strictEqual(isDisposed() && input.isDisposed() && source.contains(input, { strictEquals: true }), true);
 		source.moveEditor(input, target, { inactive: true, preserveFocus: true });
 
 		strictEqual((await sourceClose).context, EditorCloseContext.MOVE);
+		strictEqual(source.activeEditor === activeInput, true);
+		strictEqual(terminalEditorService.activeInstance?.instanceId, activeInstance.instanceId);
+		deepStrictEqual(terminalEditorService.instances.map(instance => instance.instanceId), [2, 3]);
+		deepStrictEqual(selectionOnChange, [activeInstance.instanceId]);
 		deepStrictEqual({
 			sourceContainsInput: source.contains(input, { strictEquals: true }),
 			targetContainsInput: target.contains(input, { strictEquals: true }),
