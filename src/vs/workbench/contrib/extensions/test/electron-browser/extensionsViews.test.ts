@@ -4,20 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { DeferredPromise } from '../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { isCancellationError } from '../../../../../base/common/errors.js';
 import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { generateUuid } from '../../../../../base/common/uuid.js';
+import { runWithFakedTimers } from '../../../../../base/test/common/virtualScheduling/index.js';
 import { ExtensionsListView, UntrustedWorkspaceUnsupportedExtensionsView } from '../../browser/extensionsViews.js';
 import { ExtensionsViewPaneContainer } from '../../browser/extensionsViewlet.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { AutoCheckUpdatesConfigurationKey, IExtension as IWorkbenchExtension, IExtensionsViewState, IExtensionsWorkbenchService } from '../../common/extensions.js';
-import { ExtensionsWorkbenchService } from '../../browser/extensionsWorkbenchService.js';
+import { Extension, ExtensionsWorkbenchService } from '../../browser/extensionsWorkbenchService.js';
 import {
 	IExtensionManagementService, IExtensionGalleryService, ILocalExtension, IGalleryExtension, IQueryOptions,
-	getTargetPlatform, SortBy
+	getTargetPlatform, SortBy, MarketplaceDeprecationConfigKey
 } from '../../../../../platform/extensionManagement/common/extensionManagement.js';
 import { IWorkbenchExtensionEnablementService, EnablementState, IExtensionManagementServerService, IExtensionManagementServer, IProfileAwareExtensionManagementService, IWorkbenchExtensionManagementService } from '../../../../services/extensionManagement/common/extensionManagement.js';
 import { IExtensionRecommendationsService, ExtensionRecommendationReason } from '../../../../services/extensionRecommendations/common/extensionRecommendations.js';
@@ -34,7 +35,7 @@ import { IWorkspaceContextService } from '../../../../../platform/workspace/comm
 import { IWorkspaceTrustManagementService } from '../../../../../platform/workspace/common/workspaceTrust.js';
 import { TestMenuService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { TestSharedProcessService } from '../../../../test/electron-browser/workbenchTestServices.js';
-import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { ConfigurationTarget, IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { ILogService, NullLogService } from '../../../../../platform/log/common/log.js';
 import { Severity } from '../../../../../platform/notification/common/notification.js';
 import { NativeURLService } from '../../../../../platform/url/common/urlService.js';
@@ -69,6 +70,8 @@ import { FileService } from '../../../../../platform/files/common/fileService.js
 import { IUserDataProfileService } from '../../../../services/userDataProfile/common/userDataProfile.js';
 import { UserDataProfileService } from '../../../../services/userDataProfile/common/userDataProfileService.js';
 import { toUserDataProfile } from '../../../../../platform/userDataProfile/common/userDataProfile.js';
+import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { IListService, ListService, WorkbenchPagedList } from '../../../../../platform/list/browser/listService.js';
 
 suite('ExtensionsViews Tests', () => {
 
@@ -103,6 +106,7 @@ suite('ExtensionsViews Tests', () => {
 		instantiationService.stub(ILogService, NullLogService);
 		instantiationService.stub(IFileService, disposableStore.add(new FileService(new NullLogService())));
 		instantiationService.stub(IProductService, {});
+		instantiationService.stub(IEditorService, { editors: [] });
 
 		instantiationService.stub(IWorkspaceContextService, new TestContextService());
 		instantiationService.stub(IConfigurationService, new TestConfigurationService());
@@ -650,6 +654,90 @@ suite('ExtensionsViews Tests', () => {
 			assert.strictEqual(result.get(0).name, builtInTheme.manifest.name, 'Unexpected extension for @builtin query.');
 		});
 	});
+
+	test('deprecated query filters effective API and fallback metadata with text and sort', async () => {
+		const configuration = instantiationService.get(IConfigurationService) as TestConfigurationService;
+		await configuration.setUserConfiguration(MarketplaceDeprecationConfigKey, true);
+		const workbenchService = instantiationService.get(IExtensionsWorkbenchService);
+		await workbenchService.queryLocal();
+		const first = workbenchService.local.find(e => e.name === localEnabledTheme.manifest.name) as Extension;
+		const second = workbenchService.local.find(e => e.name === localDisabledTheme.manifest.name) as Extension;
+		first.setMarketplaceDeprecationInfo({ source: 'marketplace' });
+		instantiationService.stubPromise(IWorkbenchExtensionManagementService, 'getExtensionsControlManifest', { malicious: [], search: [], deprecated: { [second.identifier.id.toLowerCase()]: {} } });
+
+		const model = await testableView.show('@deprecated first @sort:name');
+		assert.deepStrictEqual(Array.from({ length: model.length }, (_, i) => model.get(i).name), [second.name, first.name]);
+	});
+
+	test('deprecated query retains focus and selection when metadata changes without changing entries', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+		const configuration = instantiationService.get(IConfigurationService) as TestConfigurationService;
+		await configuration.setUserConfiguration(MarketplaceDeprecationConfigKey, true);
+		const workbenchService = instantiationService.get(IExtensionsWorkbenchService);
+		await workbenchService.queryLocal();
+		const extension = workbenchService.local.find(e => e.name === localEnabledTheme.manifest.name) as Extension;
+		extension.setMarketplaceDeprecationInfo({ source: 'marketplace', additionalInfo: 'First advice' });
+		instantiationService.stub(IListService, disposableStore.add(new ListService()));
+		const list = disposableStore.add(instantiationService.createInstance(WorkbenchPagedList<IWorkbenchExtension>, 'deprecated', document.createElement('div'),
+			{ getHeight: () => 20, getTemplateId: () => 'extension' },
+			[{
+				templateId: 'extension',
+				renderTemplate: container => container,
+				renderElement: (extension, _index, container) => { container.textContent = extension.displayName; },
+				renderPlaceholder: (_index, container) => { container.textContent = ''; },
+				disposeTemplate: () => { }
+			}],
+			{}));
+		// eslint-disable-next-line local/code-no-bracket-notation-for-identifiers
+		testableView['list'] = list;
+		await testableView.show('@deprecated');
+		const model = list.model;
+		list.setFocus([0]);
+		list.setSelection([0]);
+
+		queryPage = aPage([aGalleryExtension(extension.name, { deprecationInfo: { source: 'marketplace', additionalInfo: 'Updated advice' } })]);
+		await workbenchService.queryGallery(CancellationToken.None);
+		await timeout(200);
+		assert.deepStrictEqual({
+			retainedModel: list.model === model,
+			message: model.get(0).deprecationInfo?.additionalInfo,
+			focus: list.getFocus(),
+			selection: list.getSelection()
+		}, { retainedModel: true, message: 'Updated advice', focus: [0], selection: [0] });
+	}));
+
+	test('deprecated query refreshes an empty result, applies switch changes immediately, and handles API removal', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+		const configuration = instantiationService.get(IConfigurationService) as TestConfigurationService;
+		await configuration.setUserConfiguration(MarketplaceDeprecationConfigKey, true);
+		const workbenchService = instantiationService.get(IExtensionsWorkbenchService);
+		await testableView.show('@deprecated');
+		const counts = [testableView.count()];
+
+		queryPage = aPage([aGalleryExtension(localEnabledTheme.manifest.name, { deprecationInfo: { source: 'marketplace' } })]);
+		await workbenchService.queryGallery(CancellationToken.None);
+		await timeout(200);
+		counts.push(testableView.count());
+
+		for (const enabled of [false, true]) {
+			await configuration.setUserConfiguration(MarketplaceDeprecationConfigKey, enabled);
+			configuration.onDidChangeConfigurationEmitter.fire({
+				source: ConfigurationTarget.USER,
+				affectedKeys: new Set([MarketplaceDeprecationConfigKey]),
+				change: { keys: [MarketplaceDeprecationConfigKey], overrides: [] },
+				affectsConfiguration: key => key === MarketplaceDeprecationConfigKey
+			});
+			await timeout(200);
+			counts.push(testableView.count());
+			await workbenchService.queryGallery(CancellationToken.None);
+			await timeout(200);
+			counts.push(testableView.count());
+		}
+
+		queryPage = aPage([aGalleryExtension(localEnabledTheme.manifest.name)]);
+		await workbenchService.queryGallery(CancellationToken.None);
+		await timeout(200);
+		counts.push(testableView.count());
+		assert.deepStrictEqual(counts, [0, 1, 0, 0, 1, 1, 0]);
+	}));
 
 	test('Test installed query with category', async () => {
 		await testableView.show('@installed category:themes').then(result => {
