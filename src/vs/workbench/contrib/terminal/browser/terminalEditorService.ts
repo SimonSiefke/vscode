@@ -91,9 +91,7 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 			}
 		}));
 
-		// Remove the terminal from the managed instances when the editor closes (e.g. cmd/ctrl+w).
-		// Moving the editor to another group, or its whole group to another window, opens it there
-		// before it closes in the source group, so keep the terminal managed during the transfer.
+		// A move can open the same input in its destination before the source group closes it.
 		this._register(this._editorService.onDidCloseEditor(e => {
 			if (!(e.editor instanceof TerminalEditorInput)) {
 				return;

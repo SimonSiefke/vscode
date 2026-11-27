@@ -840,8 +840,7 @@ export class TerminalService extends Disposable implements ITerminalService {
 		}
 
 		let group: ITerminalGroup;
-		// The editor host clears its selection during detach. Publish the workbench
-		// selection only after the panel host takes over the same terminal.
+		// Publish the workbench selection after the panel takes over the editor terminal.
 		this._onDidChangeActiveInstance.pause();
 		try {
 			this._terminalEditorService.detachInstance(source);
