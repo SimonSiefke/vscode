@@ -239,6 +239,9 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 
 	override async setInput(input: EditorInput, options: ITextEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		await super.setInput(input, options, context, token);
+		if (token.isCancellationRequested || this.input !== input || input.isDisposed()) {
+			return;
+		}
 
 		// Update our listener for input capabilities
 		this.inputListener.value = input.onDidChangeCapabilities(() => this.onDidChangeInputCapabilities(input));

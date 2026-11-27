@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { assertFn } from '../../../../base/common/assert.js';
+import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { CancellationError } from '../../../../base/common/errors.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { isEqual } from '../../../../base/common/resources.js';
@@ -43,6 +44,7 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 
 	private _inputModel?: IMergeEditorInputModel;
 	private _pendingModel?: Promise<IMergeEditorInputModel>;
+	private readonly _modelLoadCancellation = this._register(new CancellationTokenSource());
 
 	private _focusedEditor: MergeEditorType;
 
@@ -87,6 +89,7 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 	}
 
 	override dispose(): void {
+		this._modelLoadCancellation.cancel();
 		super.dispose();
 		this._inputModel = undefined;
 		this._pendingModel = undefined;
@@ -133,13 +136,14 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 	}
 
 	private async createInputModel(): Promise<IMergeEditorInputModel> {
+		const token = this._modelLoadCancellation.token;
 		const inputModel = await this.mergeEditorModeFactory.createInputModel({
 			base: this.base,
 			input1: this.input1,
 			input2: this.input2,
 			result: this.result,
-		});
-		if (this.isDisposed()) {
+		}, token);
+		if (token.isCancellationRequested || this.isDisposed()) {
 			inputModel.dispose();
 			throw new CancellationError();
 		}

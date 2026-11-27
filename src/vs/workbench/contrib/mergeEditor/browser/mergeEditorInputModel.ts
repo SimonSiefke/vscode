@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { assertFn } from '../../../../base/common/assert.js';
-import { BugIndicatingError, onUnexpectedError } from '../../../../base/common/errors.js';
+import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { BugIndicatingError, CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { DisposableStore, IDisposable, IReference } from '../../../../base/common/lifecycle.js';
 import { derived, IObservable, observableFromEvent, observableValue } from '../../../../base/common/observable.js';
@@ -27,7 +28,6 @@ import { MergeEditorTelemetry } from './telemetry.js';
 import { StorageCloseWithConflicts } from '../common/mergeEditor.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { ITextFileEditorModel, ITextFileSaveOptions, ITextFileService } from '../../../services/textfile/common/textfiles.js';
-import { ITextModel } from '../../../../editor/common/model.js';
 import { ILanguageService } from '../../../../editor/common/languages/language.js';
 
 export interface MergeEditorArgs {
@@ -38,7 +38,7 @@ export interface MergeEditorArgs {
 }
 
 export interface IMergeEditorInputModelFactory {
-	createInputModel(args: MergeEditorArgs): Promise<IMergeEditorInputModel>;
+	createInputModel(args: MergeEditorArgs, token: CancellationToken): Promise<IMergeEditorInputModel>;
 }
 
 export interface IMergeEditorInputModel extends IDisposable {
@@ -75,54 +75,54 @@ export class TempFileMergeEditorModeFactory implements IMergeEditorInputModelFac
 	) {
 	}
 
-	async createInputModel(args: MergeEditorArgs): Promise<IMergeEditorInputModel> {
-		const store = new DisposableStore();
+	async createInputModel(args: MergeEditorArgs, token: CancellationToken): Promise<IMergeEditorInputModel> {
+		return withModelReferences(token, async store => {
+			const [
+				base,
+				result,
+				input1Data,
+				input2Data,
+			] = await Promise.all([
+				acquireModelReference(args.base, this._textModelService, store),
+				acquireModelReference(args.result, this._textModelService, store),
+				toInputData(args.input1, this._textModelService, store),
+				toInputData(args.input2, this._textModelService, store),
+			]);
+			throwIfCancelled(token);
 
-		const [
-			base,
-			result,
-			input1Data,
-			input2Data,
-		] = await Promise.all([
-			this._textModelService.createModelReference(args.base),
-			this._textModelService.createModelReference(args.result),
-			toInputData(args.input1, this._textModelService, store),
-			toInputData(args.input2, this._textModelService, store),
-		]);
+			const tempResultUri = result.object.textEditorModel.uri.with({ scheme: 'merge-result' });
 
-		store.add(base);
-		store.add(result);
+			const temporaryResultModel = this._modelService.createModel(
+				'',
+				{
+					languageId: result.object.textEditorModel.getLanguageId(),
+					onDidChange: Event.None,
+				},
+				tempResultUri,
+			);
+			store.add(temporaryResultModel);
 
-		const tempResultUri = result.object.textEditorModel.uri.with({ scheme: 'merge-result' });
+			const mergeDiffComputer = this._instantiationService.createInstance(MergeDiffComputer);
+			const model = this._instantiationService.createInstance(
+				MergeEditorModel,
+				base.object.textEditorModel,
+				input1Data,
+				input2Data,
+				temporaryResultModel,
+				mergeDiffComputer,
+				{
+					resetResult: true,
+					initializationToken: token,
+				},
+				this._mergeEditorTelemetry,
+			);
+			store.add(model);
 
-		const temporaryResultModel = this._modelService.createModel(
-			'',
-			{
-				languageId: result.object.textEditorModel.getLanguageId(),
-				onDidChange: Event.None,
-			},
-			tempResultUri,
-		);
-		store.add(temporaryResultModel);
+			await model.onInitialized;
+			throwIfCancelled(token);
 
-		const mergeDiffComputer = this._instantiationService.createInstance(MergeDiffComputer);
-		const model = this._instantiationService.createInstance(
-			MergeEditorModel,
-			base.object.textEditorModel,
-			input1Data,
-			input2Data,
-			temporaryResultModel,
-			mergeDiffComputer,
-			{
-				resetResult: true,
-			},
-			this._mergeEditorTelemetry,
-		);
-		store.add(model);
-
-		await model.onInitialized;
-
-		return this._instantiationService.createInstance(TempFileMergeEditorInputModel, model, store, result.object, args.result);
+			return this._instantiationService.createInstance(TempFileMergeEditorInputModel, model, store, result.object, args.result);
+		});
 	}
 }
 
@@ -285,71 +285,68 @@ export class WorkspaceMergeEditorModeFactory implements IMergeEditorInputModelFa
 
 	private static readonly FILE_SAVED_SOURCE = SaveSourceRegistry.registerSource('merge-editor.source', localize('merge-editor.source', "Before Resolving Conflicts In Merge Editor"));
 
-	public async createInputModel(args: MergeEditorArgs): Promise<IMergeEditorInputModel> {
-		const store = new DisposableStore();
+	public async createInputModel(args: MergeEditorArgs, token: CancellationToken): Promise<IMergeEditorInputModel> {
+		return withModelReferences(token, async store => {
+			let [
+				base,
+				result,
+				input1Data,
+				input2Data,
+			] = await Promise.all([
+				acquireModelReference(args.base, this._textModelService, store).then(ref => ref.object.textEditorModel).catch(e => {
+					if (store.isDisposed) {
+						throw e;
+					}
+					onUnexpectedError(e);
+					console.error(e); // Only file not found error should be handled ideally
+					return undefined;
+				}),
+				acquireModelReference(args.result, this._textModelService, store),
+				toInputData(args.input1, this._textModelService, store),
+				toInputData(args.input2, this._textModelService, store),
+			]);
+			throwIfCancelled(token);
 
-		let [
-			base,
-			result,
-			input1Data,
-			input2Data,
-		] = await Promise.all([
-			this._textModelService.createModelReference(args.base).then<IReference<ITextModel>>(v => ({
-				object: v.object.textEditorModel,
-				dispose: () => v.dispose(),
-			})).catch(e => {
-				onUnexpectedError(e);
-				console.error(e); // Only file not found error should be handled ideally
-				return undefined;
-			}),
-			this._textModelService.createModelReference(args.result),
-			toInputData(args.input1, this._textModelService, store),
-			toInputData(args.input2, this._textModelService, store),
-		]);
+			if (base === undefined) {
+				base = store.add(this._modelService.createModel('', this._languageService.createById(result.object.getLanguageId())));
+			}
 
-		if (base === undefined) {
-			const tm = this._modelService.createModel('', this._languageService.createById(result.object.getLanguageId()));
-			base = {
-				dispose: () => { tm.dispose(); },
-				object: tm
-			};
-		}
+			const resultTextFileModel = this.textFileService.files.models.find(m =>
+				m.resource.toString() === result.object.textEditorModel.uri.toString()
+			);
+			if (!resultTextFileModel) {
+				throw new BugIndicatingError();
+			}
+			// So that "Don't save" does revert the file
+			await resultTextFileModel.save({ source: WorkspaceMergeEditorModeFactory.FILE_SAVED_SOURCE });
+			throwIfCancelled(token);
 
-		store.add(base);
-		store.add(result);
+			const lines = resultTextFileModel.textEditorModel!.getLinesContent();
+			const hasConflictMarkers = lines.some(l => l.startsWith(conflictMarkers.start));
+			const resetResult = hasConflictMarkers;
 
-		const resultTextFileModel = this.textFileService.files.models.find(m =>
-			m.resource.toString() === result.object.textEditorModel.uri.toString()
-		);
-		if (!resultTextFileModel) {
-			throw new BugIndicatingError();
-		}
-		// So that "Don't save" does revert the file
-		await resultTextFileModel.save({ source: WorkspaceMergeEditorModeFactory.FILE_SAVED_SOURCE });
+			const mergeDiffComputer = this._instantiationService.createInstance(MergeDiffComputer);
 
-		const lines = resultTextFileModel.textEditorModel!.getLinesContent();
-		const hasConflictMarkers = lines.some(l => l.startsWith(conflictMarkers.start));
-		const resetResult = hasConflictMarkers;
+			const model = this._instantiationService.createInstance(
+				MergeEditorModel,
+				base,
+				input1Data,
+				input2Data,
+				result.object.textEditorModel,
+				mergeDiffComputer,
+				{
+					resetResult,
+					initializationToken: token,
+				},
+				this._mergeEditorTelemetry,
+			);
+			store.add(model);
 
-		const mergeDiffComputer = this._instantiationService.createInstance(MergeDiffComputer);
+			await model.onInitialized;
+			throwIfCancelled(token);
 
-		const model = this._instantiationService.createInstance(
-			MergeEditorModel,
-			base.object,
-			input1Data,
-			input2Data,
-			result.object.textEditorModel,
-			mergeDiffComputer,
-			{
-				resetResult
-			},
-			this._mergeEditorTelemetry,
-		);
-		store.add(model);
-
-		await model.onInitialized;
-
-		return this._instantiationService.createInstance(WorkspaceMergeEditorInputModel, model, store, resultTextFileModel, this._mergeEditorTelemetry);
+			return this._instantiationService.createInstance(WorkspaceMergeEditorInputModel, model, store, resultTextFileModel, this._mergeEditorTelemetry);
+		});
 	}
 }
 
@@ -507,9 +504,42 @@ class WorkspaceMergeEditorInputModel extends EditorModel implements IMergeEditor
 
 /* ================= Utils ================== */
 
+function throwIfCancelled(token: CancellationToken): void {
+	if (token.isCancellationRequested) {
+		throw new CancellationError();
+	}
+}
+
+async function withModelReferences(token: CancellationToken, create: (store: DisposableStore) => Promise<IMergeEditorInputModel>): Promise<IMergeEditorInputModel> {
+	throwIfCancelled(token);
+	const store = new DisposableStore();
+	const cancellation = token.onCancellationRequested(() => store.dispose());
+	try {
+		const inputModel = await create(store);
+		if (token.isCancellationRequested) {
+			inputModel.dispose();
+			throw new CancellationError();
+		}
+		return inputModel;
+	} catch (error) {
+		store.dispose();
+		throw error;
+	} finally {
+		cancellation.dispose();
+	}
+}
+
+async function acquireModelReference(resource: URI, service: ITextModelService, store: DisposableStore): Promise<IReference<IResolvedTextEditorModel>> {
+	const reference = await service.createModelReference(resource);
+	if (store.isDisposed) {
+		reference.dispose();
+		throw new CancellationError();
+	}
+	return store.add(reference);
+}
+
 async function toInputData(data: MergeEditorInputData, textModelService: ITextModelService, store: DisposableStore): Promise<InputData> {
-	const ref = await textModelService.createModelReference(data.uri);
-	store.add(ref);
+	const ref = await acquireModelReference(data.uri, textModelService, store);
 	return {
 		textModel: ref.object.textEditorModel,
 		title: data.title,

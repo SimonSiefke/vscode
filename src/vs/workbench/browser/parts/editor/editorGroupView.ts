@@ -1395,22 +1395,18 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 		let openEditorPromise: Promise<IEditorPane | undefined>;
 		if (context.active) {
 			openEditorPromise = (async () => {
-				const { pane, cancelled, error, generation } = await this.editorPane.openEditor(editor, options, internalOptions, { newInGroup: context.isNew });
+				const { pane, changed, cancelled, error } = await this.editorPane.openEditor(editor, options, internalOptions, { newInGroup: context.isNew });
 
-				// A newer open can take over between the pane settling and this continuation.
-				if (cancelled || this.activeEditor !== editor || !this.editorPane.isCurrentOpen(editor, generation)) {
+				// Return early if the operation was cancelled by another operation
+				if (cancelled) {
 					return undefined;
 				}
 
 				// The editor pane changed, which can change who provides the title
 				this.updateTitleProvidedByEditor();
 
-				// A newer open may also start while updating the title.
-				if (!this.editorPane.isCurrentOpen(editor, generation)) {
-					return undefined;
-				}
-
-				if (pane && this.editorPane.consumeActiveInputChange()) {
+				// Editor change event
+				if (changed) {
 					this._onDidActiveEditorChange.fire({ editor, isExplicit: options?.isExplicit });
 				}
 

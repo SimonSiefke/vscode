@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { stub } from 'sinon';
+import { spy, stub } from 'sinon';
 import { Dimension, registerWindow } from '../../../../../base/browser/dom.js';
 import { cloneGlobalStylesheets, isGlobalStylesheet } from '../../../../../base/browser/domStylesheets.js';
 import { ensureCodeWindow } from '../../../../../base/browser/window.js';
@@ -147,6 +147,26 @@ suite('Merge Editor pane', () => {
 		assert.strictEqual(resolve.callCount, 0);
 		assert.ok(pane.viewModel.get() === undefined && pane.inputModel.get() === undefined);
 		pane.clearInput();
+	});
+
+	test('does not subscribe to a canceled input after clearing it', async () => {
+		const { pane, createInput } = createPane();
+		const { input, inputModel, model } = createInput('cancel-before-capabilities');
+		await model.onInitialized;
+		const subscribe = spy(input, 'onDidChangeCapabilities');
+		const resolve = stub(input, 'resolve').resolves(inputModel);
+		const cancellation = disposables.add(new CancellationTokenSource());
+
+		const opening = pane.setInput(input, undefined, {}, cancellation.token);
+		assert.ok(pane.input === input);
+		cancellation.cancel();
+		pane.clearInput();
+		await opening;
+		input.dispose();
+
+		assert.strictEqual(subscribe.callCount, 0);
+		assert.strictEqual(resolve.callCount, 0);
+		assert.strictEqual(pane.input, undefined);
 	});
 
 	test('does not repopulate a cleared pane when its input finishes with cancellation', async () => {

@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CompareResult, equals } from '../../../../../base/common/arrays.js';
-import { BugIndicatingError } from '../../../../../base/common/errors.js';
+import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { BugIndicatingError, CancellationError } from '../../../../../base/common/errors.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { autorunHandleChanges, derived, IObservable, IReader, ISettableObservable, ITransaction, keepObserved, observableValue, transaction, waitForState } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { Range } from '../../../../../editor/common/core/range.js';
@@ -37,6 +39,7 @@ export class MergeEditorModel extends EditorModel {
 	private readonly modifiedBaseRangeResultStates;
 
 	private readonly resultSnapshot;
+	private readonly initializationToken: CancellationToken;
 
 	constructor(
 		readonly base: ITextModel,
@@ -44,12 +47,15 @@ export class MergeEditorModel extends EditorModel {
 		readonly input2: InputData,
 		readonly resultTextModel: ITextModel,
 		private readonly diffComputer: IMergeDiffComputer,
-		private readonly options: { resetResult: boolean },
+		private readonly options: { resetResult: boolean; initializationToken?: CancellationToken },
 		public readonly telemetry: MergeEditorTelemetry,
 		@ILanguageService private readonly languageService: ILanguageService,
 		@IUndoRedoService private readonly undoRedoService: IUndoRedoService,
 	) {
 		super();
+		const initialization = new CancellationTokenSource(options.initializationToken);
+		this.initializationToken = initialization.token;
+		this._register(toDisposable(() => initialization.dispose(true)));
 		this.input1TextModelDiffs = this._register(new TextModelDiffs(this.base, this.input1.textModel, this.diffComputer));
 		this.input2TextModelDiffs = this._register(new TextModelDiffs(this.base, this.input2.textModel, this.diffComputer));
 		this.resultTextModelDiffs = this._register(new TextModelDiffs(this.base, this.resultTextModel, this.diffComputer));
@@ -152,9 +158,10 @@ export class MergeEditorModel extends EditorModel {
 
 		const initializePromise = this.initialize();
 
-		this.onInitialized = waitForState(this.diffComputingState, state => state === MergeEditorModelState.upToDate).then(async () => {
-			await initializePromise;
-		});
+		this.onInitialized = Promise.all([
+			initializePromise,
+			this.waitForDiffs(this.diffComputingState, [this.input1TextModelDiffs, this.input2TextModelDiffs, this.resultTextModelDiffs]),
+		]).then(() => undefined);
 
 		initializePromise.then(() => {
 			let shouldRecomputeHandledFromAccepted = true;
@@ -199,17 +206,36 @@ export class MergeEditorModel extends EditorModel {
 					}
 				)
 			);
+		}, () => {
+			// The factory observes initialization failures through onInitialized.
 		});
+	}
+
+	private async waitForDiffs(state: IObservable<MergeEditorModelState>, diffs: readonly TextModelDiffs[]): Promise<void> {
+		const readiness = derived(reader => {
+			const status = state.read(reader);
+			const error = diffs.map(diff => diff.computationError.read(reader)).find(error => error !== undefined);
+			return { status, error };
+		});
+		await waitForState(readiness, value => value.status === MergeEditorModelState.upToDate, value => value.error, this.initializationToken);
 	}
 
 	private async initialize(): Promise<void> {
 		if (this.options.resetResult) {
-			await this.reset();
+			await this.waitForDiffs(this.inputDiffComputingState, [this.input1TextModelDiffs, this.input2TextModelDiffs]);
+			if (this.initializationToken.isCancellationRequested) {
+				throw new CancellationError();
+			}
+			this.resetResult();
 		}
 	}
 
 	public async reset(): Promise<void> {
 		await waitForState(this.inputDiffComputingState, state => state === MergeEditorModelState.upToDate);
+		this.resetResult();
+	}
+
+	private resetResult(): void {
 		const states = this.modifiedBaseRangeResultStates.get();
 
 		transaction(tx => {
@@ -356,7 +382,7 @@ export class MergeEditorModel extends EditorModel {
 
 	public readonly isUpToDate;
 
-	public readonly onInitialized;
+	public readonly onInitialized: Promise<void>;
 
 	private firstRun;
 	private updateBaseRangeAcceptedState(resultDiffs: DetailedLineRangeMapping[], states: Map<ModifiedBaseRange, ModifiedBaseRangeData>, tx: ITransaction): void {
