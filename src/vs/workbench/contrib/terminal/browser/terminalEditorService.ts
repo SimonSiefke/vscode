@@ -99,23 +99,24 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 				return;
 			}
 			const input = e.editor;
+			const instance = input.terminalInstance;
+			if (!instance) {
+				return;
+			}
 			const remainingGroups = this._editorGroupsService.groups.filter(group => group.contains(input, { strictEquals: true }));
-			if (remainingGroups.length > 0 && input.group?.id === e.groupId) {
+			if (remainingGroups.length > 0 && !input.isDisposed() && input.group?.id === e.groupId) {
 				// An inactive terminal may move without an active editor change.
 				input.setGroup(remainingGroups.find(group => group.activeEditor === input) ?? remainingGroups[0]);
 			}
 			if (e.context === EditorCloseContext.MOVE || remainingGroups.length > 0) {
 				return;
 			}
-			const instance = input.terminalInstance;
-			if (instance) {
-				const instanceIndex = this.instances.findIndex(e => e === instance);
-				if (instanceIndex !== -1) {
-					const wasActiveInstance = this.instances[instanceIndex] === this.activeInstance;
-					this._removeInstance(instance);
-					if (wasActiveInstance) {
-						this.setActiveInstance(undefined);
-					}
+			const instanceIndex = this.instances.findIndex(e => e === instance);
+			if (instanceIndex !== -1) {
+				const wasActiveInstance = this.instances[instanceIndex] === this.activeInstance;
+				this._removeInstance(instance);
+				if (wasActiveInstance) {
+					this.setActiveInstance(undefined);
 				}
 			}
 		}));

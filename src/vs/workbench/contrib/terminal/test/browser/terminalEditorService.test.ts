@@ -209,6 +209,62 @@ suite('Workbench - TerminalEditorService - editor groups', () => {
 		deepStrictEqual(terminalEditorService.instances, []);
 	});
 
+	for (const outcome of ['moves to the panel', 'exits'] as const) {
+		test(`does not rebind a shared terminal when it ${outcome}`, async () => {
+			createTerminalEditorService();
+			const source = parts.activeGroup;
+			const rootContext = instantiationService.get(IContextKeyService);
+			const terminalContext = store.add(rootContext.createScoped(document.createElement('div')));
+			const onDisposed = store.add(new Emitter<ITerminalInstance>());
+			const parents: IContextKeyService[] = [];
+			let terminalDisposed = false;
+			const instance: ITerminalInstance = {
+				...createTerminalInstance(1),
+				onDisposed: onDisposed.event,
+				setParentContextKeyService: parent => {
+					parents.push(parent);
+					terminalContext.updateParent(parent);
+				},
+				dispose: () => {
+					if (!terminalDisposed) {
+						terminalDisposed = true;
+						onDisposed.fire(instance);
+						terminalContext.dispose();
+					}
+				},
+			};
+			const file = store.add(new TestFileEditorInput(URI.file('/keep-open'), TEST_EDITOR_ID));
+			await source.openEditor(file, { pinned: true });
+			const input = store.add(terminalEditorService.getInputFromResource(terminalEditorService.resolveResource(instance)));
+			await source.openEditor(input, { pinned: true, inactive: true });
+			const copy = parts.copyGroup(source, source, GroupDirection.RIGHT);
+			await source.openEditor(input, { pinned: true });
+			strictEqual(copy.contains(input, { strictEquals: true }), true);
+			strictEqual(input.group?.id, source.id);
+			strictEqual(parents.at(-1) === source.scopedContextKeyService, true);
+			const closeListeners = store.add(new DisposableStore());
+			const sourceClose = Event.toPromise(Event.map(Event.filter(source.onDidCloseEditor, event => event.editor === input),
+				() => copy.contains(input, { strictEquals: true })), closeListeners);
+			const copyClose = Event.toPromise(Event.filter(copy.onDidCloseEditor, event => event.editor === input), closeListeners);
+			const parentCount = parents.length;
+
+			const movedToPanel = outcome === 'moves to the panel';
+			if (movedToPanel) {
+				terminalEditorService.detachInstance(instance);
+			} else {
+				instance.dispose();
+			}
+			const [copyStillContainedInput] = await Promise.all([sourceClose, copyClose]);
+
+			strictEqual(copyStillContainedInput, true);
+			strictEqual(copy.activeEditor === file, true);
+			strictEqual(input.isDisposed(), true);
+			strictEqual(terminalDisposed, !movedToPanel);
+			deepStrictEqual(parents.slice(parentCount).map(parent => parent === rootContext), movedToPanel ? [true] : []);
+			deepStrictEqual(terminalEditorService.instances, []);
+		});
+	}
+
 	test('releases closed terminals and rebinds inactive surviving terminals when the auxiliary part closes', async () => {
 		instantiationService.stub(IConfigurationService, new TestConfigurationService({ 'terminal.integrated.confirmOnKill': 'editor' }));
 		const container = document.createElement('div');
