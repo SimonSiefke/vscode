@@ -4,10 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { spy } from 'sinon';
 import { Dimension } from '../../../../../base/browser/dom.js';
-import { raceTimeout, timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, raceTimeout, timeout } from '../../../../../base/common/async.js';
 import { Emitter, ValueWithChangeEvent } from '../../../../../base/common/event.js';
-import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { KeyCode } from '../../../../../base/common/keyCodes.js';
 import { KeyCodeChord, ResolvedKeybinding } from '../../../../../base/common/keybindings.js';
@@ -27,11 +28,13 @@ import { Range } from '../../../../../editor/common/core/range.js';
 import { IDocumentDiff, IDocumentDiffProviderOptions } from '../../../../../editor/common/diff/documentDiffProvider.js';
 import { linesDiffComputers } from '../../../../../editor/common/diff/linesDiffComputers.js';
 import { StructuralDiff, StructuralDiffClassification, StructuralDiffProvider, SymbolKind } from '../../../../../editor/common/languages.js';
+import { IMultiDiffEditorOptions } from '../../../../../editor/common/multiDiffEditor.js';
 import { IEditorWorkerService } from '../../../../../editor/common/services/editorWorker.js';
 import { InMemoryTextModelService } from '../../../../../editor/common/services/inMemoryTextModelService.js';
 import { ILanguageFeaturesService } from '../../../../../editor/common/services/languageFeatures.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
+import { ITextResourceConfigurationService } from '../../../../../editor/common/services/textResourceConfiguration.js';
 import { TestDiffProviderFactoryService } from '../../../../../editor/test/browser/diff/testDiffProviderFactoryService.js';
 import { TestEditorWorkerService } from '../../../../../editor/test/common/services/testEditorWorkerService.js';
 import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
@@ -42,14 +45,20 @@ import { IContextKeyService } from '../../../../../platform/contextkey/common/co
 import { ContextKeyService } from '../../../../../platform/contextkey/browser/contextKeyService.js';
 import { FileOperationError, FileOperationResult } from '../../../../../platform/files/common/files.js';
 import { IKeybindingService } from '../../../../../platform/keybinding/common/keybinding.js';
+import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { MockKeybindingService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
 import { USLayoutResolvedKeybinding } from '../../../../../platform/keybinding/common/usLayoutResolvedKeybinding.js';
 import { IEditorProgressService } from '../../../../../platform/progress/common/progress.js';
+import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { IUserInteractionService, MockUserInteractionService } from '../../../../../platform/userInteraction/browser/userInteractionService.js';
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { testWorkspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
+import { EditorPaneDescriptor, IEditorPaneRegistry } from '../../../../browser/editor.js';
+import { EditorMemento } from '../../../../browser/parts/editor/editorPane.js';
+import { EditorPanes } from '../../../../browser/parts/editor/editorPanes.js';
+import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { TestContextService } from '../../../../test/common/workbenchTestServices.js';
 import { TestEditorGroupView, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { TextFileOperationError, TextFileOperationResult } from '../../../../services/textfile/common/textfiles.js';
@@ -63,11 +72,15 @@ import { MultiDiffEditorWithFileListWidget } from '../../browser/multiDiffEditor
 import { isMultiDiffEditorFileListHost, MultiDiffEditorFileListAvailableContext, MultiDiffEditorFileListEnabledContext, observableMultiDiffEditorFileListHidden, toggleMultiDiffEditorFileList, MultiDiffEditorFileListPosition, MultiDiffEditorFileListViewMode, setMultiDiffEditorFileListViewMode } from '../../common/multiDiffEditor.js';
 import { FocusFileListAction } from '../../browser/actions.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
-import { IVisibleEditorPane } from '../../../../common/editor.js';
+import { EditorExtensions, IVisibleEditorPane } from '../../../../common/editor.js';
 
 class TestMultiDiffEditor extends MultiDiffEditor {
 	override createEditor(parent: HTMLElement): void {
 		super.createEditor(parent);
+	}
+
+	protected override getEditorMemento<T>(groups: IEditorGroupsService, configuration: ITextResourceConfigurationService, key: string, limit = 10): EditorMemento<T> {
+		return this._register(new EditorMemento<T>(this.getId(), key, Object.create(null), limit, groups, configuration));
 	}
 }
 
@@ -143,6 +156,47 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 		}, instantiationService));
 	}
 
+	function deferViewModel(input: MultiDiffEditorInput) {
+		const requested = new DeferredPromise<void>();
+		const ready = new DeferredPromise<MultiDiffEditorViewModel>();
+		input.getViewModel = () => {
+			void requested.complete();
+			return ready.p;
+		};
+		return { requested: requested.p, ready };
+	}
+
+	function revealOptions(modified: URI): IMultiDiffEditorOptions {
+		return { preserveFocus: true, viewState: { revealData: { resource: { original: undefined, modified } } } };
+	}
+
+	async function createMatchingRevealFixture(name: string) {
+		stubBinaryDocuments();
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		disposables.add(toDisposable(() => container.remove()));
+		disposables.add(Registry.as<IEditorPaneRegistry>(EditorExtensions.EditorPane).registerEditorPane(
+			EditorPaneDescriptor.create(TestMultiDiffEditor, TestMultiDiffEditor.ID, 'Multi Diff Editor'),
+			[new SyncDescriptor(MultiDiffEditorInput)],
+		));
+		const group = new TestEditorGroupView(1);
+		const panes = disposables.add(instantiationService.createInstance(EditorPanes, container, container, group));
+		panes.layout({ top: 0, left: 0, width: 1000, height: 300 });
+		const firstResource = URI.file('/repo/a.png');
+		const secondResource = URI.file('/repo/b.png');
+		const input = createInput(name, [firstResource.path, secondResource.path]);
+		const model = await input.getViewModel();
+		await waitForState(model.items, items => items.length === 2);
+
+		const open = (options?: IMultiDiffEditorOptions) => panes.openEditor(input, { ...options, preserveFocus: true, ignoreError: true }, undefined);
+		const activeResource = () => model.activeDiffItem.get()?.modifiedUri?.toString();
+		const close = () => {
+			panes.closeEditor(input);
+			input.dispose();
+		};
+		return { panes, input, model, firstResource, secondResource, open, activeResource, close };
+	}
+
 	/**
 	 * Lists `a.ts`, whose function `run` changed, and other files (by default `notes.md`), with a structural diff provider
 	 * for TypeScript files that reports the change of `run` while the documents of `a.ts` differ.
@@ -216,6 +270,228 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 				}
 			},
 		};
+	}
+
+	test('releases the view model when the pane clears its input', async () => {
+		stubBinaryDocuments();
+		const { editor } = createEditor(300);
+		const input = createInput('close', ['/repo/a.png']);
+		await editor.setInput(input, undefined, {}, CancellationToken.None);
+		assert.ok(editor.viewModel);
+
+		editor.clearInput();
+		assert.ok(editor.input === undefined, 'The closed pane should have no input');
+		assert.ok(editor.viewModel === undefined, 'The closed pane should release its view model');
+		input.dispose();
+	});
+
+	for (const interrupt of ['clear', 'cancel'] as const) {
+		test(`skips opening work when ${interrupt} happens before model resolution`, async () => {
+			stubBinaryDocuments();
+			const { editor } = createEditor(300);
+			editor.setVisible(true);
+			const previous = createInput('without-list', ['/repo/base.png'], false);
+			await editor.setInput(previous, undefined, {}, CancellationToken.None);
+			editor.clearInput();
+
+			const input = createInput('before-resolution', ['/repo/a.png']);
+			const source = disposables.add(new CancellationTokenSource());
+			const getViewModel = spy(input, 'getViewModel');
+			const setResourceOrder = spy(input, 'setResourceOrder');
+
+			try {
+				const opening = editor.setInput(input, undefined, {}, source.token);
+				if (interrupt === 'clear') {
+					editor.clearInput();
+				} else {
+					assert.ok(editor.input === input);
+					source.cancel();
+				}
+				await opening;
+
+				assert.strictEqual(getViewModel.callCount, 0);
+				assert.strictEqual(setResourceOrder.callCount, 0);
+				assert.strictEqual(editor.viewModel, undefined);
+				assert.strictEqual(instantiationService.get(IContextKeyService).getContextKeyValue(MultiDiffEditorFileListAvailableContext.key), false);
+			} finally {
+				editor.clearInput();
+			}
+		});
+	}
+
+	test('leaves the pane clear when a view model resolves after close', async () => {
+		stubBinaryDocuments();
+		const { editor } = createEditor(300);
+		const input = createInput('pending', ['/repo/a.png']);
+		const model = await input.getViewModel();
+		const { requested, ready } = deferViewModel(input);
+
+		const opening = editor.setInput(input, undefined, {}, CancellationToken.None);
+		await requested;
+		editor.clearInput();
+		await ready.complete(model);
+		await opening;
+		assert.ok(editor.input === undefined, 'The closed pane should have no input');
+		assert.ok(editor.viewModel === undefined, 'The late view model should not be applied');
+	});
+
+	test('keeps the current reveal when a canceled opening of the same input finishes late', async () => {
+		stubBinaryDocuments();
+		const { editor } = createEditor(300);
+		const firstResource = URI.file('/repo/a.png');
+		const secondResource = URI.file('/repo/b.png');
+		const input = createInput('reopened', [firstResource.path, secondResource.path]);
+		const model = await input.getViewModel();
+		await waitForState(model.items, items => items.length === 2);
+
+		const { requested, ready } = deferViewModel(input);
+		const source = disposables.add(new CancellationTokenSource());
+		const firstOpening = editor.setInput(input, revealOptions(firstResource), {}, source.token);
+		await requested;
+		source.cancel();
+		editor.clearInput();
+		input.getViewModel = async () => model;
+
+		try {
+			await editor.setInput(input, revealOptions(secondResource), {}, CancellationToken.None);
+			const activeResource = () => model.activeDiffItem.get()?.modifiedUri?.toString();
+			const currentReveal = activeResource();
+
+			await ready.complete(model);
+			await firstOpening;
+			assert.strictEqual(currentReveal, secondResource.toString());
+			assert.ok(editor.input === input);
+			assert.ok(editor.viewModel === model);
+			assert.strictEqual(activeResource(), secondResource.toString());
+		} finally {
+			editor.clearInput();
+		}
+	});
+
+	test('restores collapsed documents after an interrupted reload', async () => {
+		stubBinaryDocuments();
+		const { editor } = createEditor(300);
+		const input = createInput('interrupted-reload', ['/repo/a.png']);
+		await editor.setInput(input, undefined, {}, CancellationToken.None);
+		const model = editor.viewModel!;
+		await waitForState(model.items, items => items.length === 1);
+		const collapsedDocuments = (viewState: ReturnType<TestMultiDiffEditor['getViewState']>) =>
+			Object.values(viewState?.docStates ?? {}).map(state => state.collapsed);
+		model.collapseAll();
+		assert.deepStrictEqual(collapsedDocuments(editor.getViewState()), [true]);
+
+		editor.clearInput();
+		const reload = editor.setInput(input, undefined, {}, CancellationToken.None);
+		editor.clearInput();
+		await reload;
+
+		model.expandAll();
+		try {
+			await editor.setInput(input, undefined, {}, CancellationToken.None);
+			assert.deepStrictEqual(collapsedDocuments(editor.getViewState()), [true]);
+		} finally {
+			editor.clearInput();
+		}
+	});
+
+	test('cancels a waiting reveal when a forced reload replaces its pending open', async () => {
+		const { panes, input, model, firstResource, secondResource, open, activeResource, close } = await createMatchingRevealFixture('early-reveal-overlap');
+		const { requested, ready } = deferViewModel(input);
+
+		const first = open();
+		const matching = open(revealOptions(firstResource));
+		const forced = open({ ...revealOptions(secondResource), forceReload: true });
+		try {
+			await requested;
+			await ready.complete(model);
+
+			const [firstResult, matchingResult, forcedResult] = await Promise.all([first, matching, forced]);
+			assert.strictEqual(firstResult.cancelled, true);
+			assert.strictEqual(matchingResult.error, undefined);
+			assert.strictEqual(matchingResult.cancelled, true);
+			assert.strictEqual(forcedResult.error, undefined);
+			assert.strictEqual(forcedResult.cancelled, false);
+			assert.ok(forcedResult.pane instanceof MultiDiffEditor && forcedResult.pane.viewModel === model);
+			assert.ok(panes.activeEditorPane === forcedResult.pane);
+			assert.strictEqual(activeResource(), secondResource.toString());
+		} finally {
+			close();
+		}
+	});
+
+	test('applies a matching reveal after the pending open finishes normally', async () => {
+		const { input, model, firstResource, secondResource, open, activeResource, close } = await createMatchingRevealFixture('normal-reveal-overlap');
+		const { ready } = deferViewModel(input);
+		const first = open(revealOptions(firstResource));
+		const matching = open(revealOptions(secondResource));
+		try {
+			await ready.complete(model);
+			const [firstResult, matchingResult] = await Promise.all([first, matching]);
+			assert.strictEqual(firstResult.error, undefined);
+			assert.strictEqual(matchingResult.error, undefined);
+			assert.strictEqual(matchingResult.cancelled, false);
+			assert.strictEqual(activeResource(), secondResource.toString());
+		} finally {
+			close();
+		}
+	});
+
+	test('reports the original error to both callers when the current pending open fails', async () => {
+		const { panes, input, open, close } = await createMatchingRevealFixture('current-error-overlap');
+		const { requested, ready } = deferViewModel(input);
+		const failure = new Error('The current model failed to load');
+
+		const first = open();
+		await requested;
+		const pane = panes.activeEditorPane;
+		assert.ok(pane instanceof MultiDiffEditor);
+		const setOptions = spy(pane, 'setOptions');
+		const matching = open();
+
+		try {
+			await ready.error(failure);
+			const [firstResult, matchingResult] = await Promise.all([first, matching]);
+			assert.strictEqual(firstResult.error, failure);
+			assert.strictEqual(matchingResult.error, failure);
+			assert.strictEqual(setOptions.callCount, 0);
+		} finally {
+			close();
+		}
+	});
+
+	for (const outcome of ['resolves', 'rejects'] as const) {
+		test(`keeps the latest reveal when a superseded open ${outcome} after the reload`, async () => {
+			const { input, model, firstResource, secondResource, open, activeResource, close } = await createMatchingRevealFixture(`late-reveal-overlap-${outcome}`);
+			const { requested, ready } = deferViewModel(input);
+
+			const first = open();
+			await requested;
+			const matching = open(revealOptions(firstResource));
+			input.getViewModel = async () => model;
+			try {
+				const forced = await open({ ...revealOptions(secondResource), forceReload: true });
+				assert.strictEqual(forced.error, undefined);
+				assert.strictEqual(forced.cancelled, false);
+				assert.strictEqual(activeResource(), secondResource.toString());
+
+				if (outcome === 'resolves') {
+					await ready.complete(model);
+				} else {
+					await ready.error(new Error('The superseded model failed to load'));
+				}
+				const [firstResult, matchingResult] = await Promise.all([first, matching]);
+				assert.strictEqual(firstResult.cancelled, true);
+				assert.strictEqual(matchingResult.error, undefined);
+				assert.strictEqual(matchingResult.cancelled, true);
+				assert.strictEqual(activeResource(), secondResource.toString());
+			} finally {
+				if (!ready.isSettled) {
+					await ready.complete(model);
+					await Promise.allSettled([first, matching]);
+				}
+				close();
+			}
+		});
 	}
 
 	test('offers the file list unless the input opts out', async () => {
