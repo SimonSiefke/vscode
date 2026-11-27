@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { Dimension } from '../../../../../base/browser/dom.js';
-import { raceTimeout, timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, raceTimeout, timeout } from '../../../../../base/common/async.js';
 import { Emitter, ValueWithChangeEvent } from '../../../../../base/common/event.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
@@ -217,6 +217,39 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 			},
 		};
 	}
+
+	test('releases the view model when the pane clears its input', async () => {
+		stubBinaryDocuments();
+		const { editor } = createEditor(300);
+		const input = createInput('close', ['/repo/a.png']);
+		await editor.setInput(input, undefined, {}, CancellationToken.None);
+		assert.ok(editor.viewModel);
+
+		await editor.clearInput();
+		input.dispose();
+		assert.ok(editor.viewModel === undefined, 'The closed pane should release its view model');
+	});
+
+	test('leaves the pane clear when a view model resolves after close', async () => {
+		stubBinaryDocuments();
+		const { editor } = createEditor(300);
+		const input = createInput('pending', ['/repo/a.png']);
+		const model = await input.getViewModel();
+		const requested = new DeferredPromise<void>();
+		const result = new DeferredPromise<MultiDiffEditorViewModel>();
+		input.getViewModel = () => {
+			void requested.complete();
+			return result.p;
+		};
+
+		const opening = editor.setInput(input, undefined, {}, CancellationToken.None);
+		await requested.p;
+		await editor.clearInput();
+		await result.complete(model);
+		await opening;
+		assert.ok(editor.input === undefined, 'The closed pane should have no input');
+		assert.ok(editor.viewModel === undefined, 'The late view model should not be applied');
+	});
 
 	test('offers the file list unless the input opts out', async () => {
 		stubBinaryDocuments();

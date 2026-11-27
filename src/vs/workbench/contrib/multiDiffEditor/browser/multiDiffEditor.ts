@@ -59,7 +59,6 @@ export class MultiDiffEditor extends AbstractEditorWithViewState<IMultiDiffEdito
 
 	private _multiDiffEditorWidget: MultiDiffEditorWidget | undefined = undefined;
 	private _multiDiffEditorWithFileListWidget: MultiDiffEditorWithFileListWidget | undefined = undefined;
-	private _viewModel: MultiDiffEditorViewModel | undefined;
 	private readonly _contentOverlay = this._register(new MutableDisposable<MultiDiffEditorContentMenuOverlay>());
 	private readonly _logger: MultiDiffEditorLogger;
 	/** The order of the file list, which the diffs follow while it is used. */
@@ -71,7 +70,7 @@ export class MultiDiffEditor extends AbstractEditorWithViewState<IMultiDiffEdito
 	private readonly _paneVisible = observableValue(this, false);
 
 	public get viewModel(): MultiDiffEditorViewModel | undefined {
-		return this._viewModel;
+		return this._multiDiffEditorWidget?.viewModel.get();
 	}
 
 	override get scopedContextKeyService(): IContextKeyService | undefined {
@@ -163,6 +162,10 @@ export class MultiDiffEditor extends AbstractEditorWithViewState<IMultiDiffEdito
 
 	override async setInput(input: MultiDiffEditorInput, options: IMultiDiffEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		await super.setInput(input, options, context, token);
+		if (token.isCancellationRequested || this.input !== input) {
+			return;
+		}
+
 		this._fileListAvailable.set(input.showFileList, undefined);
 		// Order the diffs like the file list before the view model is created, unless the input has none. The input keeps
 		// the order when the list is no longer shown, so that the diffs do not move when it is shown again.
@@ -170,7 +173,11 @@ export class MultiDiffEditor extends AbstractEditorWithViewState<IMultiDiffEdito
 		this._inputResourceOrder.value = fileListResourceOrder && input.showFileList
 			? autorun(reader => input.setResourceOrder(fileListResourceOrder.read(reader)))
 			: undefined;
-		this._viewModel = await input.getViewModel();
+		const viewModel = await input.getViewModel();
+		if (token.isCancellationRequested || this.input !== input) {
+			return;
+		}
+
 		this._contentOverlay.value?.updateResource(input.resource);
 
 		// Apply the view model and any restored view state together so the widget's
@@ -183,7 +190,7 @@ export class MultiDiffEditor extends AbstractEditorWithViewState<IMultiDiffEdito
 			hasPersistedViewState: !!viewState,
 			reveal: options?.viewState?.revealData?.resource.modified ?? options?.viewState?.revealData?.resource.original,
 		});
-		this._multiDiffEditorWidget!.setViewModel(this._viewModel, { preserveFocus: options?.preserveFocus, viewState });
+		this._multiDiffEditorWidget!.setViewModel(viewModel, { preserveFocus: options?.preserveFocus, viewState });
 
 		this._applyOptions(options);
 	}
@@ -209,10 +216,10 @@ export class MultiDiffEditor extends AbstractEditorWithViewState<IMultiDiffEdito
 		});
 	}
 
-	override async clearInput(): Promise<void> {
+	override clearInput(): void {
 		this._logger.log('editor clear input');
 		this._inputResourceOrder.clear();
-		await super.clearInput();
+		super.clearInput();
 		this._contentOverlay.value?.updateResource(undefined);
 		this._multiDiffEditorWidget!.setViewModel(undefined);
 	}
