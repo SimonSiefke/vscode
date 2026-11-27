@@ -55,7 +55,6 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 		super();
 		this._terminalEditorActive = TerminalContextKeys.terminalEditorActive.bindTo(contextKeyService);
 		this._register(toDisposable(() => {
-			dispose(this._editorInputs.values());
 			for (const d of this._instanceDisposables.values()) {
 				dispose(d);
 			}
@@ -96,10 +95,19 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 		// Moving the editor to another group, or its whole group to another window, opens it there
 		// before it closes in the source group, and the terminal stays open, so ignore that.
 		this._register(this._editorService.onDidCloseEditor(e => {
-			if (e.context === EditorCloseContext.MOVE || this._editorGroupsService.groups.some(group => group.contains(e.editor, { strictEquals: true }))) {
+			if (!(e.editor instanceof TerminalEditorInput)) {
 				return;
 			}
-			const instance = e.editor instanceof TerminalEditorInput ? e.editor.terminalInstance : undefined;
+			const input = e.editor;
+			const remainingGroups = this._editorGroupsService.groups.filter(group => group.contains(input, { strictEquals: true }));
+			if (remainingGroups.length > 0 && input.group?.id === e.groupId) {
+				// An inactive terminal may move without an active editor change.
+				input.setGroup(remainingGroups.find(group => group.activeEditor === input) ?? remainingGroups[0]);
+			}
+			if (e.context === EditorCloseContext.MOVE || remainingGroups.length > 0) {
+				return;
+			}
+			const instance = input.terminalInstance;
 			if (instance) {
 				const instanceIndex = this.instances.findIndex(e => e === instance);
 				if (instanceIndex !== -1) {
