@@ -459,8 +459,14 @@ suite('EditorPane', () => {
 		assert.ok(!res);
 	});
 
-	for (const withMatchingOpen of [false, true]) {
-		test(`closing the last editor cancels a pending open${withMatchingOpen ? ' and its matching waiter' : ''}`, async () => {
+	for (const { name, close, withMatchingOpen, error, reportsFailure } of [
+		{ name: 'closing the last editor cancels a pending open', close: 'close', withMatchingOpen: false, error: new CancellationError(), reportsFailure: false },
+		{ name: 'closing the last editor cancels its matching pending open', close: 'close', withMatchingOpen: true, error: new CancellationError(), reportsFailure: false },
+		{ name: 'closing the last editor suppresses a late error for both pending opens', close: 'close', withMatchingOpen: true, error: new Error('Failed to load input'), reportsFailure: false },
+		{ name: 'disposing the input cancels both pending opens before the scheduled close', close: 'dispose', withMatchingOpen: true, error: new CancellationError(), reportsFailure: false },
+		{ name: 'reports an error from a pending open that is still current', close: undefined, withMatchingOpen: false, error: new Error('Failed to load input'), reportsFailure: true },
+	]) {
+		test(name, async () => {
 			class PendingEditorInput extends EditorInput {
 				readonly resource = URI.file('/pending.txt');
 				readonly started = new DeferredPromise<void>();
@@ -480,7 +486,7 @@ suite('EditorPane', () => {
 					try {
 						await input.finished.p;
 					} catch (error) {
-						if (!token.isCancellationRequested || !(error instanceof CancellationError)) {
+						if (!(error instanceof CancellationError) || (!token.isCancellationRequested && !input.isDisposed())) {
 							throw error;
 						}
 					}
@@ -499,22 +505,30 @@ suite('EditorPane', () => {
 			disposables.add(group.onDidOpenEditorFail(editor => failed.push(editor)));
 			disposables.add(group.onDidActiveEditorChange(({ editor }) => { if (editor) { activated.push(editor); } }));
 			const input = disposables.add(new PendingEditorInput());
-			const opening = group.openEditor(input);
+			const opening = group.openEditor(input, reportsFailure ? { ignoreError: true } : undefined);
 			await input.started.p;
 			const matchingOpen = withMatchingOpen ? group.openEditor(input) : undefined;
-			assert.strictEqual(await group.closeEditor(input), true);
-			await input.finished.error(new CancellationError());
+			if (close === 'close') {
+				assert.strictEqual(await group.closeEditor(input), true);
+			} else if (close === 'dispose') {
+				input.dispose();
+			}
+			await input.finished.error(error);
 
 			assert.deepStrictEqual({
 				opened: (await opening) !== undefined,
 				matchingOpened: (await matchingOpen) !== undefined,
-				hasActivePane: group.activeEditorPane !== undefined,
-				hasActiveEditor: group.activeEditor !== null,
 				openCalls,
 				focusCalls,
 				failures: failed.length,
 				activations: activated.length,
-			}, { opened: false, matchingOpened: false, hasActivePane: false, hasActiveEditor: false, openCalls: 1, focusCalls: 0, failures: 0, activations: 0 });
+			}, { opened: false, matchingOpened: false, openCalls: 1, focusCalls: 0, failures: reportsFailure ? 1 : 0, activations: 0 });
+			if (close === 'dispose') {
+				assert.ok(group.activeEditor === input, 'the disposal close has not run yet');
+				assert.strictEqual(await group.closeEditor(input), true);
+			}
+			assert.strictEqual(group.activeEditorPane, undefined);
+			assert.strictEqual(group.activeEditor, null);
 		});
 	}
 

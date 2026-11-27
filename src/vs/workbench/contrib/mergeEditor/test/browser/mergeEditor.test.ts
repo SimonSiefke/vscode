@@ -22,6 +22,8 @@ import { IModelService } from '../../../../../editor/common/services/model.js';
 import { TestEditorWorkerService } from '../../../../../editor/test/common/services/testEditorWorkerService.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { IUserInteractionService, MockUserInteractionService } from '../../../../../platform/userInteraction/browser/userInteractionService.js';
+import { EditorPane } from '../../../../browser/parts/editor/editorPane.js';
+import { AbstractTextEditor } from '../../../../browser/parts/editor/textEditor.js';
 import { TestEditorGroupView, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { MergeEditorInput, MergeEditorInputData } from '../../browser/mergeEditorInput.js';
 import { IMergeEditorInputModel } from '../../browser/mergeEditorInputModel.js';
@@ -47,10 +49,20 @@ suite('Merge Editor pane', () => {
 		const container = document.createElement('div');
 		document.body.appendChild(container);
 		disposables.add(toDisposable(() => container.remove()));
+		/* eslint-disable local/code-no-bracket-notation-for-identifiers -- Isolate the pane fixture's cached view state and dispose its factories. */
+		const mementos = EditorPane['EDITOR_MEMENTOS'];
+		const mementoKey = `${MergeEditor.ID}${AbstractTextEditor['VIEW_STATE_PREFERENCE_KEY']}`;
+		const previousMemento = mementos.get(mementoKey);
+		mementos.delete(mementoKey);
 		const pane = disposables.add(instantiationService.createInstance(MergeEditor, new TestEditorGroupView(1)));
+		disposables.add(toDisposable(() => {
+			mementos.delete(mementoKey);
+			if (previousMemento) {
+				mementos.set(mementoKey, previousMemento);
+			}
+		}));
 		pane.create(container);
 		pane.setVisible(true);
-		/* eslint-disable local/code-no-bracket-notation-for-identifiers -- Dispose the pane's existing factories on fixture teardown without exposing test-only APIs. */
 		const zoneComputer = pane['viewZoneComputer'];
 		disposables.add(zoneComputer['conflictActionsFactoryInput1']);
 		disposables.add(zoneComputer['conflictActionsFactoryInput2']);
@@ -62,12 +74,13 @@ suite('Merge Editor pane', () => {
 		}
 		pane.layout(new Dimension(1000, 600));
 
-		function createInput(name: string) {
+		function createInput(name: string, conflictLine = 2) {
 			const resource = (part: string) => URI.from({ scheme: 'test-merge', path: `/${name}/${part}` });
-			const base = disposables.add(modelService.createModel('line one\noriginal\nline three', null, resource('base')));
-			const input1 = disposables.add(modelService.createModel('line one\nleft\nline three', null, resource('left')));
-			const input2 = disposables.add(modelService.createModel('line one\nright\nline three', null, resource('right')));
-			const result = disposables.add(modelService.createModel('line one\noriginal\nline three', null, resource('result')));
+			const text = (conflict: string) => `${'unchanged\n'.repeat(conflictLine - 1)}${conflict}\nend of file`;
+			const base = disposables.add(modelService.createModel(text('original'), null, resource('base')));
+			const input1 = disposables.add(modelService.createModel(text('left'), null, resource('left')));
+			const input2 = disposables.add(modelService.createModel(text('right'), null, resource('right')));
+			const result = disposables.add(modelService.createModel(text('original'), null, resource('result')));
 			const data = (uri: URI) => new MergeEditorInputData(uri, undefined, undefined, undefined);
 			const input = disposables.add(instantiationService.createInstance(MergeEditorInput, base.uri, data(input1.uri), data(input2.uri), result.uri));
 			const model = disposables.add(instantiationService.createInstance(
@@ -98,9 +111,16 @@ suite('Merge Editor pane', () => {
 		assert.ok(pane.viewModel.get());
 		assert.ok(pane.inputModel.get() === first.inputModel);
 		assert.ok(conflictAction());
+		const hiddenBaseEditor = codeEditorService.listCodeEditors().find(editor => editor.getModel() === first.model.base);
+		assert.ok(hiddenBaseEditor);
+		pane.setLayout({ kind: 'mixed', showBase: false, showBaseAtTop: true });
+		assert.deepStrictEqual({
+			registered: codeEditorService.listCodeEditors().includes(hiddenBaseEditor),
+			modelAttached: hiddenBaseEditor.getModel() !== null,
+		}, { registered: false, modelAttached: false });
+		pane.setLayout({ kind: 'mixed', showBase: true, showBaseAtTop: true });
 		const baseEditor = codeEditorService.listCodeEditors().find(editor => editor.getModel() === first.model.base);
-		assert.ok(baseEditor);
-		disposables.add(baseEditor);
+		assert.ok(baseEditor && baseEditor !== hiddenBaseEditor);
 		pane.clearInput();
 		assert.deepStrictEqual({
 			viewModelCleared: pane.viewModel.get() === undefined,
@@ -109,7 +129,7 @@ suite('Merge Editor pane', () => {
 			conflictActionRemoved: conflictAction() === null,
 		}, { viewModelCleared: true, inputModelCleared: true, baseModelDetached: true, conflictActionRemoved: true });
 
-		const second = createInput('second');
+		const second = createInput('second', 3);
 		stub(second.input, 'resolve').resolves(second.inputModel);
 		await second.model.onInitialized;
 		await pane.setInput(second.input, undefined, {}, CancellationToken.None);
@@ -122,7 +142,7 @@ suite('Merge Editor pane', () => {
 		const action = conflictAction();
 		assert.ok(action);
 		action.click();
-		assert.strictEqual(resultEditor.getPosition()?.lineNumber, 2);
+		assert.strictEqual(resultEditor.getPosition()?.lineNumber, 3);
 		pane.clearInput();
 	});
 
@@ -144,5 +164,42 @@ suite('Merge Editor pane', () => {
 		await pending.error(new CancellationError());
 		await opening;
 		assert.ok(pane.viewModel.get() === undefined && pane.inputModel.get() === undefined);
+	});
+	test('a canceled input that resolves late leaves the replacement session bound', async () => {
+		const { container, pane, createInput, codeEditorService } = createPane();
+		const first = createInput('pending');
+		const second = createInput('replacement', 3);
+		await Promise.all([first.model.onInitialized, second.model.onInitialized]);
+
+		const started = new DeferredPromise<void>();
+		const pending = new DeferredPromise<IMergeEditorInputModel>();
+		stub(first.input, 'resolve').callsFake(() => {
+			void started.complete();
+			return pending.p;
+		});
+		stub(second.input, 'resolve').resolves(second.inputModel);
+
+		const cancellation = disposables.add(new CancellationTokenSource());
+		const opening = pane.setInput(first.input, undefined, {}, cancellation.token);
+		await started.p;
+		cancellation.cancel();
+		pane.clearInput();
+		await pane.setInput(second.input, undefined, {}, CancellationToken.None);
+		const replacement = pane.viewModel.get();
+		assert.ok(replacement?.model === second.model);
+		assert.ok(!first.input.isDisposed());
+
+		await pending.complete(first.inputModel);
+		await opening;
+
+		assert.ok(pane.viewModel.get() === replacement);
+		assert.ok(pane.inputModel.get() === second.inputModel);
+		const resultEditor = codeEditorService.listCodeEditors().find(editor => editor.getModel() === second.model.resultTextModel);
+		const action = container.querySelector<HTMLElement>('.result .detail .action-label');
+		assert.ok(resultEditor && action);
+		resultEditor.setPosition({ lineNumber: 1, column: 1 });
+		action.click();
+		assert.strictEqual(resultEditor.getPosition()?.lineNumber, 3);
+		pane.clearInput();
 	});
 });

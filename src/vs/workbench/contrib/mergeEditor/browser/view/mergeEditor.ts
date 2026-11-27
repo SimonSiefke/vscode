@@ -611,6 +611,7 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 						this.viewModel
 					)
 				);
+				this.baseViewDisposables.add(baseView.editor);
 				this.baseViewDisposables.add(autorun(reader => {
 					/** @description Update base view options */
 					const options = this.baseViewOptions.read(reader);
