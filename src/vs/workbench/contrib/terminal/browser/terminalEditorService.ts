@@ -213,7 +213,9 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 		const instanceIndex = this.instances.findIndex(e => e === instance);
 		if (instanceIndex !== -1) {
 			this.instances.splice(instanceIndex, 1);
-			if (instanceIndex < this._activeInstanceIndex) {
+			if (instanceIndex === this._activeInstanceIndex) {
+				this._activeInstanceIndex = -1;
+			} else if (instanceIndex < this._activeInstanceIndex) {
 				this._activeInstanceIndex--;
 			}
 		}

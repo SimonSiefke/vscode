@@ -95,12 +95,22 @@ suite('Workbench - TerminalEditorService', () => {
 		deepStrictEqual(getState(), { instances: [1], activeInstance: 1 });
 	});
 
-	test('removes a terminal editor when it is closed', () => {
+	test('clears the active terminal editor when it is closed', () => {
 		const input = createEditorTerminal(1);
+		createEditorTerminal(2);
+		activeEditor = input;
+		onDidActiveEditorChange.fire();
+		deepStrictEqual(getState(), { instances: [1, 2], activeInstance: 1 });
+		const selectionsOnListChange: (number | undefined)[] = [];
+		const activeChanges: (number | undefined)[] = [];
+		store.add(terminalEditorService.onDidChangeInstances(() => selectionsOnListChange.push(terminalEditorService.activeInstance?.instanceId)));
+		store.add(terminalEditorService.onDidChangeActiveInstance(instance => activeChanges.push(instance?.instanceId)));
 
 		onDidCloseEditor.fire({ editor: input, groupId: 1, index: 0, sticky: false, context: EditorCloseContext.UNKNOWN });
 
-		deepStrictEqual(getState(), { instances: [], activeInstance: undefined });
+		deepStrictEqual(getState(), { instances: [2], activeInstance: undefined });
+		deepStrictEqual(selectionsOnListChange, [undefined]);
+		deepStrictEqual(activeChanges, [undefined]);
 	});
 });
 
@@ -353,6 +363,49 @@ suite('Workbench - TerminalEditorService - editor groups', () => {
 			hasSubscriptions: onDisposed.hasListeners(),
 		}, { sourceContainsInput: false, targetContainsInput: false, instanceIsManaged: false, hasSubscriptions: false });
 		throws(() => terminalEditorService.getInputFromResource(instance.resource), /Could not get input from resource/);
+	});
+
+	test('keeps the editor terminal selection empty after moving the selected terminal to the panel', async () => {
+		createTerminalEditorService();
+		const source = parts.activeGroup;
+		const background = parts.addGroup(source, GroupDirection.RIGHT);
+		const file = store.add(new TestFileEditorInput(URI.file('/keep-active'), TEST_EDITOR_ID));
+		const createInput = (instance: ITerminalInstance) => store.add(terminalEditorService.getInputFromResource(terminalEditorService.resolveResource(instance)));
+		const getSelectedInstanceId = () => terminalEditorService.activeInstance?.instanceId;
+		const first = createInput(createTerminalInstance(1));
+		const movedInstance = createTerminalInstance(2);
+		const moved = createInput(movedInstance);
+		await source.openEditor(first, { pinned: true });
+		await source.openEditor(file, { pinned: true });
+		await source.openEditor(moved, { pinned: true });
+		strictEqual(source.activeEditor === moved, true);
+		strictEqual(terminalEditorService.activeInstance === movedInstance, true);
+
+		const closeListeners = store.add(new DisposableStore());
+		const movedClose = Event.toPromise(Event.filter(source.onDidCloseEditor, event => event.editor === moved), closeListeners);
+		terminalEditorService.detachInstance(movedInstance);
+		await movedClose;
+		strictEqual(source.activeEditor === file, true);
+		strictEqual(moved.isDisposed(), true);
+		deepStrictEqual(terminalEditorService.instances.map(instance => instance.instanceId), [1]);
+		strictEqual(getSelectedInstanceId(), undefined);
+
+		await source.closeEditor(first);
+		strictEqual(terminalEditorService.instances.length, 0);
+		strictEqual(getSelectedInstanceId(), undefined);
+		const selectionsOnListChange: (number | undefined)[] = [];
+		const activeChanges: (number | undefined)[] = [];
+		store.add(terminalEditorService.onDidChangeInstances(() => selectionsOnListChange.push(getSelectedInstanceId())));
+		store.add(terminalEditorService.onDidChangeActiveInstance(instance => activeChanges.push(instance?.instanceId)));
+		const newInput = createInput(createTerminalInstance(3));
+		await background.openEditor(newInput, { pinned: true, preserveFocus: true });
+
+		strictEqual(parts.activeGroup === source && source.activeEditor === file, true);
+		strictEqual(background.activeEditor === newInput, true);
+		deepStrictEqual(terminalEditorService.instances.map(instance => instance.instanceId), [3]);
+		strictEqual(getSelectedInstanceId(), undefined);
+		deepStrictEqual(selectionsOnListChange, [undefined]);
+		deepStrictEqual(activeChanges, []);
 	});
 
 	for (const outcome of ['moves to the panel', 'exits'] as const) {
