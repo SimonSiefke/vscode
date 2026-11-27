@@ -262,7 +262,7 @@ export class MultiDiffEditor extends AbstractEditorWithViewState<IMultiDiffEdito
 	}
 
 	protected override computeEditorViewState(resource: URI): IMultiDiffEditorViewState | undefined {
-		return this._multiDiffEditorWidget!.getViewState();
+		return this.viewModel ? this._multiDiffEditorWidget!.getViewState() : undefined;
 	}
 
 	protected override tracksEditorViewState(input: EditorInput): boolean {
