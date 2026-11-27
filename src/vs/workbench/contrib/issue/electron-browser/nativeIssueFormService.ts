@@ -34,7 +34,7 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { ResultKind } from '../../../../platform/keybinding/common/keybindingResolver.js';
 import { applyZoom, zoomIn, zoomOut } from '../../../../platform/window/electron-browser/window.js';
 import { IIssueFormService, IssueReporterData, IssueReporterLayout, issueReporterLayoutSettingId } from '../common/issue.js';
-import { IssueReporter } from './issueReporterService.js';
+import type { IssueReporter } from './issueReporterService.js';
 import { IssueReporterController } from './issueReporterController.js';
 import { localize } from '../../../../nls.js';
 import { logSettingExperimentTrigger } from '../../../../platform/telemetry/common/experimentTrigger.js';
@@ -282,8 +282,10 @@ export class NativeIssueFormService extends IssueFormService implements IIssueFo
 			}));
 			window.controller = controller;
 			window.add(auxiliaryWindow.onDidLayout(dimension => controller.layout(dimension)));
-			controller.setInput(input);
-			auxiliaryWindow.layout();
+			await controller.setInput(input);
+			if (!window.isDisposed) {
+				auxiliaryWindow.layout();
+			}
 		} catch (error) {
 			if (auxiliaryWindow && reporterWindow) {
 				this.reporterWindows.deleteAndDispose(auxiliaryWindow.window.vscodeWindowId);
@@ -450,6 +452,7 @@ export class NativeIssueFormService extends IssueFormService implements IIssueFo
 	 * window on the active window via `getActiveWindowPosition()`.
 	 */
 	override async openAuxIssueReporterLegacy(data: IssueReporterData): Promise<void> {
+		const { IssueReporter } = await import('./issueReporterService.js');
 		const bounds = await this.nativeHostService.getActiveWindowPosition();
 		await this.openAuxIssueReporter(data, bounds);
 

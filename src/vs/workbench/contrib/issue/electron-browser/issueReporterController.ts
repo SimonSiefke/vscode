@@ -24,7 +24,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { FileAccess, Schemas } from '../../../../base/common/network.js';
 import { IssueReporterEditorInput } from '../browser/issueReporterEditorInput.js';
-import { IIssueReporterAttachmentImport, IssueReporterOverlay } from '../browser/issueReporterOverlay.js';
+import type { IIssueReporterAttachmentImport, IssueReporterOverlay } from '../browser/issueReporterOverlay.js';
 import { getIssueReporterMediaFormat, readIssueReporterMediaFile } from '../browser/issueReporterMedia.js';
 import { IRecordingService, IRecordingData, RecordingState, ScreenCapturePermissionStatus, shouldShowScreenCapturePermissionSettings } from '../browser/recordingService.js';
 import { IIssueFormService } from '../common/issue.js';
@@ -73,6 +73,7 @@ export class IssueReporterController extends Disposable {
 
 	private wizard: IssueReporterOverlay | undefined;
 	private wizardInput: IssueReporterEditorInput | undefined;
+	private inputGeneration = 0;
 	private readonly inputDisposables = this._register(new DisposableStore());
 	private readonly inputStateCallbacks = this._register(new MutableDisposable());
 	private hasRequestedScreenCapturePermission = false;
@@ -135,8 +136,8 @@ export class IssueReporterController extends Disposable {
 			|| this.updateService.state.type === StateType.Downloaded;
 	}
 
-	setInput(input: IssueReporterEditorInput): void {
-		if (input.isDisposed() || this._store.isDisposed) {
+	async setInput(input: IssueReporterEditorInput, token = CancellationToken.None): Promise<void> {
+		if (token.isCancellationRequested || input.isDisposed() || this._store.isDisposed) {
 			return;
 		}
 
@@ -167,6 +168,16 @@ export class IssueReporterController extends Disposable {
 		if (!data) {
 			const msg = append(this.container, $('p'));
 			msg.textContent = localize('noData', "No issue reporter data available.");
+			return;
+		}
+
+		const generation = this.inputGeneration;
+		const { IssueReporterOverlay } = await import('../browser/issueReporterOverlay.js');
+		if (this._store.isDisposed || generation !== this.inputGeneration) {
+			return;
+		}
+		if (token.isCancellationRequested || input.isDisposed()) {
+			this.destroyWizard();
 			return;
 		}
 
@@ -585,6 +596,7 @@ export class IssueReporterController extends Disposable {
 	}
 
 	private destroyWizard(): void {
+		this.inputGeneration++;
 		this.recordingGeneration++;
 		this.pendingRecordingStart = undefined;
 		this.pendingRecordingStop = undefined;

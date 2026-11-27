@@ -28,7 +28,6 @@ import { IWorkbenchGitHubService } from '../../../services/github/common/githubS
 import { IIssueFormService, IIssueSubmissionHost, ISimilarIssue, IssueReporterAttachment, IssueReporterData, IssueSource } from '../common/issue.js';
 import { getIssueReporterUrlWithTitle, resolveIssueReporterTarget } from '../common/issueReporterTarget.js';
 import BaseHtml from './issueReporterPage.js';
-import { IssueWebReporter } from './issueReporterService.js';
 import { IGitHubUploadService } from './githubUploadService.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
@@ -489,6 +488,7 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 
 	/** Opens the classic non-wizard reporter in an auxiliary window. */
 	async openAuxIssueReporterLegacy(data: IssueReporterData): Promise<void> {
+		const { IssueWebReporter } = await import('./issueReporterService.js');
 		const disposables = await this.openAuxIssueReporter(data);
 
 		if (this.issueReporterWindow) {

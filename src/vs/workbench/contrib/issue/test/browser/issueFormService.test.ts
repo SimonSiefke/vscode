@@ -36,6 +36,7 @@ import { IEditorService } from '../../../../services/editor/common/editorService
 import { IHostService } from '../../../../services/host/browser/host.js';
 import { IWorkbenchGitHubService } from '../../../../services/github/common/githubService.js';
 import { IGitHubUploadService } from '../../browser/githubUploadService.js';
+import { IRectangle } from '../../../../../platform/window/common/window.js';
 import { IssueFormService } from '../../browser/issueFormService.js';
 import { IssueWebReporter } from '../../browser/issueReporterService.js';
 import { IIssueReporterAttachmentUpload, IIssueReporterFileAttachment, IIssueReporterScreenshot, IIssueSubmissionHost, IssueReporterAttachment, IssueReporterData, IssueSource } from '../../common/issue.js';
@@ -919,32 +920,45 @@ suite('IssueFormService', () => {
 		});
 	});
 
-	test('disposes the legacy web reporter when its auxiliary window closes', async () => {
-		const instantiationService = createInstantiationService();
-		const iframe = document.createElement('iframe');
-		document.body.appendChild(iframe);
-		store.add(toDisposable(() => iframe.remove()));
-		store.add(registerTestIframe(iframe));
-		const targetWindow = iframe.contentWindow as CodeWindow;
-		const events: string[] = [];
-		instantiationService.stub(IAuxiliaryWindowService, {
-			open: async () => new class extends mock<IAuxiliaryWindow>() {
-				override readonly window = targetWindow;
-				override readonly container = document.createElement('div');
-				override readonly whenStylesHaveLoaded = Promise.resolve();
-				override dispose(): void { events.push('window disposed'); }
-			}()
+	for (const closeDuringInitialization of [false, true]) {
+		test(closeDuringInitialization ? 'renders the legacy web reporter before a queued auxiliary window close' : 'disposes the legacy web reporter when its auxiliary window closes', async () => {
+			const instantiationService = createInstantiationService();
+			const iframe = document.createElement('iframe');
+			document.body.appendChild(iframe);
+			store.add(toDisposable(() => iframe.remove()));
+			store.add(registerTestIframe(iframe));
+			const targetWindow = iframe.contentWindow as CodeWindow;
+			const events: string[] = [];
+			instantiationService.stub(IAuxiliaryWindowService, {
+				open: async () => new class extends mock<IAuxiliaryWindow>() {
+					override readonly window = targetWindow;
+					override readonly container = document.createElement('div');
+					override readonly whenStylesHaveLoaded = Promise.resolve();
+					override dispose(): void { events.push('window disposed'); }
+				}()
+			});
+			instantiationService.stubInstance(IssueWebReporter, {
+				render: () => { events.push('reporter rendered'); },
+				dispose: () => { events.push('reporter disposed'); }
+			});
+			class TestIssueFormService extends IssueFormService {
+				override async openAuxIssueReporter(data: IssueReporterData, bounds?: IRectangle) {
+					const disposables = await super.openAuxIssueReporter(data, bounds);
+					if (closeDuringInitialization) {
+						queueMicrotask(() => queueMicrotask(() => targetWindow.dispatchEvent(new Event('beforeunload'))));
+					}
+					return disposables;
+				}
+			}
+			const service = store.add(instantiationService.createInstance(TestIssueFormService));
+			await service.openAuxIssueReporterLegacy({
+				styles: {}, zoomLevel: 0, enabledExtensions: [], restrictedMode: false,
+				isInstallationPure: true, isSessionsWindow: false, githubAccessToken: '',
+			});
+			if (!closeDuringInitialization) {
+				targetWindow.dispatchEvent(new Event('beforeunload'));
+			}
+			assert.deepStrictEqual(events, ['reporter rendered', 'window disposed', 'reporter disposed']);
 		});
-		instantiationService.stubInstance(IssueWebReporter, {
-			render: () => { events.push('reporter rendered'); },
-			dispose: () => { events.push('reporter disposed'); }
-		});
-		const service = store.add(instantiationService.createInstance(IssueFormService));
-		await service.openAuxIssueReporterLegacy({
-			styles: {}, zoomLevel: 0, enabledExtensions: [], restrictedMode: false,
-			isInstallationPure: true, isSessionsWindow: false, githubAccessToken: '',
-		});
-		targetWindow.dispatchEvent(new Event('beforeunload'));
-		assert.deepStrictEqual(events, ['reporter rendered', 'window disposed', 'reporter disposed']);
-	});
+	}
 });

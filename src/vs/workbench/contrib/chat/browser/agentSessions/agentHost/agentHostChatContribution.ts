@@ -5,6 +5,7 @@
 
 import { PolicyUnavailableAgentHostContentProvider } from './agentHostPolicyUnavailableSession.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
+import type { CancellationToken } from '../../../../../../base/common/cancellation.js';
 import { CancellationError, isCancellationError } from '../../../../../../base/common/errors.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../../../base/common/lifecycle.js';
@@ -12,6 +13,7 @@ import { equals } from '../../../../../../base/common/objects.js';
 import { autorun, constObservable, IObservable, observableFromEvent, runOnChange } from '../../../../../../base/common/observable.js';
 import { mark } from '../../../../../../base/common/performance.js';
 import { ThemeIcon } from '../../../../../../base/common/themables.js';
+import type { URI } from '../../../../../../base/common/uri.js';
 import { localize } from '../../../../../../nls.js';
 import { isWeb } from '../../../../../../base/common/platform.js';
 import { affectsAgentHostProviderPreference, COPILOT_CLI_AGENT_PROVIDER_ID, getPolicyUnavailableLocalAgentHostProviders, IAgentHostService, protectedResourcesRequireGitHubCopilotSignIn, shouldSurfaceLocalAgentHostProvider, type AgentProvider } from '../../../../../../platform/agentHost/common/agentService.js';
@@ -34,7 +36,7 @@ import { WorkspaceHasVirtualContentContext } from '../../../../../common/context
 import { IAgentHostFileSystemService } from '../../../../../services/agentHost/common/agentHostFileSystemService.js';
 import { AuthenticationSession, IAuthenticationService } from '../../../../../services/authentication/common/authentication.js';
 import { IWorkbenchEnvironmentService } from '../../../../../services/environment/common/environmentService.js';
-import { ChatSessionsExtensions, IAsyncChatSessionActivationRegistry, IChatSessionsService, isLocalAgentHostTarget } from '../../../common/chatSessionsService.js';
+import { ChatSessionsExtensions, IAsyncChatSessionActivationRegistry, IChatSessionsService, isLocalAgentHostTarget, type IChatInputCompletionsParams, type IChatInputCompletionsResult, type IChatSession, type IChatSessionContentProvider } from '../../../common/chatSessionsService.js';
 import { ChatAgentLocation } from '../../../common/constants.js';
 import { ICustomizationHarnessService } from '../../../common/customizationHarnessService.js';
 import { ILanguageModelsService } from '../../../common/languageModels.js';
@@ -49,11 +51,12 @@ import { isComputerUseSetupPlatform } from './computerUseSetup.js';
 import { AgentHostDownloadProgress } from './agentHostDownloadProgress.js';
 import { autoAuthenticateMcpServer, authenticateAgentProtectedResourcesWithToken, authenticateProtectedResources, authenticateProtectedResourcesWithToken, AgentHostAuthenticationRecovery, AgentHostAuthTokenCache, resolveAuthenticationInteractively, revokeAuthenticationForRemovedSessions } from './agentHostAuth.js';
 import { AgentHostLanguageModelProvider, agentHostProviderSupportsAutoModel } from './agentHostLanguageModelProvider.js';
-import { AgentHostSessionHandler } from './agentHostSessionHandler.js';
+import type { AgentHostSessionHandler, IAgentHostSessionHandlerConfig } from './agentHostSessionHandler.js';
 import { AgentHostPromptCacheNotification } from './agentHostPromptCacheNotification.js';
 import { IAgentHostActiveClientService } from './agentHostActiveClientService.js';
 import { IAgentHostCustomizationService } from './agentHostCustomizationService.js';
 import { IAgentHostProtectedResourcesService } from './agentHostProtectedResourcesService.js';
+import { rewriteAgentHostLinkTarget } from './stateToProgressAdapter.js';
 import { AICustomizationManagementSection } from '../../../common/aiCustomizationWorkspaceService.js';
 import { readAgentModelCatalogStatus } from '../../../../../../platform/agentHost/common/agentModelCatalogStatus.js';
 import { observableConfigValue, observableContextKey } from '../../../../../../platform/observable/common/platformObservableUtils.js';
@@ -137,7 +140,60 @@ function getLocalAgentHostProviderForSessionType(sessionType: string): AgentProv
 	return sessionType.slice(LOCAL_AGENT_HOST_SESSION_TYPE_PREFIX.length) || undefined;
 }
 
-export { AgentHostSessionHandler } from './agentHostSessionHandler.js';
+class LazyAgentHostSessionHandler extends Disposable implements IChatSessionContentProvider {
+
+	private _handler: Promise<AgentHostSessionHandler> | undefined;
+
+	constructor(
+		private readonly _config: IAgentHostSessionHandlerConfig,
+		private readonly _instantiationService: IInstantiationService,
+	) {
+		super();
+	}
+
+	private _getHandler(): Promise<AgentHostSessionHandler> {
+		this._throwIfDisposed();
+		if (!this._handler) {
+			this._handler = import('./agentHostSessionHandler.js').then(({ AgentHostSessionHandler }) => {
+				this._throwIfDisposed();
+				const handler = this._instantiationService.createInstance(AgentHostSessionHandler, this._config);
+				if (this._store.isDisposed) {
+					handler.dispose();
+					throw new CancellationError();
+				}
+				return this._register(handler);
+			});
+		}
+		return this._handler;
+	}
+
+	private _throwIfDisposed(): void {
+		if (this._store.isDisposed) {
+			throw new CancellationError();
+		}
+	}
+
+	async provideChatSessionContent(sessionResource: URI, token: CancellationToken): Promise<IChatSession> {
+		const handler = await this._getHandler();
+		this._throwIfDisposed();
+		return handler.provideChatSessionContent(sessionResource, token);
+	}
+
+	async provideChatInputCompletions(sessionResource: URI, params: IChatInputCompletionsParams, token: CancellationToken): Promise<IChatInputCompletionsResult | undefined> {
+		const handler = await this._getHandler();
+		this._throwIfDisposed();
+		return handler.provideChatInputCompletions(sessionResource, params, token);
+	}
+
+	async provideChatInputCompletionTriggerCharacters(): Promise<readonly string[]> {
+		this._throwIfDisposed();
+		return this._config.connection.getCompletionTriggerCharacters();
+	}
+
+	resolveChatResponseUri(_sessionResource: URI, href: string, _kind: 'link' | 'image'): string {
+		return rewriteAgentHostLinkTarget(href, this._config.connectionAuthority, this._config.connection.resourceUris);
+	}
+}
 
 /**
  * Discovers available agents from the agent host process and dynamically
@@ -472,7 +528,7 @@ export class AgentHostContribution extends Disposable implements IWorkbenchContr
 		}));
 
 		// Session handler
-		const sessionHandler = store.add(this._instantiationService.createInstance(AgentHostSessionHandler, {
+		const sessionHandler = store.add(new LazyAgentHostSessionHandler({
 			provider: agent.provider,
 			agentId,
 			sessionType,
@@ -487,7 +543,7 @@ export class AgentHostContribution extends Disposable implements IWorkbenchContr
 			onSessionMaterialized: resource => this._chatSessionsService.notifySessionMaterialized?.(resource),
 			resolveAuthentication: (resources) => this._resolveAuthenticationInteractively(resources),
 			promptCacheNotification: this._promptCacheNotification,
-		}));
+		}, this._instantiationService));
 		store.add(this._chatSessionsService.registerChatSessionContentProvider(sessionType, sessionHandler));
 
 		// Language model provider.
