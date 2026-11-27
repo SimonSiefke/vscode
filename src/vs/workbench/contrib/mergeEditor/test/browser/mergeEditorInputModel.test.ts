@@ -217,6 +217,51 @@ suite('Merge Editor input model factories', () => {
 		});
 	}
 
+	for (const useWorkingCopy of [false, true]) {
+		test(`releases the private model while the ${useWorkingCopy ? 'temporary' : 'workspace'} merge worker is held`, async () => {
+			const started = new DeferredPromise<URI>();
+			const held = new DeferredPromise<void>();
+			const removed = new DeferredPromise<void>();
+			const { input, result, modelService, references } = createInput({
+				useWorkingCopy,
+				resultContent: conflictText,
+				async beforeDiff(modified) {
+					if (modified.scheme === Schemas.inMemory) {
+						void started.complete(modified);
+						await held.p;
+					}
+				},
+			});
+			const opening = assert.rejects(input.resolve(), CancellationError);
+			const matching = assert.rejects(input.resolve(), CancellationError);
+			const resource = await started.p;
+			const registration = disposables.add(modelService.onModelRemoved(model => {
+				if (model.uri.toString() === resource.toString()) {
+					void removed.complete();
+				}
+			}));
+
+			try {
+				assert.ok(modelService.getModel(resource), 'the private model is registered before close');
+				input.dispose();
+				await Promise.all([opening, matching]);
+
+				assert.ok(!held.isSettled, 'the private worker is still held');
+				assert.ok(modelService.getModel(resource) === null, 'the private model is removed before the worker settles');
+				assert.ok(removed.isSettled, 'the model service reported removal');
+				assert.strictEqual(result.getValue(), conflictText);
+				assert.strictEqual(result.canUndo(), false);
+				assert.strictEqual(references.length, 4);
+				assert.ok(references.every(ref => ref.disposals === 1));
+			} finally {
+				input.dispose();
+				await held.error(new Error('Worker failed after the merge closed'));
+				await removed.p;
+				registration.dispose();
+			}
+		});
+	}
+
 	test('closing during the workspace save cancels the open while the save is held', async () => {
 		const started = new DeferredPromise<void>();
 		const heldSave = new DeferredPromise<void>();
