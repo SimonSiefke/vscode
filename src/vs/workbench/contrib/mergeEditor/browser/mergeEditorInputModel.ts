@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { assertFn } from '../../../../base/common/assert.js';
+import { createCancelablePromise } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { BugIndicatingError, CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
@@ -374,10 +375,14 @@ class WorkspaceMergeEditorInputModel extends EditorModel implements IMergeEditor
 	}
 
 	public override dispose(): void {
-		this.disposableStore.dispose();
-		super.dispose();
-
-		this.reportClose(false);
+		try {
+			if (!this.model.isDisposed()) {
+				this.reportClose(false);
+			}
+		} finally {
+			this.disposableStore.dispose();
+			super.dispose();
+		}
 	}
 
 	private reportClose(accepted: boolean): void {
@@ -513,14 +518,17 @@ function throwIfCancelled(token: CancellationToken): void {
 async function withModelReferences(token: CancellationToken, create: (store: DisposableStore) => Promise<IMergeEditorInputModel>): Promise<IMergeEditorInputModel> {
 	throwIfCancelled(token);
 	const store = new DisposableStore();
-	const cancellation = token.onCancellationRequested(() => store.dispose());
+	const loading = createCancelablePromise(async () => create(store));
+	const cancel = () => {
+		loading.cancel();
+		store.dispose();
+	};
+	const cancellation = token.onCancellationRequested(cancel);
 	try {
-		const inputModel = await create(store);
 		if (token.isCancellationRequested) {
-			inputModel.dispose();
-			throw new CancellationError();
+			cancel();
 		}
-		return inputModel;
+		return await loading;
 	} catch (error) {
 		store.dispose();
 		throw error;

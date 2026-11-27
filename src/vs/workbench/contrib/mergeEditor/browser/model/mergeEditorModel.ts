@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CompareResult, equals } from '../../../../../base/common/arrays.js';
+import { raceCancellationError } from '../../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { BugIndicatingError, CancellationError } from '../../../../../base/common/errors.js';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
@@ -12,6 +13,7 @@ import { URI } from '../../../../../base/common/uri.js';
 import { Range } from '../../../../../editor/common/core/range.js';
 import { ILanguageService } from '../../../../../editor/common/languages/language.js';
 import { ITextModel } from '../../../../../editor/common/model.js';
+import { IModelService } from '../../../../../editor/common/services/model.js';
 import { localize } from '../../../../../nls.js';
 import { IResourceUndoRedoElement, IUndoRedoService, UndoRedoElementType, UndoRedoGroup } from '../../../../../platform/undoRedo/common/undoRedo.js';
 import { EditorModel } from '../../../../common/editor/editorModel.js';
@@ -51,6 +53,7 @@ export class MergeEditorModel extends EditorModel {
 		public readonly telemetry: MergeEditorTelemetry,
 		@ILanguageService private readonly languageService: ILanguageService,
 		@IUndoRedoService private readonly undoRedoService: IUndoRedoService,
+		@IModelService private readonly modelService: IModelService,
 	) {
 		super();
 		const initialization = new CancellationTokenSource(options.initializationToken);
@@ -156,14 +159,14 @@ export class MergeEditorModel extends EditorModel {
 		this._register(keepObserved(this.input1ResultMapping));
 		this._register(keepObserved(this.input2ResultMapping));
 
-		const initializePromise = this.initialize();
-
-		this.onInitialized = Promise.all([
-			initializePromise,
-			this.waitForDiffs(this.diffComputingState, [this.input1TextModelDiffs, this.input2TextModelDiffs, this.resultTextModelDiffs]),
-		]).then(() => undefined);
-
-		initializePromise.then(() => {
+		const diffs = [this.input1TextModelDiffs, this.input2TextModelDiffs, this.resultTextModelDiffs];
+		this.onInitialized = this.initialize(diffs).then(() => {
+			if (this.initializationToken.isCancellationRequested) {
+				throw new CancellationError();
+			}
+			for (const diff of diffs) {
+				diff.reportFutureErrors();
+			}
 			let shouldRecomputeHandledFromAccepted = true;
 			this._register(
 				autorunHandleChanges(
@@ -206,8 +209,6 @@ export class MergeEditorModel extends EditorModel {
 					}
 				)
 			);
-		}, () => {
-			// The factory observes initialization failures through onInitialized.
 		});
 	}
 
@@ -220,56 +221,75 @@ export class MergeEditorModel extends EditorModel {
 		await waitForState(readiness, value => value.status === MergeEditorModelState.upToDate, value => value.error, this.initializationToken);
 	}
 
-	private async initialize(): Promise<void> {
+	private async initialize(diffs: readonly TextModelDiffs[]): Promise<void> {
 		if (this.options.resetResult) {
+			const resultVersion = this.resultTextModel.getVersionId();
 			await this.waitForDiffs(this.inputDiffComputingState, [this.input1TextModelDiffs, this.input2TextModelDiffs]);
-			if (this.initializationToken.isCancellationRequested) {
+			if (this.initializationToken.isCancellationRequested || this.resultTextModel.isDisposed()
+				|| this.resultTextModel.getVersionId() !== resultVersion || this.inputDiffComputingState.get() !== MergeEditorModelState.upToDate) {
 				throw new CancellationError();
 			}
-			this.resetResult();
+
+			// Verify the reset in a private model before changing the shared result
+			// or its undo history. A failed attempt can then retry from the same text.
+			const inputs = [this.base, this.input1.textModel, this.input2.textModel];
+			const inputVersions = inputs.map(input => input.getVersionId());
+			transaction(tx => this.resetConflictStates(tx));
+			const text = this.computeAutoMergedResult();
+			const prepared = this.modelService.createModel(text, this.languageService.createById(this.resultTextModel.getLanguageId()));
+			try {
+				const computing = derived(reader => this.diffComputer.computeDiff(this.base, prepared, reader)).get();
+				const { diffs: preparedDiffs } = await raceCancellationError(computing, this.initializationToken);
+				if (!preparedDiffs || this.initializationToken.isCancellationRequested
+					|| this.resultTextModel.isDisposed() || this.resultTextModel.getVersionId() !== resultVersion
+					|| inputs.some((input, index) => input.isDisposed() || input.getVersionId() !== inputVersions[index])) {
+					throw new CancellationError();
+				}
+				transaction(tx => this.resultTextModelDiffs.applyPreparedReset(text, preparedDiffs, tx));
+			} finally {
+				prepared.dispose();
+			}
 		}
+		await this.waitForDiffs(this.diffComputingState, diffs);
 	}
 
 	public async reset(): Promise<void> {
 		await waitForState(this.inputDiffComputingState, state => state === MergeEditorModelState.upToDate);
-		this.resetResult();
-	}
-
-	private resetResult(): void {
-		const states = this.modifiedBaseRangeResultStates.get();
-
 		transaction(tx => {
-			/** @description Set initial state */
-
-			for (const [range, state] of states) {
-				let newState: ModifiedBaseRangeState;
-				let handled = false;
-				if (range.input1Diffs.length === 0) {
-					newState = ModifiedBaseRangeState.base.withInputValue(2, true);
-					handled = true;
-				} else if (range.input2Diffs.length === 0) {
-					newState = ModifiedBaseRangeState.base.withInputValue(1, true);
-					handled = true;
-				} else if (range.isEqualChange) {
-					newState = ModifiedBaseRangeState.base.withInputValue(1, true);
-					handled = true;
-				} else {
-					newState = ModifiedBaseRangeState.base;
-					handled = false;
-				}
-
-				state.accepted.set(newState, tx);
-				state.computedFromDiffing = false;
-				state.previousNonDiffingState = undefined;
-				state.handledInput1.set(handled, tx);
-				state.handledInput2.set(handled, tx);
-			}
-
+			/** @description Reset result */
+			this.resetConflictStates(tx);
 			this.resultTextModel.pushEditOperations(null, [{
 				range: new Range(1, 1, Number.MAX_SAFE_INTEGER, 1),
 				text: this.computeAutoMergedResult()
 			}], () => null);
 		});
+	}
+
+	private resetConflictStates(tx: ITransaction): void {
+		const states = this.modifiedBaseRangeResultStates.get();
+		for (const [range, state] of states) {
+			let newState: ModifiedBaseRangeState;
+			let handled = false;
+			if (range.input1Diffs.length === 0) {
+				newState = ModifiedBaseRangeState.base.withInputValue(2, true);
+				handled = true;
+			} else if (range.input2Diffs.length === 0) {
+				newState = ModifiedBaseRangeState.base.withInputValue(1, true);
+				handled = true;
+			} else if (range.isEqualChange) {
+				newState = ModifiedBaseRangeState.base.withInputValue(1, true);
+				handled = true;
+			} else {
+				newState = ModifiedBaseRangeState.base;
+				handled = false;
+			}
+
+			state.accepted.set(newState, tx);
+			state.computedFromDiffing = false;
+			state.previousNonDiffingState = undefined;
+			state.handledInput1.set(handled, tx);
+			state.handledInput2.set(handled, tx);
+		}
 	}
 
 	private computeAutoMergedResult(): string {

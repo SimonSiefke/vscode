@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { compareBy, numberComparator } from '../../../../../base/common/arrays.js';
-import { BugIndicatingError } from '../../../../../base/common/errors.js';
+import { BugIndicatingError, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ITextModel } from '../../../../../editor/common/model.js';
 import { DetailedLineRangeMapping } from './mapping.js';
@@ -24,6 +24,7 @@ export class TextModelDiffs extends Disposable {
 
 	private readonly _barrier = new ReentrancyBarrier();
 	private _isDisposed = false;
+	private _reportErrors = false;
 
 	public get isApplyingChange() {
 		return this._barrier.isOccupied;
@@ -118,9 +119,30 @@ export class TextModelDiffs extends Disposable {
 			});
 		}, error => {
 			if (!this._isDisposed && currentRecomputeIdx === this._recomputeCount) {
-				this._computationError.set(error instanceof Error ? error : new Error(String(error)), undefined);
+				if (this._reportErrors) {
+					onUnexpectedError(error);
+				} else {
+					this._computationError.set(error instanceof Error ? error : new Error(String(error)), undefined);
+				}
 			}
 		});
+	}
+
+	reportFutureErrors(): void {
+		this._reportErrors = true;
+	}
+
+	applyPreparedReset(text: string, diffs: readonly DetailedLineRangeMapping[], tx: ITransaction): void {
+		// Any computation against the old result is now obsolete. The ranges were
+		// computed against the prepared contents and can refer to the live model.
+		this._recomputeCount++;
+		this._barrier.runExclusivelyOrThrow(() => {
+			this.textModel.pushEditOperations(null, [{ range: this.textModel.getFullModelRange(), text }], () => null);
+		});
+		this._isInitializing = false;
+		this._computationError.set(undefined, tx);
+		this._diffs.set(diffs.map(diff => new DetailedLineRangeMapping(diff.inputRange, this.baseTextModel, diff.outputRange, this.textModel, diff.rangeMappings)), tx, TextModelDiffChangeReason.textChange);
+		this._state.set(TextModelDiffState.upToDate, tx, TextModelDiffChangeReason.textChange);
 	}
 
 	private ensureUpToDate(): void {

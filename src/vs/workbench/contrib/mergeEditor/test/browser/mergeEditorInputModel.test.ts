@@ -6,8 +6,9 @@
 import assert from 'assert';
 import { assertReturnsDefined } from '../../../../../base/common/types.js';
 import { DeferredPromise } from '../../../../../base/common/async.js';
-import { CancellationError } from '../../../../../base/common/errors.js';
+import { CancellationError, errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
+import { Schemas } from '../../../../../base/common/network.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -22,6 +23,8 @@ import { IResolvedTextFileEditorModel, ITextFileEditorModel, ITextFileEditorMode
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { MergeEditorInput, MergeEditorInputData } from '../../browser/mergeEditorInput.js';
 
+const conflictText = '<<<<<<< HEAD\nleft\n=======\nright\n>>>>>>> branch\n';
+
 suite('Merge Editor input model factories', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -29,6 +32,7 @@ suite('Merge Editor input model factories', () => {
 		useWorkingCopy?: boolean;
 		resultContent?: string;
 		beforeRead?: (uri: URI) => Promise<void>;
+		beforeSave?: (text: string) => Promise<void>;
 		beforeDiff?: (modified: URI) => Promise<void>;
 	} = {}) {
 		const services = workbenchInstantiationService({
@@ -62,7 +66,10 @@ suite('Merge Editor input model factories', () => {
 			override readonly onDidChangeDirty = Event.None;
 			override readonly onDidSaveError = Event.None;
 			override isDirty(): this is IResolvedTextFileEditorModel { return false; }
-			override async save(): Promise<boolean> { return true; }
+			override async save(): Promise<boolean> {
+				await options.beforeSave?.(result.getValue());
+				return true;
+			}
 		};
 		services.stub(ITextFileService, {
 			files: new class extends mock<ITextFileEditorModelManager>() {
@@ -79,7 +86,7 @@ suite('Merge Editor input model factories', () => {
 
 		const data = (uri: URI) => new MergeEditorInputData(uri, undefined, undefined, undefined);
 		const input = disposables.add(services.createInstance(MergeEditorInput, base.uri, data(left.uri), data(right.uri), result.uri));
-		return { input, result, references };
+		return { input, result, references, modelService };
 	}
 
 	for (const useWorkingCopy of [false, true]) {
@@ -137,30 +144,165 @@ suite('Merge Editor input model factories', () => {
 		assert.ok(references.every(ref => ref.disposals === 1));
 	});
 
-	test('closing the input during initialization preserves a later edit to the result', async () => {
+	for (const hasMarkers of [false, true]) {
+		test(`closing during initialization ${hasMarkers ? 'with' : 'without'} conflict markers preserves a later edit`, async () => {
+			const started = new DeferredPromise<void>();
+			const allowDiff = new DeferredPromise<void>();
+			const { input, result, references } = createInput({
+				resultContent: hasMarkers ? conflictText : 'original',
+				async beforeDiff(modified) {
+					if (modified.path === '/left') {
+						void started.complete();
+						await allowDiff.p;
+					}
+				},
+			});
+			const opening = assert.rejects(input.resolve(), CancellationError);
+			await started.p;
+			assert.strictEqual(input.closeHandler.showConfirm(), false);
+			input.dispose();
+
+			const edited = 'Edit made after closing the merge';
+			result.setValue(edited);
+			await allowDiff.complete();
+			await opening;
+
+			assert.strictEqual(result.getValue(), edited);
+			assert.strictEqual(references.length, 4);
+			assert.ok(references.every(ref => ref.disposals === 1));
+		});
+	}
+
+	for (const useWorkingCopy of [false, true]) {
+		test(`closing a ${useWorkingCopy ? 'temporary' : 'workspace'} merge cancels the open while a provider is held`, async () => {
+			const started = new DeferredPromise<void>();
+			const heldRead = new DeferredPromise<void>();
+			const { input, references } = createInput({
+				useWorkingCopy,
+				async beforeRead(uri) {
+					if (uri.path === '/right') {
+						void started.complete();
+						await heldRead.p;
+					}
+				},
+			});
+			const opening = assert.rejects(input.resolve(), CancellationError);
+			const matching = assert.rejects(input.resolve(), CancellationError);
+			await started.p;
+			input.dispose();
+
+			try {
+				await Promise.all([opening, matching]);
+				assert.ok(!heldRead.isSettled);
+				assert.strictEqual(references.length, 3);
+				assert.ok(references.every(ref => ref.disposals === 1));
+			} finally {
+				await heldRead.error(new Error('Provider failed after close'));
+			}
+		});
+	}
+
+	test('closing during the workspace save cancels the open while the save is held', async () => {
 		const started = new DeferredPromise<void>();
-		const allowDiff = new DeferredPromise<void>();
-		const { input, result, references } = createInput({
-			resultContent: '<<<<<<< HEAD\nleft\n=======\nright\n>>>>>>> branch\n',
+		const heldSave = new DeferredPromise<void>();
+		const { input, references } = createInput({
+			async beforeSave() {
+				void started.complete();
+				await heldSave.p;
+			},
+		});
+		const opening = assert.rejects(input.resolve(), CancellationError);
+		await started.p;
+		input.dispose();
+
+		try {
+			await opening;
+			assert.ok(!heldSave.isSettled);
+			assert.strictEqual(references.length, 4);
+			assert.ok(references.every(ref => ref.disposals === 1));
+		} finally {
+			await heldSave.error(new Error('Save failed after close'));
+		}
+	});
+
+	test('a failed reset diff leaves the rollback text and undo history intact on retry', async () => {
+		const failure = new Error('Prepared result diff failed');
+		const saved: string[] = [];
+		let fail = true;
+		const { input, result, modelService } = createInput({
+			resultContent: conflictText,
+			async beforeSave(text) { saved.push(text); },
 			async beforeDiff(modified) {
-				if (modified.path === '/left') {
+				if (modified.scheme === Schemas.inMemory && fail) {
+					throw failure;
+				}
+			},
+		});
+
+		await assert.rejects(input.resolve(), error => error === failure);
+		assert.strictEqual(result.getValue(), conflictText);
+		assert.strictEqual(result.canUndo(), false);
+		assert.ok(modelService.getModels().every(model => model.uri.scheme !== Schemas.inMemory));
+		fail = false;
+		const { model } = await input.resolve();
+		assert.ok(model.isUpToDate.get());
+		assert.strictEqual(model.baseResultDiffs.get().length, 0);
+		assert.strictEqual(result.getValue(), 'original');
+		assert.deepStrictEqual(saved, [conflictText, conflictText]);
+		assert.ok(modelService.getModels().every(model => model.uri.scheme !== Schemas.inMemory));
+		input.dispose();
+	});
+
+	test('does not overwrite edits made while the reset diff is pending', async () => {
+		const started = new DeferredPromise<void>();
+		const preparedDiff = new DeferredPromise<void>();
+		const { input, result } = createInput({
+			resultContent: conflictText,
+			async beforeDiff(modified) {
+				if (modified.scheme === Schemas.inMemory) {
 					void started.complete();
-					await allowDiff.p;
+					await preparedDiff.p;
 				}
 			},
 		});
 		const opening = assert.rejects(input.resolve(), CancellationError);
 		await started.p;
-		assert.strictEqual(input.closeHandler.showConfirm(), false);
-		input.dispose();
-
-		const edited = 'Edit made after closing the merge';
+		const edited = 'Edited during the pending reset';
 		result.setValue(edited);
-		await allowDiff.complete();
+		await preparedDiff.complete();
 		await opening;
 
 		assert.strictEqual(result.getValue(), edited);
-		assert.strictEqual(references.length, 4);
-		assert.ok(references.every(ref => ref.disposals === 1));
+	});
+
+	test('reports a current diff worker failure after the model is live', async () => {
+		const failure = new Error('Live result diff failed');
+		const reported = new DeferredPromise<unknown>();
+		let fail = false;
+		const { input, result } = createInput({
+			async beforeDiff(modified) {
+				if (fail && modified.path === '/result') {
+					throw failure;
+				}
+			},
+		});
+
+		await input.resolve();
+		const previous = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			if (error === failure) {
+				void reported.complete(error);
+			} else {
+				previous(error);
+			}
+		});
+		try {
+			fail = true;
+			result.setValue('Edited after successful initialization');
+			assert.ok((await reported.p) === failure);
+		} finally {
+			setUnexpectedErrorHandler(previous);
+			input.dispose();
+		}
 	});
 });
