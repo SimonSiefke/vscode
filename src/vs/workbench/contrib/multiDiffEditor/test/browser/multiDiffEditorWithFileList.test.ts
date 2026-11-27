@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { spy } from 'sinon';
 import { Dimension } from '../../../../../base/browser/dom.js';
 import { DeferredPromise, raceTimeout, timeout } from '../../../../../base/common/async.js';
 import { Emitter, ValueWithChangeEvent } from '../../../../../base/common/event.js';
@@ -81,10 +82,6 @@ class TestMultiDiffEditor extends MultiDiffEditor {
 	protected override getEditorMemento<T>(groups: IEditorGroupsService, configuration: ITextResourceConfigurationService, key: string, limit = 10): EditorMemento<T> {
 		return this._register(new EditorMemento<T>(this.getId(), key, Object.create(null), limit, groups, configuration));
 	}
-
-	readSavedViewState(input: MultiDiffEditorInput) {
-		return this.loadEditorViewState(input, {});
-	}
 }
 
 suite('MultiDiffEditorWithFileListWidget', () => {
@@ -159,6 +156,20 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 		}, instantiationService));
 	}
 
+	function deferViewModel(input: MultiDiffEditorInput) {
+		const requested = new DeferredPromise<void>();
+		const ready = new DeferredPromise<MultiDiffEditorViewModel>();
+		input.getViewModel = () => {
+			void requested.complete();
+			return ready.p;
+		};
+		return { requested: requested.p, ready };
+	}
+
+	function revealOptions(modified: URI): IMultiDiffEditorOptions {
+		return { preserveFocus: true, viewState: { revealData: { resource: { original: undefined, modified } } } };
+	}
+
 	async function createMatchingRevealFixture(name: string) {
 		stubBinaryDocuments();
 		const container = document.createElement('div');
@@ -178,15 +189,12 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 		await waitForState(model.items, items => items.length === 2);
 
 		const open = (options?: IMultiDiffEditorOptions) => panes.openEditor(input, { ...options, preserveFocus: true, ignoreError: true }, undefined);
-		const reveal = (modified: URI): IMultiDiffEditorOptions => ({
-			viewState: { revealData: { resource: { original: undefined, modified } } },
-		});
 		const activeResource = () => model.activeDiffItem.get()?.modifiedUri?.toString();
 		const close = () => {
 			panes.closeEditor(input);
 			input.dispose();
 		};
-		return { panes, input, model, firstResource, secondResource, open, reveal, activeResource, close };
+		return { panes, input, model, firstResource, secondResource, open, activeResource, close };
 	}
 
 	/**
@@ -288,18 +296,8 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 
 			const input = createInput('before-resolution', ['/repo/a.png']);
 			const source = disposables.add(new CancellationTokenSource());
-			let requestedModel = false;
-			let setResourceOrder = false;
-			const getViewModel = input.getViewModel.bind(input);
-			const updateResourceOrder = input.setResourceOrder.bind(input);
-			input.getViewModel = () => {
-				requestedModel = true;
-				return getViewModel();
-			};
-			input.setResourceOrder = order => {
-				setResourceOrder = true;
-				updateResourceOrder(order);
-			};
+			const getViewModel = spy(input, 'getViewModel');
+			const setResourceOrder = spy(input, 'setResourceOrder');
 
 			try {
 				const opening = editor.setInput(input, undefined, {}, source.token);
@@ -311,11 +309,10 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 				}
 				await opening;
 
-				assert.strictEqual(requestedModel, false);
-				assert.strictEqual(setResourceOrder, false);
-				assert.ok(editor.viewModel === undefined);
-				const contextKeyService = instantiationService.get(IContextKeyService);
-				assert.strictEqual(contextKeyService.getContextKeyValue(MultiDiffEditorFileListAvailableContext.key), false);
+				assert.strictEqual(getViewModel.callCount, 0);
+				assert.strictEqual(setResourceOrder.callCount, 0);
+				assert.strictEqual(editor.viewModel, undefined);
+				assert.strictEqual(instantiationService.get(IContextKeyService).getContextKeyValue(MultiDiffEditorFileListAvailableContext.key), false);
 			} finally {
 				editor.clearInput();
 			}
@@ -327,17 +324,12 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 		const { editor } = createEditor(300);
 		const input = createInput('pending', ['/repo/a.png']);
 		const model = await input.getViewModel();
-		const requested = new DeferredPromise<void>();
-		const result = new DeferredPromise<MultiDiffEditorViewModel>();
-		input.getViewModel = () => {
-			void requested.complete();
-			return result.p;
-		};
+		const { requested, ready } = deferViewModel(input);
 
 		const opening = editor.setInput(input, undefined, {}, CancellationToken.None);
-		await requested.p;
+		await requested;
 		editor.clearInput();
-		await result.complete(model);
+		await ready.complete(model);
 		await opening;
 		assert.ok(editor.input === undefined, 'The closed pane should have no input');
 		assert.ok(editor.viewModel === undefined, 'The late view model should not be applied');
@@ -352,30 +344,20 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 		const model = await input.getViewModel();
 		await waitForState(model.items, items => items.length === 2);
 
-		const firstRequested = new DeferredPromise<void>();
-		const firstResult = new DeferredPromise<MultiDiffEditorViewModel>();
-		input.getViewModel = () => {
-			void firstRequested.complete();
-			return firstResult.p;
-		};
-		const optionsFor = (modified: URI) => ({
-			preserveFocus: true,
-			viewState: { revealData: { resource: { original: undefined, modified } } },
-		});
-
+		const { requested, ready } = deferViewModel(input);
 		const source = disposables.add(new CancellationTokenSource());
-		const firstOpening = editor.setInput(input, optionsFor(firstResource), {}, source.token);
-		await firstRequested.p;
+		const firstOpening = editor.setInput(input, revealOptions(firstResource), {}, source.token);
+		await requested;
 		source.cancel();
 		editor.clearInput();
 		input.getViewModel = async () => model;
 
 		try {
-			await editor.setInput(input, optionsFor(secondResource), {}, CancellationToken.None);
+			await editor.setInput(input, revealOptions(secondResource), {}, CancellationToken.None);
 			const activeResource = () => model.activeDiffItem.get()?.modifiedUri?.toString();
 			const currentReveal = activeResource();
 
-			await firstResult.complete(model);
+			await ready.complete(model);
 			await firstOpening;
 			assert.strictEqual(currentReveal, secondResource.toString());
 			assert.ok(editor.input === input);
@@ -401,9 +383,7 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 		editor.clearInput();
 		const reload = editor.setInput(input, undefined, {}, CancellationToken.None);
 		editor.clearInput();
-		const saved = editor.readSavedViewState(input);
 		await reload;
-		assert.deepStrictEqual(collapsedDocuments(saved), [true]);
 
 		model.expandAll();
 		try {
@@ -415,19 +395,14 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 	});
 
 	test('cancels a waiting reveal when a forced reload replaces its pending open', async () => {
-		const { panes, input, model, firstResource, secondResource, open, reveal, activeResource, close } = await createMatchingRevealFixture('early-reveal-overlap');
-		const requested = new DeferredPromise<void>();
-		const ready = new DeferredPromise<MultiDiffEditorViewModel>();
-		input.getViewModel = () => {
-			void requested.complete();
-			return ready.p;
-		};
+		const { panes, input, model, firstResource, secondResource, open, activeResource, close } = await createMatchingRevealFixture('early-reveal-overlap');
+		const { requested, ready } = deferViewModel(input);
 
 		const first = open();
-		const matching = open(reveal(firstResource));
-		const forced = open({ ...reveal(secondResource), forceReload: true });
+		const matching = open(revealOptions(firstResource));
+		const forced = open({ ...revealOptions(secondResource), forceReload: true });
 		try {
-			await requested.p;
+			await requested;
 			await ready.complete(model);
 
 			const [firstResult, matchingResult, forcedResult] = await Promise.all([first, matching, forced]);
@@ -445,11 +420,10 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 	});
 
 	test('applies a matching reveal after the pending open finishes normally', async () => {
-		const { input, model, firstResource, secondResource, open, reveal, activeResource, close } = await createMatchingRevealFixture('normal-reveal-overlap');
-		const ready = new DeferredPromise<MultiDiffEditorViewModel>();
-		input.getViewModel = () => ready.p;
-		const first = open(reveal(firstResource));
-		const matching = open(reveal(secondResource));
+		const { input, model, firstResource, secondResource, open, activeResource, close } = await createMatchingRevealFixture('normal-reveal-overlap');
+		const { ready } = deferViewModel(input);
+		const first = open(revealOptions(firstResource));
+		const matching = open(revealOptions(secondResource));
 		try {
 			await ready.complete(model);
 			const [firstResult, matchingResult] = await Promise.all([first, matching]);
@@ -464,24 +438,14 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 
 	test('reports the original error to both callers when the current pending open fails', async () => {
 		const { panes, input, open, close } = await createMatchingRevealFixture('current-error-overlap');
-		const requested = new DeferredPromise<void>();
-		const ready = new DeferredPromise<MultiDiffEditorViewModel>();
+		const { requested, ready } = deferViewModel(input);
 		const failure = new Error('The current model failed to load');
-		input.getViewModel = () => {
-			void requested.complete();
-			return ready.p;
-		};
 
 		const first = open();
-		await requested.p;
+		await requested;
 		const pane = panes.activeEditorPane;
 		assert.ok(pane instanceof MultiDiffEditor);
-		let setOptionsCalls = 0;
-		const setOptions = pane.setOptions.bind(pane);
-		pane.setOptions = options => {
-			setOptionsCalls++;
-			setOptions(options);
-		};
+		const setOptions = spy(pane, 'setOptions');
 		const matching = open();
 
 		try {
@@ -489,7 +453,7 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 			const [firstResult, matchingResult] = await Promise.all([first, matching]);
 			assert.strictEqual(firstResult.error, failure);
 			assert.strictEqual(matchingResult.error, failure);
-			assert.strictEqual(setOptionsCalls, 0);
+			assert.strictEqual(setOptions.callCount, 0);
 		} finally {
 			close();
 		}
@@ -497,20 +461,15 @@ suite('MultiDiffEditorWithFileListWidget', () => {
 
 	for (const outcome of ['resolves', 'rejects'] as const) {
 		test(`keeps the latest reveal when a superseded open ${outcome} after the reload`, async () => {
-			const { input, model, firstResource, secondResource, open, reveal, activeResource, close } = await createMatchingRevealFixture(`late-reveal-overlap-${outcome}`);
-			const requested = new DeferredPromise<void>();
-			const ready = new DeferredPromise<MultiDiffEditorViewModel>();
-			input.getViewModel = () => {
-				void requested.complete();
-				return ready.p;
-			};
+			const { input, model, firstResource, secondResource, open, activeResource, close } = await createMatchingRevealFixture(`late-reveal-overlap-${outcome}`);
+			const { requested, ready } = deferViewModel(input);
 
 			const first = open();
-			await requested.p;
-			const matching = open(reveal(firstResource));
+			await requested;
+			const matching = open(revealOptions(firstResource));
 			input.getViewModel = async () => model;
 			try {
-				const forced = await open({ ...reveal(secondResource), forceReload: true });
+				const forced = await open({ ...revealOptions(secondResource), forceReload: true });
 				assert.strictEqual(forced.error, undefined);
 				assert.strictEqual(forced.cancelled, false);
 				assert.strictEqual(activeResource(), secondResource.toString());

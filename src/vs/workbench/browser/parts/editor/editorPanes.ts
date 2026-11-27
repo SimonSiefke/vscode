@@ -16,7 +16,7 @@ import { IEditorPaneRegistry, IEditorPaneDescriptor } from '../../editor.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 import { EditorPane } from './editorPane.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { IEditorProgressService, IOperation, LongRunningOperation } from '../../../../platform/progress/common/progress.js';
+import { IEditorProgressService, LongRunningOperation } from '../../../../platform/progress/common/progress.js';
 import { IEditorGroupView, DEFAULT_EDITOR_MIN_DIMENSIONS, DEFAULT_EDITOR_MAX_DIMENSIONS, IInternalEditorOpenOptions } from './editor.js';
 import { assertReturnsDefined } from '../../../../base/common/types.js';
 import { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
@@ -84,7 +84,7 @@ export class EditorPanes extends Disposable {
 	get activeEditorPane(): IVisibleEditorPane | null { return this._activeEditorPane as IVisibleEditorPane | null; }
 
 	private readonly editorPanes: EditorPane[] = [];
-	private readonly mapEditorPaneToPendingSetInput = new Map<EditorPane, { promise: Promise<void>; operation: IOperation }>();
+	private readonly mapEditorPaneToPendingSetInput = new Map<EditorPane, { promise: Promise<void>; isCurrent: () => boolean }>();
 
 	private readonly activeEditorPaneDisposables = this._register(new DisposableStore());
 
@@ -435,7 +435,7 @@ export class EditorPanes extends Disposable {
 			// we risk calling when the input is not yet fully applied.
 			const pending = this.mapEditorPaneToPendingSetInput.get(editorPane);
 			if (pending) {
-				const isCurrent = () => pending.operation.isCurrent() && this._activeEditorPane === editorPane;
+				const isCurrent = () => pending.isCurrent() && this._activeEditorPane === editorPane;
 				try {
 					await pending.promise;
 				} catch (error) {
@@ -475,7 +475,7 @@ export class EditorPanes extends Disposable {
 
 			// Set the input to the editor pane and keep track of it
 			const pendingSetInput = editorPane.setInput(editor, options, context, operation.token);
-			this.mapEditorPaneToPendingSetInput.set(editorPane, { promise: pendingSetInput, operation });
+			this.mapEditorPaneToPendingSetInput.set(editorPane, { promise: pendingSetInput, isCurrent: operation.isCurrent });
 			await pendingSetInput;
 
 			if (!operation.isCurrent()) {
