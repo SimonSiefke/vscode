@@ -211,13 +211,60 @@ suite('EditorInput', () => {
 		const createInputModel = stub(WorkspaceMergeEditorModeFactory.prototype, 'createInputModel').returns(model.p);
 		try {
 			const resolving = input.resolve();
+			const matching = input.resolve();
+			const rejected = Promise.all([assert.rejects(resolving, CancellationError), assert.rejects(matching, CancellationError)]);
 			input.dispose();
 			await model.complete(inputModel);
 
-			await assert.rejects(resolving, CancellationError);
+			await rejected;
 			assert.strictEqual(disposeCount, 1);
 			await assert.rejects(input.resolve(), CancellationError);
 			assert.strictEqual(createInputModel.callCount, 1);
+		} finally {
+			createInputModel.restore();
+		}
+	});
+
+	test('MergeEditorInput shares model resolution and can retry a failed load', async () => {
+		const data = new MergeEditorInputData(testResource, undefined, undefined, undefined);
+		const input = disposables.add(instantiationService.createInstance(MergeEditorInput, testResource, data, data, testResource));
+		const beforeFailure = new DeferredPromise<IMergeEditorInputModel>();
+		const beforeSuccess = new DeferredPromise<IMergeEditorInputModel>();
+		const failure = new Error('Failed to load merge model');
+		let disposeCount = 0;
+		let acceptCount = 0;
+		const inputModel = new class extends mock<IMergeEditorInputModel>() {
+			override readonly isDirty = constObservable(false);
+			override async accept(): Promise<void> { acceptCount++; }
+			override dispose(): void { disposeCount++; }
+		};
+
+		const createInputModel = stub(WorkspaceMergeEditorModeFactory.prototype, 'createInputModel');
+		createInputModel.returns(beforeSuccess.p);
+		createInputModel.onFirstCall().returns(beforeFailure.p);
+		createInputModel.onSecondCall().returns(beforeFailure.p);
+		try {
+			const first = input.resolve();
+			const matching = input.resolve();
+			const failed = Promise.all([assert.rejects(first, error => error === failure), assert.rejects(matching, error => error === failure)]);
+			await beforeFailure.error(failure);
+			await failed;
+			assert.strictEqual(createInputModel.callCount, 1);
+
+			createInputModel.resetBehavior();
+			createInputModel.returns(beforeSuccess.p);
+			const retry = input.resolve();
+			const matchingRetry = input.resolve();
+			await beforeSuccess.complete(inputModel);
+			assert.ok((await retry) === inputModel);
+			assert.ok((await matchingRetry) === inputModel);
+			assert.ok((await input.resolve()) === inputModel);
+			assert.strictEqual(createInputModel.callCount, 2);
+
+			await input.accept();
+			assert.strictEqual(acceptCount, 1);
+			input.dispose();
+			assert.strictEqual(disposeCount, 1);
 		} finally {
 			createInputModel.restore();
 		}

@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { stub } from 'sinon';
 import { DeferredPromise } from '../../../../../base/common/async.js';
 import { CancellationError } from '../../../../../base/common/errors.js';
 import { EditorGroupView } from '../../../../browser/parts/editor/editorGroupView.js';
 import { EditorPane, EditorMemento } from '../../../../browser/parts/editor/editorPane.js';
+import { EditorPanes } from '../../../../browser/parts/editor/editorPanes.js';
 import { WorkspaceTrustRequiredPlaceholderEditor } from '../../../../browser/parts/editor/editorPlaceholder.js';
 import { IEditorSerializer, IEditorFactoryRegistry, EditorExtensions, EditorInputCapabilities, IEditorDescriptor, IEditorOpenContext, IEditorPane } from '../../../../common/editor.js';
 import { IEditorOptions } from '../../../../../platform/editor/common/editor.js';
@@ -610,6 +612,106 @@ suite('EditorPane', () => {
 				oldInputActivated: false,
 				failures: 0,
 			});
+		});
+	}
+
+	test('preserves a newer open when the previous pane creation fails', async () => {
+		const creating = new DeferredPromise<void>();
+
+		class FailingInput extends TestInput { }
+		class FailingEditor extends TestEditor {
+			protected override createEditor(): void {
+				void creating.complete();
+				throw new Error('Pane creation failed');
+			}
+		}
+
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		const part = await createEditorPart(instantiationService, disposables);
+		instantiationService.stub(IEditorGroupsService, part);
+		const group = part.activeGroup;
+		disposables.add(editorRegistry.registerEditorPane(
+			EditorPaneDescriptor.create(FailingEditor, 'testFailingEditor', 'Failing Editor'), [new SyncDescriptor(FailingInput)]));
+		disposables.add(editorRegistry.registerEditorPane(
+			EditorPaneDescriptor.create(OtherTestEditor, 'testOtherEditor', 'Replacement Editor'), [new SyncDescriptor(OtherTestInput)]));
+
+		const first = disposables.add(new FailingInput());
+		const second = disposables.add(new OtherTestInput());
+		const failures: EditorInput[] = [];
+		disposables.add(group.onDidOpenEditorFail(input => failures.push(input)));
+		const replacing = creating.p.then(() => group.openEditor(second, { pinned: true }));
+		const opening = group.openEditor(first, { pinned: true });
+
+		assert.deepStrictEqual({
+			oldOpenReturnedPane: (await opening) !== undefined,
+			newOpenReturnedPane: (await replacing)?.input === second,
+			activeInputIsReplacement: group.activeEditor === second,
+			visibleInputIsReplacement: group.activeEditorPane?.input === second,
+			oldInputAlive: !first.isDisposed(),
+			failures: failures.length,
+		}, {
+			oldOpenReturnedPane: false,
+			newOpenReturnedPane: true,
+			activeInputIsReplacement: true,
+			visibleInputIsReplacement: true,
+			oldInputAlive: true,
+			failures: 0,
+		});
+	});
+
+	for (const forceReload of [false, true]) {
+		test(`checks ownership before the group publishes ${forceReload ? 'an input reloaded in place' : 'a replaced preview'}`, async () => {
+			const instantiationService = workbenchInstantiationService(undefined, disposables);
+			const part = await createEditorPart(instantiationService, disposables);
+			instantiationService.stub(IEditorGroupsService, part);
+			const group = part.activeGroup;
+			disposables.add(editorRegistry.registerEditorPane(
+				EditorPaneDescriptor.create(TestEditor, 'testEditor', 'Test Editor'), [new SyncDescriptor(TestInput)]));
+
+			const first = disposables.add(new TestInput());
+			const next = forceReload ? first : disposables.add(new TestInput());
+			const firstResult = new DeferredPromise<void>();
+			const originalOpen = EditorPanes.prototype.openEditor;
+			let observeFirst = true;
+			const controlledOpen = stub(EditorPanes.prototype, 'openEditor').callsFake(async function (this: EditorPanes, ...args: Parameters<EditorPanes['openEditor']>) {
+				const result = await originalOpen.apply(this, args);
+				if (observeFirst && args[0] === first) {
+					observeFirst = false;
+					assert.ok(result.pane?.input === first && !result.cancelled);
+					void firstResult.complete();
+				}
+				return result;
+			});
+
+			try {
+				const activations: { editor: EditorInput; isExplicit: boolean | undefined }[] = [];
+				disposables.add(group.onDidActiveEditorChange(({ editor, isExplicit }) => {
+					if (editor) {
+						activations.push({ editor, isExplicit });
+					}
+				}));
+				// Start the next open after the pane accepts the first result, before the group receives it.
+				const replacing = firstResult.p.then(() => group.openEditor(next, { forceReload, isExplicit: true }));
+				const opening = group.openEditor(first);
+
+				assert.deepStrictEqual({
+					oldOpenReturnedPane: (await opening) !== undefined,
+					newOpenReturnedPane: (await replacing)?.input === next,
+					activeInputIsCurrent: group.activeEditor === next,
+					visibleInputIsCurrent: group.activeEditorPane?.input === next,
+					activationCount: activations.length,
+					publishedExplicitReplacement: activations[0]?.editor === next && activations[0].isExplicit,
+				}, {
+					oldOpenReturnedPane: false,
+					newOpenReturnedPane: true,
+					activeInputIsCurrent: true,
+					visibleInputIsCurrent: true,
+					activationCount: 1,
+					publishedExplicitReplacement: true,
+				});
+			} finally {
+				controlledOpen.restore();
+			}
 		});
 	}
 

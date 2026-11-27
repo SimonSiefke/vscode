@@ -43,11 +43,6 @@ export interface IOpenEditorResult {
 	readonly pane?: EditorPane;
 
 	/**
-	 * Whether the editor changed as a result of opening.
-	 */
-	readonly changed?: boolean;
-
-	/**
 	 * This property is set when an editor fails to restore and
 	 * is shown with a generic place holder. It allows callers
 	 * to still present the error to the user in that case.
@@ -61,10 +56,13 @@ export interface IOpenEditorResult {
 	 * after cancelling this one out.
 	 */
 	readonly cancelled?: boolean;
+
+	/** The input generation to recheck before consuming the result. */
+	readonly generation?: number;
 }
 
 interface IEditorPaneOpenRequest {
-	generation?: number;
+	generation: number;
 }
 
 export class EditorPanes extends Disposable {
@@ -90,6 +88,7 @@ export class EditorPanes extends Disposable {
 	private readonly editorPanes: EditorPane[] = [];
 	private readonly pendingSetInput = new Map<EditorPane, Promise<boolean>>();
 	private openGeneration = 0;
+	private activeInputChanged = false;
 
 	private readonly activeEditorPaneDisposables = this._register(new DisposableStore());
 
@@ -137,36 +136,33 @@ export class EditorPanes extends Disposable {
 	}
 
 	async openEditor(editor: EditorInput, options: IEditorOptions | undefined, internalOptions: IInternalEditorOpenOptions | undefined, context: IEditorOpenContext = Object.create(null)): Promise<IOpenEditorResult> {
-		const request: IEditorPaneOpenRequest = {};
+		const request: IEditorPaneOpenRequest = { generation: this.openGeneration };
+		let result: IOpenEditorResult;
 		try {
-			const result = await this.doOpenEditor(this.getEditorPaneDescriptor(editor), editor, options, internalOptions, request, context);
-			return this.isCurrentOpen(editor, request.generation) ? result : { cancelled: true };
+			result = await this.doOpenEditor(this.getEditorPaneDescriptor(editor), editor, options, internalOptions, request, context);
 		} catch (error) {
 			if (!this.isCurrentOpen(editor, request.generation)) {
 				return { cancelled: true };
 			}
 
-			// First check if caller instructed us to ignore error handling
-			if (options?.ignoreError) {
-				return { error };
-			}
-
-			// In case of an error when opening an editor, we still want to show
-			// an editor in the desired location to preserve the user intent and
-			// view state (e.g. when restoring).
-			//
-			// For that reason we have place holder editors that can convey a
-			// message with actions the user can click on.
-
-			return this.doShowError(error, editor, options, internalOptions, request.generation ?? this.openGeneration, context);
+			// Preserve a failed but current open with a placeholder unless the caller opted out.
+			result = options?.ignoreError ? { error } : await this.doShowError(error, editor, options, internalOptions, request, context);
 		}
+
+		return this.isCurrentOpen(editor, request.generation) ? { ...result, generation: request.generation } : { cancelled: true };
 	}
 
-	private isCurrentOpen(editor: EditorInput, generation = this.openGeneration): boolean {
+	isCurrentOpen(editor: EditorInput, generation: number | undefined): boolean {
 		return !this._store.isDisposed && !editor.isDisposed() && generation === this.openGeneration;
 	}
 
-	private async doShowError(error: Error, editor: EditorInput, options: IEditorOptions | undefined, internalOptions: IInternalEditorOpenOptions | undefined, generation: number, context?: IEditorOpenContext): Promise<IOpenEditorResult> {
+	consumeActiveInputChange(): boolean {
+		const changed = this.activeInputChanged;
+		this.activeInputChanged = false;
+		return changed;
+	}
+
+	private async doShowError(error: Error, editor: EditorInput, options: IEditorOptions | undefined, internalOptions: IInternalEditorOpenOptions | undefined, request: IEditorPaneOpenRequest, context?: IEditorOpenContext): Promise<IOpenEditorResult> {
 
 		// Always log the error to figure out what is going on
 		this.logService.error(error);
@@ -177,7 +173,7 @@ export class EditorPanes extends Disposable {
 			errorHandled = await this.doShowErrorDialog(error, editor);
 		}
 
-		if (!this.isCurrentOpen(editor, generation)) {
+		if (!this.isCurrentOpen(editor, request.generation)) {
 			return { cancelled: true };
 		}
 
@@ -192,9 +188,8 @@ export class EditorPanes extends Disposable {
 			editorPlaceholderOptions.error = error;
 		}
 
-		const request: IEditorPaneOpenRequest = {};
 		const result = await this.doOpenEditor(ErrorPlaceholderEditor.DESCRIPTOR, editor, editorPlaceholderOptions, internalOptions, request, context);
-		return this.isCurrentOpen(editor, request.generation) ? { ...result, error } : { cancelled: true };
+		return { ...result, error };
 	}
 
 	private async doShowErrorDialog(error: Error, editor: EditorInput): Promise<boolean> {
@@ -266,14 +261,20 @@ export class EditorPanes extends Disposable {
 
 	private async doOpenEditor(descriptor: IEditorPaneDescriptor, editor: EditorInput, options: IEditorOptions | undefined, internalOptions: IInternalEditorOpenOptions | undefined, request: IEditorPaneOpenRequest, context: IEditorOpenContext = Object.create(null)): Promise<IOpenEditorResult> {
 
-		// Editor pane
-		const pane = this.doShowEditorPane(descriptor);
+		if (!this.isCurrentOpen(editor, request.generation)) {
+			return { cancelled: true };
+		}
+
+		const pane = this.doShowEditorPane(descriptor, request);
+		if (!this.isCurrentOpen(editor, request.generation)) {
+			return { cancelled: true };
+		}
 
 		// Remember current active element for deciding to restore focus later
 		const activeElement = getActiveElement();
 
 		// Apply input to pane
-		const { changed, cancelled } = await this.doSetInput(pane, editor, options, context, request);
+		const cancelled = await this.doSetInput(pane, editor, options, context, request);
 		if (cancelled || !this.isCurrentOpen(editor, request.generation)) {
 			return { cancelled: true };
 		}
@@ -288,7 +289,7 @@ export class EditorPanes extends Disposable {
 			this.hostService.moveTop(getWindowById(this.groupView.windowId, true).window);
 		}
 
-		return { pane, changed, cancelled: false };
+		return { pane, cancelled: false };
 	}
 
 	private shouldRestoreFocus(expectedActiveElement: Element | null): boolean {
@@ -338,15 +339,16 @@ export class EditorPanes extends Disposable {
 		return assertReturnsDefined(this.editorPanesRegistry.getEditorPane(editor));
 	}
 
-	private doShowEditorPane(descriptor: IEditorPaneDescriptor): EditorPane {
+	private doShowEditorPane(descriptor: IEditorPaneDescriptor, request: IEditorPaneOpenRequest): EditorPane {
 
 		// Return early if the currently active editor pane can handle the input
 		if (this._activeEditorPane && descriptor.describes(this._activeEditorPane)) {
 			return this._activeEditorPane;
 		}
 
-		// Hide active one first
+		// Claim the new pane before creation, which can fail before setInput starts.
 		this.doHideActiveEditorPane();
+		request.generation = ++this.openGeneration;
 
 		// Create editor pane
 		const editorPane = this.doCreateEditorPane(descriptor);
@@ -440,37 +442,38 @@ export class EditorPanes extends Disposable {
 		this._onDidChangeSizeConstraints.fire(undefined);
 	}
 
-	private async doSetInput(editorPane: EditorPane, editor: EditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, request: IEditorPaneOpenRequest): Promise<{ changed: boolean; cancelled: boolean }> {
+	private async doSetInput(editorPane: EditorPane, editor: EditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, request: IEditorPaneOpenRequest): Promise<boolean> {
 
 		// If the input did not change, return early and only
 		// apply the options unless the options instruct us to
 		// force open it even if it is the same
 		const inputMatches = editorPane.input?.matches(editor);
 		if (inputMatches && !options?.forceReload) {
-			request.generation = this.openGeneration;
 
 			// We have to await a pending `setInput()` call for this
 			// pane before we can call into `setOptions()`, otherwise
 			// we risk calling when the input is not yet fully applied.
 			const pending = this.pendingSetInput.get(editorPane);
 			if (pending && await pending) {
-				return { changed: false, cancelled: true };
+				return true;
 			}
 
 			// The pane can have switched inputs or started a new load while awaiting the open.
 			const currentInput = editorPane.input;
 			const currentPending = this.pendingSetInput.get(editorPane);
 			if (!currentInput || currentInput.isDisposed() || !this.isCurrentOpen(editor, request.generation) || !currentInput.matches(editor) || (currentPending && currentPending !== pending)) {
-				return { changed: false, cancelled: true };
+				return true;
 			}
 
 			editorPane.setOptions(options);
-			return { changed: false, cancelled: false };
+			return false;
 		}
 
 		// Matching opens share this generation. It stays valid after progress
 		// stops, until another input takes over or the pane is hidden.
 		request.generation = ++this.openGeneration;
+		// Keep the activation pending if the same input reloads before the group can publish it.
+		this.activeInputChanged ||= !inputMatches;
 		const operation = this.editorOperation.start(this.layoutService.isRestored() ? 800 : 3200);
 		const isCancelled = () => operation.token.isCancellationRequested || !operation.isCurrent() || !this.isCurrentOpen(editor, request.generation);
 		const pending = (async () => {
@@ -493,7 +496,7 @@ export class EditorPanes extends Disposable {
 		}
 
 		try {
-			return { changed: !inputMatches, cancelled: await pending };
+			return await pending;
 		} finally {
 			if (this.pendingSetInput.get(editorPane) === pending) {
 				this.pendingSetInput.delete(editorPane);
@@ -509,6 +512,7 @@ export class EditorPanes extends Disposable {
 
 		// Invalidate pending publication and stop any running operation.
 		this.openGeneration++;
+		this.activeInputChanged = false;
 		this.editorOperation.stop();
 
 		// Indicate to editor pane before removing the editor from

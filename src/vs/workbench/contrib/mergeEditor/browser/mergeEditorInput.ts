@@ -42,6 +42,7 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 	static readonly ID = 'mergeEditor.Input';
 
 	private _inputModel?: IMergeEditorInputModel;
+	private _pendingModel?: Promise<IMergeEditorInputModel>;
 
 	private _focusedEditor: MergeEditorType;
 
@@ -88,6 +89,7 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 	override dispose(): void {
 		super.dispose();
 		this._inputModel = undefined;
+		this._pendingModel = undefined;
 	}
 
 	override get typeId(): string {
@@ -113,32 +115,42 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 	private readonly mergeEditorModeFactory;
 
 	override async resolve(): Promise<IMergeEditorInputModel> {
-		if (!this._inputModel) {
-			if (this.isDisposed()) {
-				throw new CancellationError();
-			}
-
-			const inputModel = await this.mergeEditorModeFactory.createInputModel({
-				base: this.base,
-				input1: this.input1,
-				input2: this.input2,
-				result: this.result,
-			});
-			if (this.isDisposed()) {
-				inputModel.dispose();
-				throw new CancellationError();
-			}
-
-			this._inputModel = this._register(inputModel);
-
-			this._register(autorun(reader => {
-				/** @description fire dirty event */
-				inputModel.isDirty.read(reader);
-				this._onDidChangeDirty.fire();
-			}));
+		if (this.isDisposed()) {
+			throw new CancellationError();
+		}
+		if (this._inputModel) {
+			return this._inputModel;
 		}
 
-		return this._inputModel;
+		const pendingModel = this._pendingModel ??= this.createInputModel();
+		try {
+			return await pendingModel;
+		} finally {
+			if (this._pendingModel === pendingModel) {
+				this._pendingModel = undefined;
+			}
+		}
+	}
+
+	private async createInputModel(): Promise<IMergeEditorInputModel> {
+		const inputModel = await this.mergeEditorModeFactory.createInputModel({
+			base: this.base,
+			input1: this.input1,
+			input2: this.input2,
+			result: this.result,
+		});
+		if (this.isDisposed()) {
+			inputModel.dispose();
+			throw new CancellationError();
+		}
+
+		this._inputModel = this._register(inputModel);
+		this._register(autorun(reader => {
+			/** @description fire dirty event */
+			inputModel.isDirty.read(reader);
+			this._onDidChangeDirty.fire();
+		}));
+		return inputModel;
 	}
 
 	public async accept(): Promise<void> {

@@ -5,7 +5,9 @@
 
 import assert from 'assert';
 import { stub } from 'sinon';
-import { Dimension } from '../../../../../base/browser/dom.js';
+import { Dimension, registerWindow } from '../../../../../base/browser/dom.js';
+import { cloneGlobalStylesheets, isGlobalStylesheet } from '../../../../../base/browser/domStylesheets.js';
+import { ensureCodeWindow } from '../../../../../base/browser/window.js';
 import { DeferredPromise } from '../../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { CancellationError } from '../../../../../base/common/errors.js';
@@ -134,6 +136,19 @@ suite('Merge Editor pane', () => {
 		pane.clearInput();
 	});
 
+	test('a canceled open does not start resolving its input', async () => {
+		const { pane, createInput } = createPane();
+		const { input, inputModel, model } = createInput('canceled-before-resolve');
+		await model.onInitialized;
+		const resolve = stub(input, 'resolve').resolves(inputModel);
+
+		await pane.setInput(input, undefined, {}, CancellationToken.Cancelled);
+
+		assert.strictEqual(resolve.callCount, 0);
+		assert.ok(pane.viewModel.get() === undefined && pane.inputModel.get() === undefined);
+		pane.clearInput();
+	});
+
 	test('does not repopulate a cleared pane when its input finishes with cancellation', async () => {
 		const { pane, createInput } = createPane();
 		const { input } = createInput('pending');
@@ -193,9 +208,7 @@ suite('Merge Editor pane', () => {
 
 	for (const closeFirst of [false, true]) {
 		test(`releases pane-owned widgets and styles on disposal ${closeFirst ? 'after close' : 'while a session is open'}`, async () => {
-			const listStyles = () => [...document.head.querySelectorAll('style')].filter(style => style.textContent?.includes('._conflictActionsFactory_'));
-			const existingStyles = new Set(listStyles());
-			const { pane, createInput, codeEditorService } = createPane();
+			const { container, pane, createInput, codeEditorService } = createPane();
 			const { input, inputModel, model } = createInput('dispose');
 			stub(input, 'resolve').resolves(inputModel);
 			await model.onInitialized;
@@ -207,7 +220,7 @@ suite('Merge Editor pane', () => {
 				const model = editor.getModel();
 				return model && sessionModels.has(model);
 			});
-			const styles = listStyles().filter(style => !existingStyles.has(style));
+			const styles = findConflictStyles(container);
 			assert.strictEqual(editors.length, 4);
 			assert.strictEqual(styles.length, 3);
 
@@ -224,6 +237,40 @@ suite('Merge Editor pane', () => {
 				retainedViewModel: pane.viewModel.get() !== undefined,
 				retainedInputModel: pane.inputModel.get() !== undefined,
 			}, { registered: 0, modelsAttached: 0, stylesConnected: 0, retainedViewModel: false, retainedInputModel: false });
+		});
+	}
+
+	function findConflictStyles(element: HTMLElement): HTMLStyleElement[] {
+		return [...element.querySelectorAll('style')].filter(style => style.textContent?.includes('._conflictActionsFactory_'));
+	}
+
+	for (const windowFirst of [false, true]) {
+		test(`does not clone conflict styles when an auxiliary window opens ${windowFirst ? 'before' : 'after'} the pane`, () => {
+			const openWindow = () => {
+				const frame = document.createElement('iframe');
+				document.body.appendChild(frame);
+				disposables.add(toDisposable(() => frame.remove()));
+				const target = frame.contentWindow!;
+				ensureCodeWindow(target, 37704);
+				disposables.add(registerWindow(target));
+				disposables.add(cloneGlobalStylesheets(target));
+				return target;
+			};
+			const existingWindow = windowFirst ? openWindow() : undefined;
+			const { container, pane } = createPane();
+			const auxiliaryWindow = existingWindow ?? openWindow();
+			const localStyles = findConflictStyles(container);
+			const globalStyles = findConflictStyles(document.head).filter(isGlobalStylesheet);
+			assert.strictEqual(localStyles.length + globalStyles.length, 3);
+			assert.ok(localStyles.every(style => style.sheet));
+			pane.dispose();
+
+			assert.deepStrictEqual({
+				localStyles: localStyles.length,
+				registeredGlobalStyles: globalStyles.length,
+				connectedLocalStyles: localStyles.filter(style => style.isConnected).length,
+				auxiliaryStyles: findConflictStyles(auxiliaryWindow.document.head).length,
+			}, { localStyles: 3, registeredGlobalStyles: 0, connectedLocalStyles: 0, auxiliaryStyles: 0 });
 		});
 	}
 });
