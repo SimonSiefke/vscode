@@ -62,7 +62,7 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 		this._register(lifecycleService.onWillShutdown(() => this._isShuttingDown = true));
 		this._register(this._editorService.onDidActiveEditorChange(() => {
 			const activeEditor = this._editorService.activeEditor;
-			const instance = activeEditor instanceof TerminalEditorInput ? activeEditor?.terminalInstance : undefined;
+			const instance = activeEditor instanceof TerminalEditorInput && !activeEditor.isDisposed() ? activeEditor.terminalInstance : undefined;
 			const terminalEditorActive = !!instance && activeEditor instanceof TerminalEditorInput;
 			this._terminalEditorActive.set(terminalEditorActive);
 			if (terminalEditorActive) {
@@ -91,23 +91,26 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 			}
 		}));
 
-		// Remove the terminal from the managed instances when the editor closes (e.g. cmd/ctrl+w).
-		// Moving the editor to another group, or its whole group to another window, opens it there
-		// before it closes in the source group, and the terminal stays open, so ignore that.
+		// A move can open the same input in its destination before the source group closes it.
 		this._register(this._editorService.onDidCloseEditor(e => {
-			if (e.context === EditorCloseContext.MOVE || this._editorGroupsService.groups.some(group => group.contains(e.editor, { strictEquals: true }))) {
+			if (!(e.editor instanceof TerminalEditorInput)) {
 				return;
 			}
-			const instance = e.editor instanceof TerminalEditorInput ? e.editor.terminalInstance : undefined;
-			if (instance) {
-				const instanceIndex = this.instances.findIndex(e => e === instance);
-				if (instanceIndex !== -1) {
-					const wasActiveInstance = this.instances[instanceIndex] === this.activeInstance;
-					this._removeInstance(instance);
-					if (wasActiveInstance) {
-						this.setActiveInstance(undefined);
-					}
-				}
+			const input = e.editor;
+			const instance = input.terminalInstance;
+			if (!instance) {
+				return;
+			}
+			const remainingGroups = this._editorGroupsService.groups.filter(group => group.contains(input, { strictEquals: true }));
+			if (remainingGroups.length > 0 && !input.isDisposed() && input.group?.id === e.groupId) {
+				// An inactive terminal may move without an active editor change.
+				input.setGroup(remainingGroups.find(group => group.activeEditor === input) ?? remainingGroups[0]);
+			}
+			if ((e.context === EditorCloseContext.MOVE && !input.isDisposed()) || remainingGroups.length > 0) {
+				return;
+			}
+			if (this.instances.includes(instance)) {
+				this._removeInstance(instance);
 			}
 		}));
 	}
@@ -201,8 +204,14 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 		const inputKey = instance.resource.path;
 		this._editorInputs.delete(inputKey);
 		const instanceIndex = this.instances.findIndex(e => e === instance);
+		const wasActiveInstance = instanceIndex !== -1 && instanceIndex === this._activeInstanceIndex;
 		if (instanceIndex !== -1) {
 			this.instances.splice(instanceIndex, 1);
+			if (wasActiveInstance) {
+				this._activeInstanceIndex = -1;
+			} else if (instanceIndex < this._activeInstanceIndex) {
+				this._activeInstanceIndex--;
+			}
 		}
 		const disposables = this._instanceDisposables.get(inputKey);
 		this._instanceDisposables.delete(inputKey);
@@ -210,6 +219,9 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 			dispose(disposables);
 		}
 		this._onDidChangeInstances.fire();
+		if (wasActiveInstance && this._activeInstanceIndex === -1) {
+			this._onDidChangeActiveInstance.fire(undefined);
+		}
 	}
 
 	getInstanceFromResource(resource?: URI): ITerminalInstance | undefined {
