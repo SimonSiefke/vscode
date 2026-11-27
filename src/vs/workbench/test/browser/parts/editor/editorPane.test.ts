@@ -4,9 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { DeferredPromise } from '../../../../../base/common/async.js';
+import { CancellationError } from '../../../../../base/common/errors.js';
+import { EditorGroupView } from '../../../../browser/parts/editor/editorGroupView.js';
 import { EditorPane, EditorMemento } from '../../../../browser/parts/editor/editorPane.js';
 import { WorkspaceTrustRequiredPlaceholderEditor } from '../../../../browser/parts/editor/editorPlaceholder.js';
-import { IEditorSerializer, IEditorFactoryRegistry, EditorExtensions, EditorInputCapabilities, IEditorDescriptor, IEditorPane } from '../../../../common/editor.js';
+import { IEditorSerializer, IEditorFactoryRegistry, EditorExtensions, EditorInputCapabilities, IEditorDescriptor, IEditorOpenContext, IEditorPane } from '../../../../common/editor.js';
+import { IEditorOptions } from '../../../../../platform/editor/common/editor.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
@@ -454,6 +458,65 @@ suite('EditorPane', () => {
 		res = memento.loadEditorState(testGroup1, resource);
 		assert.ok(!res);
 	});
+
+	for (const withMatchingOpen of [false, true]) {
+		test(`closing the last editor cancels a pending open${withMatchingOpen ? ' and its matching waiter' : ''}`, async () => {
+			class PendingEditorInput extends EditorInput {
+				readonly resource = URI.file('/pending.txt');
+				readonly started = new DeferredPromise<void>();
+				readonly finished = new DeferredPromise<void>();
+				override get typeId() { return 'pendingEditorInput'; }
+			}
+
+			let focusCalls = 0;
+			let openCalls = 0;
+			class PendingEditor extends TestEditor {
+				override getId() { return 'pendingEditor'; }
+				override focus() { focusCalls++; }
+				override async setInput(input: PendingEditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken) {
+					openCalls++;
+					await super.setInput(input, options, context, token);
+					await input.started.complete();
+					try {
+						await input.finished.p;
+					} catch (error) {
+						if (!token.isCancellationRequested || !(error instanceof CancellationError)) {
+							throw error;
+						}
+					}
+				}
+			}
+
+			const instantiationService = workbenchInstantiationService(undefined, disposables);
+			const part = await createEditorPart(instantiationService, disposables);
+			instantiationService.stub(IEditorGroupsService, part);
+			const group = part.activeGroup as EditorGroupView;
+			const descriptor = EditorPaneDescriptor.create(PendingEditor, 'pendingEditor', 'Pending Editor');
+			disposables.add(editorRegistry.registerEditorPane(descriptor, [new SyncDescriptor(PendingEditorInput)]));
+
+			const failed: EditorInput[] = [];
+			const activated: EditorInput[] = [];
+			disposables.add(group.onDidOpenEditorFail(editor => failed.push(editor)));
+			disposables.add(group.onDidActiveEditorChange(({ editor }) => { if (editor) { activated.push(editor); } }));
+			const input = disposables.add(new PendingEditorInput());
+			const opening = group.openEditor(input);
+			await input.started.p;
+			const matchingOpen = withMatchingOpen ? group.openEditor(input) : undefined;
+			assert.strictEqual(await group.closeEditor(input), true);
+			await input.finished.error(new CancellationError());
+
+			assert.deepStrictEqual({
+				opened: (await opening) !== undefined,
+				matchingOpened: (await matchingOpen) !== undefined,
+				hasActivePane: group.activeEditorPane !== undefined,
+				hasActiveEditor: group.activeEditor !== null,
+				openCalls,
+				focusCalls,
+				failures: failed.length,
+				activations: activated.length,
+			}, { opened: false, matchingOpened: false, hasActivePane: false, hasActiveEditor: false, openCalls: 1, focusCalls: 0, failures: 0, activations: 0 });
+		});
+	}
 
 	test('WorkspaceTrustRequiredEditor', async function () {
 

@@ -465,11 +465,11 @@ export class EditorPanes extends Disposable {
 			this.mapEditorPaneToPendingSetInput.set(editorPane, pendingSetInput);
 			await pendingSetInput;
 
-			if (!operation.isCurrent()) {
+			if (operation.token.isCancellationRequested || !operation.isCurrent()) {
 				cancelled = true;
 			}
 		} catch (error) {
-			if (!operation.isCurrent()) {
+			if (operation.token.isCancellationRequested || !operation.isCurrent()) {
 				cancelled = true;
 			} else {
 				throw error;

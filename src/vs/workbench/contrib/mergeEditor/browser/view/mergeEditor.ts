@@ -8,7 +8,7 @@ import { Grid, GridNodeDescriptor, IView, SerializableGrid } from '../../../../.
 import { Orientation } from '../../../../../base/browser/ui/splitview/splitview.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Color } from '../../../../../base/common/color.js';
-import { BugIndicatingError, onUnexpectedError } from '../../../../../base/common/errors.js';
+import { BugIndicatingError, isCancellationError, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable, thenIfNotDisposed, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { autorun, autorunWithStore, IObservable, IReader, observableValue, transaction } from '../../../../../base/common/observable.js';
@@ -214,7 +214,15 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 		}
 
 		this.clearSession();
-		const inputModel = await input.resolve();
+		let inputModel: IMergeEditorInputModel;
+		try {
+			inputModel = await input.resolve();
+		} catch (error) {
+			if (isCancellationError(error) && (token.isCancellationRequested || input.isDisposed())) {
+				return;
+			}
+			throw error;
+		}
 		if (token.isCancellationRequested || input.isDisposed()) {
 			return;
 		}

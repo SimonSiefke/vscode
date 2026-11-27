@@ -13,6 +13,7 @@ import { constObservable } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { ConfirmResult } from '../../../../../platform/dialogs/common/dialogs.js';
 import { IResourceEditorInput, ITextResourceEditorInput } from '../../../../../platform/editor/common/editor.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { DEFAULT_EDITOR_ASSOCIATION, IResourceDiffEditorInput, IResourceMergeEditorInput, IResourceSideBySideEditorInput, isEditorInput, isResourceDiffEditorInput, isResourceEditorInput, isResourceMergeEditorInput, isResourceSideBySideEditorInput, isUntitledResourceEditorInput, IUntitledTextResourceEditorInput } from '../../../../common/editor.js';
@@ -215,6 +216,61 @@ suite('EditorInput', () => {
 
 			await assert.rejects(resolving, CancellationError);
 			assert.strictEqual(disposeCount, 1);
+			await assert.rejects(input.resolve(), CancellationError);
+			assert.strictEqual(createInputModel.callCount, 1);
+		} finally {
+			createInputModel.restore();
+		}
+	});
+
+	test('MergeEditorInput confirms close using only models that are still open', async () => {
+		const createInput = (path: string) => {
+			const resource = URI.from({ scheme: 'random', path });
+			const data = new MergeEditorInputData(resource, undefined, undefined, undefined);
+			return disposables.add(instantiationService.createInstance(MergeEditorInput, resource, data, data, resource));
+		};
+		const first = createInput('/first');
+		const second = createInput('/second');
+		const confirmations: IMergeEditorInputModel[][] = [];
+		class InputModel extends mock<IMergeEditorInputModel>() {
+			override readonly isDirty = constObservable(true);
+			override readonly model = new class extends mock<MergeEditorModel>() {
+				override readonly onInitialized = Promise.resolve();
+			};
+			disposeCount = 0;
+			override shouldConfirmClose() { return true; }
+			override async confirmClose(models: IMergeEditorInputModel[]) {
+				confirmations.push(models);
+				return ConfirmResult.CANCEL;
+			}
+			override dispose() { this.disposeCount++; }
+		}
+		const firstModel = new InputModel();
+		const secondModel = new InputModel();
+		const createInputModel = stub(WorkspaceMergeEditorModeFactory.prototype, 'createInputModel');
+		createInputModel.onFirstCall().resolves(firstModel);
+		createInputModel.onSecondCall().resolves(secondModel);
+		try {
+			await first.resolve();
+			await second.resolve();
+			assert.strictEqual(first.closeHandler.showConfirm(), true);
+			assert.strictEqual(first.isDirty(), true);
+			first.dispose();
+			assert.strictEqual(first.closeHandler.showConfirm(), false);
+			assert.strictEqual(first.isDirty(), false);
+			assert.strictEqual(firstModel.disposeCount, 1);
+			await assert.rejects(first.resolve(), CancellationError);
+			assert.strictEqual(createInputModel.callCount, 2);
+
+			const editors = [{ editor: first, groupId: 1 }, { editor: second, groupId: 2 }];
+			assert.strictEqual(await first.closeHandler.confirm(editors), ConfirmResult.CANCEL);
+			assert.strictEqual(confirmations.length, 1);
+			assert.strictEqual(confirmations[0].length, 1);
+			assert.ok(confirmations[0][0] === secondModel);
+
+			second.dispose();
+			assert.strictEqual(await first.closeHandler.confirm(editors), ConfirmResult.DONT_SAVE);
+			assert.strictEqual(confirmations.length, 1);
 		} finally {
 			createInputModel.restore();
 		}

@@ -12,6 +12,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { ITextResourceConfigurationService } from '../../../../editor/common/services/textResourceConfiguration.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { ConfirmResult } from '../../../../platform/dialogs/common/dialogs.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ILabelService } from '../../../../platform/label/common/label.js';
@@ -73,7 +74,7 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 			confirm: async (editors) => {
 				assertFn(() => editors.every(e => e.editor instanceof MergeEditorInput));
 				const inputModels = editors.map(e => (e.editor as MergeEditorInput)._inputModel).filter(isDefined);
-				return await this._inputModel!.confirmClose(inputModels);
+				return inputModels.length ? inputModels[0].confirmClose(inputModels) : ConfirmResult.DONT_SAVE;
 			},
 		};
 		this.mergeEditorModeFactory = this._instaService.createInstance(
