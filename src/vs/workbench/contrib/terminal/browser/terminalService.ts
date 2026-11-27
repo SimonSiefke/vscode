@@ -7,7 +7,7 @@ import * as domStylesheets from '../../../../base/browser/domStylesheets.js';
 import * as cssValue from '../../../../base/browser/cssValue.js';
 import { DeferredPromise, disposableTimeout, timeout, type MaybePromise } from '../../../../base/common/async.js';
 import { debounce, memoize } from '../../../../base/common/decorators.js';
-import { DynamicListEventMultiplexer, Emitter, Event, IDynamicListEventMultiplexer } from '../../../../base/common/event.js';
+import { DynamicListEventMultiplexer, Emitter, Event, IDynamicListEventMultiplexer, PauseableEmitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { isMacintosh, isWeb } from '../../../../base/common/platform.js';
@@ -152,7 +152,7 @@ export class TerminalService extends Disposable implements ITerminalService {
 	get onDidDisposeInstance(): Event<ITerminalInstance> { return this._onDidDisposeInstance.event; }
 	private readonly _onDidFocusInstance = this._register(new Emitter<ITerminalInstance>());
 	get onDidFocusInstance(): Event<ITerminalInstance> { return this._onDidFocusInstance.event; }
-	private readonly _onDidChangeActiveInstance = this._register(new Emitter<ITerminalInstance | undefined>());
+	private readonly _onDidChangeActiveInstance = this._register(new PauseableEmitter<ITerminalInstance | undefined>({ merge: events => events.at(-1) }));
 	get onDidChangeActiveInstance(): Event<ITerminalInstance | undefined> { return this._onDidChangeActiveInstance.event; }
 	private readonly _onDidChangeInstances = this._register(new Emitter<void>());
 	get onDidChangeInstances(): Event<void> { return this._onDidChangeInstances.event; }
@@ -833,25 +833,26 @@ export class TerminalService extends Disposable implements ITerminalService {
 			return;
 		}
 
-		this._terminalEditorService.detachInstance(source);
-
 		if (source.target !== TerminalLocation.Editor) {
+			this._terminalEditorService.detachInstance(source);
 			await this._terminalGroupService.showPanel(true);
 			return;
 		}
-		source.target = TerminalLocation.Panel;
 
-		let group: ITerminalGroup | undefined;
-		if (target) {
-			group = this._terminalGroupService.getGroupForInstance(target);
+		let group: ITerminalGroup;
+		// The editor host clears its selection during detach. Publish the workbench
+		// selection only after the panel host takes over the same terminal.
+		this._onDidChangeActiveInstance.pause();
+		try {
+			this._terminalEditorService.detachInstance(source);
+			source.target = TerminalLocation.Panel;
+			group = (target && this._terminalGroupService.getGroupForInstance(target)) ?? this._terminalGroupService.createGroup();
+			group.addInstance(source);
+			this.setActiveInstance(source);
+		} finally {
+			this._onDidChangeActiveInstance.resume();
 		}
 
-		if (!group) {
-			group = this._terminalGroupService.createGroup();
-		}
-
-		group.addInstance(source);
-		this.setActiveInstance(source);
 		await this._terminalGroupService.showPanel(true);
 
 		if (target && side) {

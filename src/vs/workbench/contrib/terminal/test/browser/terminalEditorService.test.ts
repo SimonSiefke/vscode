@@ -8,6 +8,7 @@ import { mainWindow } from '../../../../../base/browser/window.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../base/common/network.js';
+import { hasKey } from '../../../../../base/common/types.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -17,6 +18,7 @@ import { ContextKeyService } from '../../../../../platform/contextkey/browser/co
 import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
+import { TerminalLocation } from '../../../../../platform/terminal/common/terminal.js';
 import { AuxiliaryEditorPartImpl } from '../../../../browser/parts/editor/auxiliaryEditorPart.js';
 import { EditorCloseContext, IEditorCloseEvent } from '../../../../common/editor.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
@@ -24,7 +26,7 @@ import { EditorService } from '../../../../services/editor/browser/editorService
 import { GroupDirection, IEditorGroup, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { createEditorParts, registerTestEditor, TestEditorParts, TestFileEditorInput, TestTerminalGroupService, TestTerminalInstanceService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { ITerminalEditorService, ITerminalGroupService, ITerminalInstance, ITerminalInstanceService, ITerminalService } from '../../browser/terminal.js';
+import { ITerminalEditorService, ITerminalGroup, ITerminalGroupService, ITerminalInstance, ITerminalInstanceService, ITerminalService } from '../../browser/terminal.js';
 import { TerminalEditorInput } from '../../browser/terminalEditorInput.js';
 import { TerminalEditorService } from '../../browser/terminalEditorService.js';
 import { TerminalService } from '../../browser/terminalService.js';
@@ -36,13 +38,14 @@ suite('Workbench - TerminalEditorService', () => {
 	let onDidActiveEditorChange: Emitter<void>;
 	let onDidCloseEditor: Emitter<IEditorCloseEvent>;
 	let activeEditor: EditorInput | undefined;
+	let instantiationService: TestInstantiationService;
 
 	setup(() => {
 		onDidActiveEditorChange = store.add(new Emitter<void>());
 		onDidCloseEditor = store.add(new Emitter<IEditorCloseEvent>());
 		activeEditor = undefined;
 
-		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IEditorService, upcastPartial<IEditorService>({
 			onDidActiveEditorChange: onDidActiveEditorChange.event,
 			onDidVisibleEditorsChange: Event.None,
@@ -56,11 +59,13 @@ suite('Workbench - TerminalEditorService', () => {
 		terminalEditorService = store.add(instantiationService.createInstance(TerminalEditorService));
 	});
 
-	function createEditorTerminal(instanceId: number): EditorInput {
+	function createEditorTerminal(instanceId: number): TerminalEditorInput {
 		const resource = URI.from({ scheme: Schemas.vscodeTerminal, path: `/${instanceId}` });
 		const instance = upcastPartial<ITerminalInstance>({
 			instanceId,
 			resource,
+			target: TerminalLocation.Editor,
+			shellLaunchConfig: {},
 			waitOnExit: undefined,
 			onDidFocus: Event.None,
 			onDidBlur: Event.None,
@@ -70,6 +75,9 @@ suite('Workbench - TerminalEditorService', () => {
 			onIconChanged: Event.None,
 			statusList: upcastPartial<ITerminalInstance['statusList']>({ onDidChangePrimaryStatus: Event.None }),
 			capabilities: upcastPartial<ITerminalInstance['capabilities']>({ onDidChangeCapabilities: Event.None }),
+			detachFromElement: () => { },
+			setParentContextKeyService: () => { },
+			resetFocusContextKey: () => { },
 			dispose: () => { },
 		});
 		terminalEditorService.resolveResource(instance);
@@ -113,6 +121,77 @@ suite('Workbench - TerminalEditorService', () => {
 		deepStrictEqual(selectionsOnListChange, [undefined]);
 		deepStrictEqual(activeChanges, [undefined]);
 	});
+
+	for (const panelHasTerminal of [false, true]) {
+		test(`preserves workbench selection when moving the active editor terminal to an ${panelHasTerminal ? 'occupied' : 'empty'} panel`, async () => {
+			const onDidChangePanelSelection = store.add(new Emitter<ITerminalInstance | undefined>());
+			const panel = new TestTerminalGroupService();
+			panel.onDidChangeActiveInstance = onDidChangePanelSelection.event;
+			const panelGroup = upcastPartial<ITerminalGroup>({
+				addInstance: instance => {
+					if (!hasKey(instance, { instanceId: true })) {
+						throw new Error('Expected an existing terminal instance');
+					}
+					panel.instances = [...panel.instances, instance];
+				},
+			});
+			instantiationService.stub(ITerminalEditorService, terminalEditorService);
+			instantiationService.stub(ITerminalGroupService, panel);
+			instantiationService.stub(ITerminalGroupService, 'showPanel', Promise.resolve());
+			instantiationService.stub(ITerminalGroupService, 'createGroup', panelGroup);
+			instantiationService.stub(ITerminalGroupService, 'setActiveInstance', (instance: ITerminalInstance) => {
+				panel.activeInstance = instance;
+				onDidChangePanelSelection.fire(instance);
+			});
+			instantiationService.stub(ITerminalInstanceService, new TestTerminalInstanceService());
+			instantiationService.stub(ITerminalInstanceService, 'getBackend', undefined);
+			instantiationService.stub(ITerminalInstanceService, 'getRegisteredBackends', []);
+			const terminalService = store.add(instantiationService.createInstance(TerminalService));
+			instantiationService.stub(ITerminalService, terminalService);
+
+			try {
+				const panelInstance = panelHasTerminal ? upcastPartial<ITerminalInstance>({ instanceId: 3 }) : undefined;
+				if (panelInstance) {
+					panel.instances = [panelInstance];
+					panel.setActiveInstance(panelInstance);
+				}
+				const moved = createEditorTerminal(1);
+				const remaining = createEditorTerminal(2);
+				activeEditor = moved;
+				onDidActiveEditorChange.fire();
+				const instance = moved.terminalInstance!;
+				strictEqual(terminalService.activeInstance === instance, true);
+				const activeChanges: (number | undefined)[] = [];
+				store.add(terminalService.onDidChangeActiveInstance(active => activeChanges.push(active?.instanceId)));
+
+				const move = terminalService.moveToTerminalView(instance);
+				strictEqual(terminalEditorService.activeInstance, undefined);
+				strictEqual(panel.activeInstance === instance, true);
+				strictEqual(terminalService.activeInstance === instance, true);
+				deepStrictEqual(activeChanges, [instance.instanceId]);
+				await move;
+
+				activeEditor = undefined;
+				onDidActiveEditorChange.fire();
+				onDidCloseEditor.fire({ editor: remaining, groupId: 1, index: 0, sticky: false, context: EditorCloseContext.UNKNOWN });
+				strictEqual(terminalEditorService.instances.length, 0);
+				if (panelInstance) {
+					panel.instances = [panelInstance];
+					panel.setActiveInstance(panelInstance);
+					strictEqual(terminalService.activeInstance === panelInstance, true);
+				}
+				panel.instances = [];
+				panel.activeInstance = undefined;
+				onDidChangePanelSelection.fire(undefined);
+
+				strictEqual(terminalService.instances.length, 0);
+				strictEqual(terminalService.activeInstance?.instanceId, undefined);
+				deepStrictEqual(activeChanges, panelInstance ? [1, 3, undefined] : [1, undefined]);
+			} finally {
+				terminalService.dispose();
+			}
+		});
+	}
 });
 
 suite('Workbench - TerminalEditorService - editor groups', () => {
@@ -407,50 +486,6 @@ suite('Workbench - TerminalEditorService - editor groups', () => {
 		strictEqual(getSelectedInstanceId(), undefined);
 		deepStrictEqual(selectionsOnListChange, [undefined]);
 		deepStrictEqual(activeChanges, []);
-	});
-
-	test('clears workbench terminal selection after the last terminal moved to the panel closes', async () => {
-		createTerminalEditorService();
-		const onDidChangePanelSelection = store.add(new Emitter<ITerminalInstance | undefined>());
-		const panel = new TestTerminalGroupService();
-		panel.onDidChangeActiveInstance = onDidChangePanelSelection.event;
-		instantiationService.stub(ITerminalEditorService, terminalEditorService);
-		instantiationService.stub(ITerminalGroupService, panel);
-		instantiationService.stub(ITerminalInstanceService, new TestTerminalInstanceService());
-		instantiationService.stub(ITerminalInstanceService, 'getBackend', undefined);
-		instantiationService.stub(ITerminalInstanceService, 'getRegisteredBackends', []);
-		const terminalService = store.add(instantiationService.createInstance(TerminalService));
-		instantiationService.stub(ITerminalService, terminalService);
-		await terminalService.whenConnected;
-
-		const source = parts.activeGroup;
-		const instance = createTerminalInstance(1);
-		const moved = store.add(terminalEditorService.getInputFromResource(terminalEditorService.resolveResource(instance)));
-		await source.openEditor(moved, { pinned: true });
-		const remaining = await openInactiveTerminalEditor(source, createTerminalInstance(2));
-		await source.openEditor(moved, { pinned: true });
-		strictEqual(terminalService.activeInstance === instance, true);
-		const activeChanges: (number | undefined)[] = [];
-		store.add(terminalService.onDidChangeActiveInstance(active => activeChanges.push(active?.instanceId)));
-		const closeListeners = store.add(new DisposableStore());
-		const movedClose = Event.toPromise(Event.filter(source.onDidCloseEditor, event => event.editor === moved), closeListeners);
-
-		terminalEditorService.detachInstance(instance);
-		panel.instances = [instance];
-		panel.activeInstance = instance;
-		onDidChangePanelSelection.fire(instance);
-		await movedClose;
-		await source.closeEditor(remaining);
-		strictEqual(terminalService.activeInstance === instance, true);
-		strictEqual(terminalEditorService.instances.length, 0);
-
-		panel.instances = [];
-		panel.activeInstance = undefined;
-		onDidChangePanelSelection.fire(undefined);
-
-		strictEqual(terminalService.instances.length, 0);
-		strictEqual(terminalService.activeInstance?.instanceId, undefined);
-		deepStrictEqual(activeChanges, [undefined, instance.instanceId, undefined]);
 	});
 
 	for (const outcome of ['moves to the panel', 'exits'] as const) {
