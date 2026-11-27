@@ -74,6 +74,7 @@ export class ResultCodeEditorView extends CodeEditorView {
 			/** @description update remainingConflicts label */
 			const vm = this.viewModel.read(reader);
 			if (!vm) {
+				remainingConflictsActionBar.clear();
 				return;
 			}
 

@@ -4,12 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CompareResult, equals } from '../../../../../base/common/arrays.js';
-import { BugIndicatingError } from '../../../../../base/common/errors.js';
+import { raceCancellationError } from '../../../../../base/common/async.js';
+import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { BugIndicatingError, CancellationError } from '../../../../../base/common/errors.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
+import { Schemas } from '../../../../../base/common/network.js';
 import { autorunHandleChanges, derived, IObservable, IReader, ISettableObservable, ITransaction, keepObserved, observableValue, transaction, waitForState } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { generateUuid } from '../../../../../base/common/uuid.js';
 import { Range } from '../../../../../editor/common/core/range.js';
 import { ILanguageService } from '../../../../../editor/common/languages/language.js';
 import { ITextModel } from '../../../../../editor/common/model.js';
+import { IModelService } from '../../../../../editor/common/services/model.js';
 import { localize } from '../../../../../nls.js';
 import { IResourceUndoRedoElement, IUndoRedoService, UndoRedoElementType, UndoRedoGroup } from '../../../../../platform/undoRedo/common/undoRedo.js';
 import { EditorModel } from '../../../../common/editor/editorModel.js';
@@ -37,6 +43,7 @@ export class MergeEditorModel extends EditorModel {
 	private readonly modifiedBaseRangeResultStates;
 
 	private readonly resultSnapshot;
+	private readonly initializationToken: CancellationToken;
 
 	constructor(
 		readonly base: ITextModel,
@@ -44,12 +51,16 @@ export class MergeEditorModel extends EditorModel {
 		readonly input2: InputData,
 		readonly resultTextModel: ITextModel,
 		private readonly diffComputer: IMergeDiffComputer,
-		private readonly options: { resetResult: boolean },
+		private readonly options: { resetResult: boolean; initializationToken?: CancellationToken },
 		public readonly telemetry: MergeEditorTelemetry,
 		@ILanguageService private readonly languageService: ILanguageService,
 		@IUndoRedoService private readonly undoRedoService: IUndoRedoService,
+		@IModelService private readonly modelService: IModelService,
 	) {
 		super();
+		const initialization = new CancellationTokenSource(options.initializationToken);
+		this.initializationToken = initialization.token;
+		this._register(toDisposable(() => initialization.dispose(true)));
 		this.input1TextModelDiffs = this._register(new TextModelDiffs(this.base, this.input1.textModel, this.diffComputer));
 		this.input2TextModelDiffs = this._register(new TextModelDiffs(this.base, this.input2.textModel, this.diffComputer));
 		this.resultTextModelDiffs = this._register(new TextModelDiffs(this.base, this.resultTextModel, this.diffComputer));
@@ -150,13 +161,14 @@ export class MergeEditorModel extends EditorModel {
 		this._register(keepObserved(this.input1ResultMapping));
 		this._register(keepObserved(this.input2ResultMapping));
 
-		const initializePromise = this.initialize();
-
-		this.onInitialized = waitForState(this.diffComputingState, state => state === MergeEditorModelState.upToDate).then(async () => {
-			await initializePromise;
-		});
-
-		initializePromise.then(() => {
+		const diffs = [this.input1TextModelDiffs, this.input2TextModelDiffs, this.resultTextModelDiffs];
+		this.onInitialized = this.initialize(diffs).then(() => {
+			if (this.initializationToken.isCancellationRequested) {
+				throw new CancellationError();
+			}
+			for (const diff of diffs) {
+				diff.reportFutureErrors();
+			}
 			let shouldRecomputeHandledFromAccepted = true;
 			this._register(
 				autorunHandleChanges(
@@ -202,48 +214,124 @@ export class MergeEditorModel extends EditorModel {
 		});
 	}
 
-	private async initialize(): Promise<void> {
+	private async waitForDiffs(state: IObservable<MergeEditorModelState>, diffs: readonly TextModelDiffs[]): Promise<void> {
+		const readiness = derived(reader => {
+			const status = state.read(reader);
+			const error = diffs.map(diff => diff.computationError.read(reader)).find(error => error !== undefined);
+			return { status, error };
+		});
+		await waitForState(readiness, value => value.status === MergeEditorModelState.upToDate, value => value.error, this.initializationToken);
+	}
+
+	private async initialize(diffs: readonly TextModelDiffs[]): Promise<void> {
 		if (this.options.resetResult) {
-			await this.reset();
+			await this.initializeResult(diffs);
+		}
+		await this.waitForDiffs(this.diffComputingState, diffs);
+	}
+
+	private async initializeResult(diffs: readonly TextModelDiffs[]): Promise<void> {
+		const resultVersion = this.resultTextModel.getVersionId();
+		const inputs = [this.base, this.input1.textModel, this.input2.textModel];
+		const ensurePreparationIsActive = () => {
+			if (this.initializationToken.isCancellationRequested || this.resultTextModel.isDisposed()
+				|| this.resultTextModel.getVersionId() !== resultVersion || inputs.some(input => input.isDisposed())) {
+				throw new CancellationError();
+			}
+		};
+		while (true) {
+			await this.waitForDiffs(this.inputDiffComputingState, [this.input1TextModelDiffs, this.input2TextModelDiffs]);
+			ensurePreparationIsActive();
+			if (this.inputDiffComputingState.get() !== MergeEditorModelState.upToDate) {
+				continue;
+			}
+
+			const inputVersions = inputs.map(input => input.getVersionId());
+			const generations = diffs.map(diff => diff.computationGeneration);
+			const sourcesAreCurrent = () => inputs.every((input, index) => input.getVersionId() === inputVersions[index])
+				&& diffs.every((diff, index) => diff.computationGeneration === generations[index]);
+			transaction(tx => this.resetConflictStates(tx));
+			const text = this.computeAutoMergedResult();
+
+			let preparedDiffs: DetailedLineRangeMapping[] | null;
+			try {
+				preparedDiffs = await this.computePreparedDiffs(text);
+			} catch (error) {
+				ensurePreparationIsActive();
+				if (!sourcesAreCurrent()) {
+					continue;
+				}
+				throw error;
+			}
+
+			ensurePreparationIsActive();
+			if (!sourcesAreCurrent()) {
+				continue;
+			}
+			if (!preparedDiffs) {
+				throw new CancellationError();
+			}
+			transaction(tx => this.resultTextModelDiffs.applyPreparedReset(text, preparedDiffs, tx));
+			return;
+		}
+	}
+
+	private async computePreparedDiffs(text: string): Promise<DetailedLineRangeMapping[] | null> {
+		// These calculations are internal to the editor worker. Use a distinct
+		// resource so the simple-widget option has its own model cache entry.
+		const resource = URI.from({ scheme: Schemas.inMemory, path: `/merge-editor/${generateUuid()}` });
+		const language = this.languageService.createById(this.resultTextModel.getLanguageId());
+		const prepared = this.modelService.createModel('', language, resource, true);
+		try {
+			// Insert text as an edit so a leading U+FEFF is content, as it is
+			// when the same edit is applied to the live result.
+			prepared.setEOL(this.resultTextModel.getEndOfLineSequence());
+			prepared.applyEdits([{ range: prepared.getFullModelRange(), text }]);
+			const computing = derived(reader => this.diffComputer.computeDiff(this.base, prepared, reader)).get();
+			const { diffs } = await raceCancellationError(computing, this.initializationToken);
+			return diffs;
+		} finally {
+			prepared.dispose();
 		}
 	}
 
 	public async reset(): Promise<void> {
 		await waitForState(this.inputDiffComputingState, state => state === MergeEditorModelState.upToDate);
-		const states = this.modifiedBaseRangeResultStates.get();
-
 		transaction(tx => {
-			/** @description Set initial state */
-
-			for (const [range, state] of states) {
-				let newState: ModifiedBaseRangeState;
-				let handled = false;
-				if (range.input1Diffs.length === 0) {
-					newState = ModifiedBaseRangeState.base.withInputValue(2, true);
-					handled = true;
-				} else if (range.input2Diffs.length === 0) {
-					newState = ModifiedBaseRangeState.base.withInputValue(1, true);
-					handled = true;
-				} else if (range.isEqualChange) {
-					newState = ModifiedBaseRangeState.base.withInputValue(1, true);
-					handled = true;
-				} else {
-					newState = ModifiedBaseRangeState.base;
-					handled = false;
-				}
-
-				state.accepted.set(newState, tx);
-				state.computedFromDiffing = false;
-				state.previousNonDiffingState = undefined;
-				state.handledInput1.set(handled, tx);
-				state.handledInput2.set(handled, tx);
-			}
-
+			/** @description Reset result */
+			this.resetConflictStates(tx);
 			this.resultTextModel.pushEditOperations(null, [{
 				range: new Range(1, 1, Number.MAX_SAFE_INTEGER, 1),
 				text: this.computeAutoMergedResult()
 			}], () => null);
 		});
+	}
+
+	private resetConflictStates(tx: ITransaction): void {
+		const states = this.modifiedBaseRangeResultStates.get();
+		for (const [range, state] of states) {
+			let newState: ModifiedBaseRangeState;
+			let handled = false;
+			if (range.input1Diffs.length === 0) {
+				newState = ModifiedBaseRangeState.base.withInputValue(2, true);
+				handled = true;
+			} else if (range.input2Diffs.length === 0) {
+				newState = ModifiedBaseRangeState.base.withInputValue(1, true);
+				handled = true;
+			} else if (range.isEqualChange) {
+				newState = ModifiedBaseRangeState.base.withInputValue(1, true);
+				handled = true;
+			} else {
+				newState = ModifiedBaseRangeState.base;
+				handled = false;
+			}
+
+			state.accepted.set(newState, tx);
+			state.computedFromDiffing = false;
+			state.previousNonDiffingState = undefined;
+			state.handledInput1.set(handled, tx);
+			state.handledInput2.set(handled, tx);
+		}
 	}
 
 	private computeAutoMergedResult(): string {
@@ -356,7 +444,7 @@ export class MergeEditorModel extends EditorModel {
 
 	public readonly isUpToDate;
 
-	public readonly onInitialized;
+	public readonly onInitialized: Promise<void>;
 
 	private firstRun;
 	private updateBaseRangeAcceptedState(resultDiffs: DetailedLineRangeMapping[], states: Map<ModifiedBaseRange, ModifiedBaseRangeData>, tx: ITransaction): void {

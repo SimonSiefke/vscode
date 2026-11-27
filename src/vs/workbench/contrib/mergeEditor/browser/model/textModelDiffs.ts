@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { compareBy, numberComparator } from '../../../../../base/common/arrays.js';
-import { BugIndicatingError } from '../../../../../base/common/errors.js';
+import { BugIndicatingError, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ITextModel } from '../../../../../editor/common/model.js';
 import { DetailedLineRangeMapping } from './mapping.js';
@@ -12,19 +12,26 @@ import { LineRangeEdit } from './editing.js';
 import { MergeEditorLineRange } from './lineRange.js';
 import { ReentrancyBarrier } from '../../../../../base/common/controlFlow.js';
 import { IMergeDiffComputer } from './diffComputer.js';
-import { autorun, IObservableWithChange, IReader, ITransaction, observableSignal, observableValue, transaction } from '../../../../../base/common/observable.js';
+import { autorun, IObservable, IObservableWithChange, IReader, ITransaction, observableSignal, observableValue, transaction } from '../../../../../base/common/observable.js';
 import { UndoRedoGroup } from '../../../../../platform/undoRedo/common/undoRedo.js';
 
 export class TextModelDiffs extends Disposable {
 	private _recomputeCount = 0;
 	private readonly _state = observableValue<TextModelDiffState, TextModelDiffChangeReason>(this, TextModelDiffState.initializing);
 	private readonly _diffs = observableValue<DetailedLineRangeMapping[], TextModelDiffChangeReason>(this, []);
+	private readonly _computationError = observableValue<Error | undefined>(this, undefined);
+	readonly computationError: IObservable<Error | undefined> = this._computationError;
 
 	private readonly _barrier = new ReentrancyBarrier();
 	private _isDisposed = false;
+	private _reportErrors = false;
 
 	public get isApplyingChange() {
 		return this._barrier.isOccupied;
+	}
+
+	get computationGeneration(): number {
+		return this._recomputeCount;
 	}
 
 	constructor(
@@ -84,6 +91,7 @@ export class TextModelDiffs extends Disposable {
 
 		transaction(tx => {
 			/** @description Starting Diff Computation. */
+			this._computationError.set(undefined, tx);
 			this._state.set(
 				this._isInitializing ? TextModelDiffState.initializing : TextModelDiffState.updating,
 				tx,
@@ -113,7 +121,32 @@ export class TextModelDiffs extends Disposable {
 				}
 				this._isInitializing = false;
 			});
+		}, error => {
+			if (!this._isDisposed && currentRecomputeIdx === this._recomputeCount) {
+				if (this._reportErrors) {
+					onUnexpectedError(error);
+				} else {
+					this._computationError.set(error instanceof Error ? error : new Error(String(error)), undefined);
+				}
+			}
 		});
+	}
+
+	reportFutureErrors(): void {
+		this._reportErrors = true;
+	}
+
+	applyPreparedReset(text: string, diffs: readonly DetailedLineRangeMapping[], tx: ITransaction): void {
+		// Any computation against the old result is now obsolete. The ranges were
+		// computed against the prepared contents and can refer to the live model.
+		this._recomputeCount++;
+		this._barrier.runExclusivelyOrThrow(() => {
+			this.textModel.pushEditOperations(null, [{ range: this.textModel.getFullModelRange(), text }], () => null);
+		});
+		this._isInitializing = false;
+		this._computationError.set(undefined, tx);
+		this._diffs.set(diffs.map(diff => new DetailedLineRangeMapping(diff.inputRange, this.baseTextModel, diff.outputRange, this.textModel, diff.rangeMappings)), tx, TextModelDiffChangeReason.textChange);
+		this._state.set(TextModelDiffState.upToDate, tx, TextModelDiffChangeReason.textChange);
 	}
 
 	private ensureUpToDate(): void {

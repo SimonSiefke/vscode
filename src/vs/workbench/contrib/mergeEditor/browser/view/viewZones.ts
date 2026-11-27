@@ -5,7 +5,7 @@
 
 import { $ } from '../../../../../base/browser/dom.js';
 import { CompareResult } from '../../../../../base/common/arrays.js';
-import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { IObservable, IReader } from '../../../../../base/common/observable.js';
 import { ICodeEditor, IViewZoneChangeAccessor } from '../../../../../editor/browser/editorBrowser.js';
 import { MergeEditorLineRange } from '../model/lineRange.js';
@@ -16,7 +16,7 @@ import { ActionsSource, ConflictActionsFactory, IContentWidgetAction } from './c
 import { getAlignments } from './lineAlignment.js';
 import { MergeEditorViewModel } from './viewModel.js';
 
-export class ViewZoneComputer {
+export class ViewZoneComputer extends Disposable {
 	private readonly conflictActionsFactoryInput1;
 	private readonly conflictActionsFactoryInput2;
 	private readonly conflictActionsFactoryResult;
@@ -26,9 +26,10 @@ export class ViewZoneComputer {
 		private readonly input2Editor: ICodeEditor,
 		private readonly resultEditor: ICodeEditor,
 	) {
-		this.conflictActionsFactoryInput1 = new ConflictActionsFactory(this.input1Editor);
-		this.conflictActionsFactoryInput2 = new ConflictActionsFactory(this.input2Editor);
-		this.conflictActionsFactoryResult = new ConflictActionsFactory(this.resultEditor);
+		super();
+		this.conflictActionsFactoryInput1 = this._register(new ConflictActionsFactory(this.input1Editor));
+		this.conflictActionsFactoryInput2 = this._register(new ConflictActionsFactory(this.input2Editor));
+		this.conflictActionsFactoryResult = this._register(new ConflictActionsFactory(this.resultEditor));
 	}
 
 	public computeViewZones(

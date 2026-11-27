@@ -16,7 +16,7 @@ import { IEditorPaneRegistry, IEditorPaneDescriptor } from '../../editor.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 import { EditorPane } from './editorPane.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { IEditorProgressService, LongRunningOperation } from '../../../../platform/progress/common/progress.js';
+import { IEditorProgressService, IOperation, LongRunningOperation } from '../../../../platform/progress/common/progress.js';
 import { IEditorGroupView, DEFAULT_EDITOR_MIN_DIMENSIONS, DEFAULT_EDITOR_MAX_DIMENSIONS, IInternalEditorOpenOptions } from './editor.js';
 import { assertReturnsDefined } from '../../../../base/common/types.js';
 import { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
@@ -63,6 +63,12 @@ export interface IOpenEditorResult {
 	readonly cancelled?: boolean;
 }
 
+interface IPendingSetInput {
+	readonly promise: Promise<void>;
+	readonly operation: IOperation;
+	cancelled: boolean;
+}
+
 export class EditorPanes extends Disposable {
 
 	//#region Events
@@ -84,7 +90,7 @@ export class EditorPanes extends Disposable {
 	get activeEditorPane(): IVisibleEditorPane | null { return this._activeEditorPane as IVisibleEditorPane | null; }
 
 	private readonly editorPanes: EditorPane[] = [];
-	private readonly mapEditorPaneToPendingSetInput = new Map<EditorPane, Promise<void>>();
+	private readonly pendingSetInput = new Map<EditorPane, IPendingSetInput>();
 
 	private readonly activeEditorPaneDisposables = this._register(new DisposableStore());
 
@@ -424,59 +430,53 @@ export class EditorPanes extends Disposable {
 
 	private async doSetInput(editorPane: EditorPane, editor: EditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext): Promise<{ changed: boolean; cancelled: boolean }> {
 
-		// If the input did not change, return early and only
-		// apply the options unless the options instruct us to
-		// force open it even if it is the same
-		let inputMatches = editorPane.input?.matches(editor);
-		if (inputMatches && !options?.forceReload) {
-
-			// We have to await a pending `setInput()` call for this
-			// pane before we can call into `setOptions()`, otherwise
-			// we risk calling when the input is not yet fully applied.
-			if (this.mapEditorPaneToPendingSetInput.has(editorPane)) {
-				await this.mapEditorPaneToPendingSetInput.get(editorPane);
+		const currentInput = editorPane.input;
+		const inputMatches = currentInput?.matches(editor);
+		if (currentInput && inputMatches && !options?.forceReload) {
+			// Wait until the input has been applied before setting options. The open
+			// that started the load records cancellation before stopping progress.
+			const pending = this.pendingSetInput.get(editorPane);
+			const isCancelled = () => editor.isDisposed() || currentInput.isDisposed() || editorPane.input !== currentInput
+				|| (pending && (pending.cancelled || !pending.operation.isCurrent()));
+			if (pending) {
+				try {
+					await pending.promise;
+				} catch (error) {
+					if (!isCancelled()) {
+						throw error;
+					}
+				}
 			}
 
-			// At this point, the input might have changed, so we check again
-			inputMatches = editorPane.input?.matches(editor);
-			if (inputMatches) {
-				editorPane.setOptions(options);
+			if (isCancelled()) {
+				return { changed: false, cancelled: true };
 			}
-
-			return { changed: false, cancelled: !inputMatches };
+			editorPane.setOptions(options);
+			return { changed: false, cancelled: false };
 		}
 
-		// Start a new editor input operation to report progress
-		// and to support cancellation. Any new operation that is
-		// started will cancel the previous one.
 		const operation = this.editorOperation.start(this.layoutService.isRestored() ? 800 : 3200);
-
+		const isCancelled = () => editor.isDisposed() || operation.token.isCancellationRequested || !operation.isCurrent();
+		let pending: IPendingSetInput | undefined;
 		let cancelled = false;
 		try {
-
-			// Clear the current input before setting new input
-			// This ensures that a slow loading input will not
-			// be visible for the duration of the new input to
-			// load (https://github.com/microsoft/vscode/issues/34697)
+			// The prior input should not stay visible while its replacement loads.
 			editorPane.clearInput();
-
-			// Set the input to the editor pane and keep track of it
-			const pendingSetInput = editorPane.setInput(editor, options, context, operation.token);
-			this.mapEditorPaneToPendingSetInput.set(editorPane, pendingSetInput);
-			await pendingSetInput;
-
-			if (!operation.isCurrent()) {
-				cancelled = true;
-			}
+			pending = { promise: editorPane.setInput(editor, options, context, operation.token), operation, cancelled: false };
+			this.pendingSetInput.set(editorPane, pending);
+			await pending.promise;
+			cancelled = isCancelled();
 		} catch (error) {
-			if (!operation.isCurrent()) {
-				cancelled = true;
-			} else {
+			cancelled = isCancelled();
+			if (!cancelled) {
 				throw error;
 			}
 		} finally {
-			if (operation.isCurrent()) {
-				this.mapEditorPaneToPendingSetInput.delete(editorPane);
+			if (pending) {
+				pending.cancelled = cancelled;
+				if (this.pendingSetInput.get(editorPane) === pending) {
+					this.pendingSetInput.delete(editorPane);
+				}
 			}
 			operation.stop();
 		}
@@ -499,7 +499,7 @@ export class EditorPanes extends Disposable {
 		this.safeRun(() => this._activeEditorPane?.setVisible(false));
 
 		// Clear any pending setInput promise
-		this.mapEditorPaneToPendingSetInput.delete(this._activeEditorPane);
+		this.pendingSetInput.delete(this._activeEditorPane);
 
 		// Remove editor pane from parent
 		const editorPaneContainer = this._activeEditorPane.getContainer();

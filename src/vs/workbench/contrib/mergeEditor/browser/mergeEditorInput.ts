@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { assertFn } from '../../../../base/common/assert.js';
+import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { CancellationError } from '../../../../base/common/errors.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { isDefined } from '../../../../base/common/types.js';
@@ -11,6 +13,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { ITextResourceConfigurationService } from '../../../../editor/common/services/textResourceConfiguration.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { ConfirmResult } from '../../../../platform/dialogs/common/dialogs.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ILabelService } from '../../../../platform/label/common/label.js';
@@ -40,6 +43,8 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 	static readonly ID = 'mergeEditor.Input';
 
 	private _inputModel?: IMergeEditorInputModel;
+	private _pendingModel?: Promise<IMergeEditorInputModel>;
+	private readonly _modelLoadCancellation = this._register(new CancellationTokenSource());
 
 	private _focusedEditor: MergeEditorType;
 
@@ -72,7 +77,7 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 			confirm: async (editors) => {
 				assertFn(() => editors.every(e => e.editor instanceof MergeEditorInput));
 				const inputModels = editors.map(e => (e.editor as MergeEditorInput)._inputModel).filter(isDefined);
-				return await this._inputModel!.confirmClose(inputModels);
+				return inputModels.length ? inputModels[0].confirmClose(inputModels) : ConfirmResult.DONT_SAVE;
 			},
 		};
 		this.mergeEditorModeFactory = this._instaService.createInstance(
@@ -84,7 +89,10 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 	}
 
 	override dispose(): void {
+		this._modelLoadCancellation.cancel();
 		super.dispose();
+		this._inputModel = undefined;
+		this._pendingModel = undefined;
 	}
 
 	override get typeId(): string {
@@ -110,25 +118,43 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 	private readonly mergeEditorModeFactory;
 
 	override async resolve(): Promise<IMergeEditorInputModel> {
-		if (!this._inputModel) {
-			const inputModel = this._register(await this.mergeEditorModeFactory.createInputModel({
-				base: this.base,
-				input1: this.input1,
-				input2: this.input2,
-				result: this.result,
-			}));
-			this._inputModel = inputModel;
-
-			this._register(autorun(reader => {
-				/** @description fire dirty event */
-				inputModel.isDirty.read(reader);
-				this._onDidChangeDirty.fire();
-			}));
-
-			await this._inputModel.model.onInitialized;
+		if (this.isDisposed()) {
+			throw new CancellationError();
+		}
+		if (this._inputModel) {
+			return this._inputModel;
 		}
 
-		return this._inputModel;
+		const pendingModel = this._pendingModel ??= this.createInputModel();
+		try {
+			return await pendingModel;
+		} finally {
+			if (this._pendingModel === pendingModel) {
+				this._pendingModel = undefined;
+			}
+		}
+	}
+
+	private async createInputModel(): Promise<IMergeEditorInputModel> {
+		const token = this._modelLoadCancellation.token;
+		const inputModel = await this.mergeEditorModeFactory.createInputModel({
+			base: this.base,
+			input1: this.input1,
+			input2: this.input2,
+			result: this.result,
+		}, token);
+		if (token.isCancellationRequested || this.isDisposed()) {
+			inputModel.dispose();
+			throw new CancellationError();
+		}
+
+		this._inputModel = this._register(inputModel);
+		this._register(autorun(reader => {
+			/** @description fire dirty event */
+			inputModel.isDirty.read(reader);
+			this._onDidChangeDirty.fire();
+		}));
+		return inputModel;
 	}
 
 	public async accept(): Promise<void> {

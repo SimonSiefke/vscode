@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, h, isInShadowDOM, reset } from '../../../../../base/browser/dom.js';
+import { $, h, reset } from '../../../../../base/browser/dom.js';
 import { createStyleSheet } from '../../../../../base/browser/domStylesheets.js';
 import { renderLabelWithIcons } from '../../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { hash } from '../../../../../base/common/hash.js';
@@ -31,11 +31,7 @@ export class ConflictActionsFactory extends Disposable {
 		}));
 
 		this._styleClassName = '_conflictActionsFactory_' + hash(this._editor.getId()).toString(16);
-		this._styleElement = createStyleSheet(
-			isInShadowDOM(this._editor.getContainerDomNode())
-				? this._editor.getContainerDomNode()
-				: undefined, undefined, this._store
-		);
+		this._styleElement = createStyleSheet(this._editor.getContainerDomNode(), undefined, this._store);
 
 		this._updateLensStyle();
 	}

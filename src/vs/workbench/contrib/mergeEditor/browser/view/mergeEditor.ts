@@ -8,7 +8,7 @@ import { Grid, GridNodeDescriptor, IView, SerializableGrid } from '../../../../.
 import { Orientation } from '../../../../../base/browser/ui/splitview/splitview.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Color } from '../../../../../base/common/color.js';
-import { BugIndicatingError, onUnexpectedError } from '../../../../../base/common/errors.js';
+import { BugIndicatingError, isCancellationError, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable, thenIfNotDisposed, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { autorun, autorunWithStore, IObservable, IReader, observableValue, transaction } from '../../../../../base/common/observable.js';
@@ -124,11 +124,11 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 		this._ctxBaseUri = ctxMergeBaseUri.bindTo(this.contextKeyService);
 		this._ctxShowNonConflictingChanges = ctxMergeEditorShowNonConflictingChanges.bindTo(this.contextKeyService);
 		this._inputModel = observableValue<IMergeEditorInputModel | undefined>(this, undefined);
-		this.viewZoneComputer = new ViewZoneComputer(
+		this.viewZoneComputer = this._register(new ViewZoneComputer(
 			this.input1View.editor,
 			this.input2View.editor,
 			this.inputResultView.editor,
-		);
+		));
 		this.scrollSynchronizer = this._register(new ScrollSynchronizer(this._viewModel, this.input1View, this.input2View, this.baseView, this.inputResultView, this._layoutModeObs));
 		this._onDidChangeSizeConstraints = this._register(new Emitter<void>());
 		this.onDidChangeSizeConstraints = this._onDidChangeSizeConstraints.event;
@@ -138,6 +138,7 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 	}
 
 	override dispose(): void {
+		this.clearSession();
 		this._sessionDisposables.dispose();
 		this._ctxIsMergeEditor.reset();
 		this._ctxUsesColumnLayout.reset();
@@ -209,13 +210,24 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 		}
 		await super.setInput(input, options, context, token);
 
-		this._sessionDisposables.clear();
-		transaction(tx => {
-			this._viewModel.set(undefined, tx);
-			this._inputModel.set(undefined, tx);
-		});
+		if (token.isCancellationRequested) {
+			return;
+		}
 
-		const inputModel = await input.resolve();
+		this.clearSession();
+		let inputModel: IMergeEditorInputModel;
+		try {
+			inputModel = await input.resolve();
+		} catch (error) {
+			if (isCancellationError(error) && (token.isCancellationRequested || input.isDisposed())) {
+				return;
+			}
+			throw error;
+		}
+		if (token.isCancellationRequested || input.isDisposed()) {
+			return;
+		}
+
 		const model = inputModel.model;
 
 		const viewModel = this.instantiationService.createInstance(
@@ -483,11 +495,20 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 	override clearInput(): void {
 		super.clearInput();
 
-		this._sessionDisposables.clear();
+		this.clearSession();
 
 		for (const { editor } of [this.input1View, this.input2View, this.inputResultView]) {
 			editor.setModel(null);
 		}
+		this.baseView.get()?.editor.setModel(null);
+	}
+
+	private clearSession(): void {
+		this._sessionDisposables.clear();
+		transaction(tx => {
+			this._viewModel.set(undefined, tx);
+			this._inputModel.set(undefined, tx);
+		});
 	}
 
 	override focus(): void {

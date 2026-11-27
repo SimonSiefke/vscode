@@ -117,6 +117,14 @@ export abstract class CodeEditorView extends Disposable {
 
 	}
 
+	override dispose(): void {
+		try {
+			super.dispose();
+		} finally {
+			this.editor.dispose();
+		}
+	}
+
 	protected getEditorContributions(): IEditorContributionDescription[] {
 		return EditorExtensionsRegistry.getEditorContributions().filter(c => c.id !== FoldingController.ID && c.id !== CodeLensContribution.ID);
 	}

@@ -4,9 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { DeferredPromise } from '../../../../../base/common/async.js';
+import { CancellationError } from '../../../../../base/common/errors.js';
+import { EditorGroupView } from '../../../../browser/parts/editor/editorGroupView.js';
 import { EditorPane, EditorMemento } from '../../../../browser/parts/editor/editorPane.js';
 import { WorkspaceTrustRequiredPlaceholderEditor } from '../../../../browser/parts/editor/editorPlaceholder.js';
-import { IEditorSerializer, IEditorFactoryRegistry, EditorExtensions, EditorInputCapabilities, IEditorDescriptor, IEditorPane } from '../../../../common/editor.js';
+import { IEditorSerializer, IEditorFactoryRegistry, EditorExtensions, EditorInputCapabilities, IEditorDescriptor, IEditorOpenContext, IEditorPane } from '../../../../common/editor.js';
+import { IEditorOptions } from '../../../../../platform/editor/common/editor.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
@@ -454,6 +458,79 @@ suite('EditorPane', () => {
 		res = memento.loadEditorState(testGroup1, resource);
 		assert.ok(!res);
 	});
+
+	for (const { name, close, withMatchingOpen, error, reportsFailure } of [
+		{ name: 'closing the last editor cancels a pending open', close: 'close', withMatchingOpen: false, error: new CancellationError(), reportsFailure: false },
+		{ name: 'closing the last editor cancels its matching pending open', close: 'close', withMatchingOpen: true, error: new CancellationError(), reportsFailure: false },
+		{ name: 'closing the last editor suppresses a late error for both pending opens', close: 'close', withMatchingOpen: true, error: new Error('Failed to load input'), reportsFailure: false },
+		{ name: 'disposing the input cancels both pending opens before the scheduled close', close: 'dispose', withMatchingOpen: true, error: new CancellationError(), reportsFailure: false },
+		{ name: 'reports an error from a pending open that is still current', close: undefined, withMatchingOpen: false, error: new Error('Failed to load input'), reportsFailure: true },
+	]) {
+		test(name, async () => {
+			class PendingEditorInput extends EditorInput {
+				readonly resource = URI.file('/pending.txt');
+				readonly started = new DeferredPromise<void>();
+				readonly finished = new DeferredPromise<void>();
+				override get typeId() { return 'pendingEditorInput'; }
+			}
+
+			let focusCalls = 0;
+			let openCalls = 0;
+			class PendingEditor extends TestEditor {
+				override getId() { return 'pendingEditor'; }
+				override focus() { focusCalls++; }
+				override async setInput(input: PendingEditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken) {
+					openCalls++;
+					await super.setInput(input, options, context, token);
+					await input.started.complete();
+					try {
+						await input.finished.p;
+					} catch (error) {
+						if (!(error instanceof CancellationError) || (!token.isCancellationRequested && !input.isDisposed())) {
+							throw error;
+						}
+					}
+				}
+			}
+
+			const instantiationService = workbenchInstantiationService(undefined, disposables);
+			const part = await createEditorPart(instantiationService, disposables);
+			instantiationService.stub(IEditorGroupsService, part);
+			const group = part.activeGroup as EditorGroupView;
+			const descriptor = EditorPaneDescriptor.create(PendingEditor, 'pendingEditor', 'Pending Editor');
+			disposables.add(editorRegistry.registerEditorPane(descriptor, [new SyncDescriptor(PendingEditorInput)]));
+
+			const failed: EditorInput[] = [];
+			const activated: EditorInput[] = [];
+			disposables.add(group.onDidOpenEditorFail(editor => failed.push(editor)));
+			disposables.add(group.onDidActiveEditorChange(({ editor }) => { if (editor) { activated.push(editor); } }));
+			const input = disposables.add(new PendingEditorInput());
+			const opening = group.openEditor(input, reportsFailure ? { ignoreError: true } : undefined);
+			await input.started.p;
+			const matchingOpen = withMatchingOpen ? group.openEditor(input) : undefined;
+			if (close === 'close') {
+				assert.strictEqual(await group.closeEditor(input), true);
+			} else if (close === 'dispose') {
+				input.dispose();
+			}
+			await input.finished.error(error);
+
+			assert.deepStrictEqual({
+				opened: (await opening) !== undefined,
+				matchingOpened: (await matchingOpen) !== undefined,
+				openCalls,
+				focusCalls,
+				failures: failed.length,
+				activations: activated.length,
+			}, { opened: false, matchingOpened: false, openCalls: 1, focusCalls: 0, failures: reportsFailure ? 1 : 0, activations: 0 });
+			if (close === 'dispose') {
+				assert.ok(group.activeEditor === input, 'the disposal close has not run yet');
+				assert.strictEqual(await group.closeEditor(input), true);
+			}
+			assert.strictEqual(group.activeEditorPane, undefined);
+			assert.strictEqual(group.activeEditor, null);
+		});
+	}
 
 	test('WorkspaceTrustRequiredEditor', async function () {
 
