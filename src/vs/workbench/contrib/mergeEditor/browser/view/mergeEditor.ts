@@ -209,13 +209,16 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 		}
 		await super.setInput(input, options, context, token);
 
-		this._sessionDisposables.clear();
-		transaction(tx => {
-			this._viewModel.set(undefined, tx);
-			this._inputModel.set(undefined, tx);
-		});
+		if (token.isCancellationRequested) {
+			return;
+		}
 
+		this.clearSession();
 		const inputModel = await input.resolve();
+		if (token.isCancellationRequested || input.isDisposed()) {
+			return;
+		}
+
 		const model = inputModel.model;
 
 		const viewModel = this.instantiationService.createInstance(
@@ -483,11 +486,20 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 	override clearInput(): void {
 		super.clearInput();
 
-		this._sessionDisposables.clear();
+		this.clearSession();
 
 		for (const { editor } of [this.input1View, this.input2View, this.inputResultView]) {
 			editor.setModel(null);
 		}
+		this.baseView.get()?.editor.setModel(null);
+	}
+
+	private clearSession(): void {
+		this._sessionDisposables.clear();
+		transaction(tx => {
+			this._viewModel.set(undefined, tx);
+			this._inputModel.set(undefined, tx);
+		});
 	}
 
 	override focus(): void {

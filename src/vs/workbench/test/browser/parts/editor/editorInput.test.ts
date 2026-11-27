@@ -4,9 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { stub } from 'sinon';
+import { DeferredPromise } from '../../../../../base/common/async.js';
+import { CancellationError } from '../../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../base/common/network.js';
+import { constObservable } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IResourceEditorInput, ITextResourceEditorInput } from '../../../../../platform/editor/common/editor.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
@@ -16,6 +21,8 @@ import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { TextResourceEditorInput } from '../../../../common/editor/textResourceEditorInput.js';
 import { FileEditorInput } from '../../../../contrib/files/browser/editors/fileEditorInput.js';
 import { MergeEditorInput, MergeEditorInputData } from '../../../../contrib/mergeEditor/browser/mergeEditorInput.js';
+import { IMergeEditorInputModel, WorkspaceMergeEditorModeFactory } from '../../../../contrib/mergeEditor/browser/mergeEditorInputModel.js';
+import { MergeEditorModel } from '../../../../contrib/mergeEditor/browser/model/mergeEditorModel.js';
 import { UntitledTextEditorInput } from '../../../../services/untitled/common/untitledTextEditorInput.js';
 import { TestEditorInput, TestServiceAccessor, workbenchInstantiationService } from '../../workbenchTestServices.js';
 
@@ -186,6 +193,31 @@ suite('EditorInput', () => {
 		assert.ok(mergeEditorInput.matches(untypedResourceMergeEditorInput));
 
 		mergeEditorInput.dispose();
+	});
+
+	test('MergeEditorInput disposes a model resolved after the input closes', async () => {
+		const mergeData = new MergeEditorInputData(testResource, undefined, undefined, undefined);
+		const input = disposables.add(instantiationService.createInstance(MergeEditorInput, testResource, mergeData, mergeData, testResource));
+		const model = new DeferredPromise<IMergeEditorInputModel>();
+		let disposeCount = 0;
+		const inputModel = new class extends mock<IMergeEditorInputModel>() {
+			override readonly isDirty = constObservable(false);
+			override readonly model = new class extends mock<MergeEditorModel>() {
+				override readonly onInitialized = Promise.resolve();
+			};
+			override dispose(): void { disposeCount++; }
+		};
+		const createInputModel = stub(WorkspaceMergeEditorModeFactory.prototype, 'createInputModel').returns(model.p);
+		try {
+			const resolving = input.resolve();
+			input.dispose();
+			await model.complete(inputModel);
+
+			await assert.rejects(resolving, CancellationError);
+			assert.strictEqual(disposeCount, 1);
+		} finally {
+			createInputModel.restore();
+		}
 	});
 
 	test('Untyped inputs properly match UntitledTextEditorInput', () => {

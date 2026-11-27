@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { assertFn } from '../../../../base/common/assert.js';
+import { CancellationError } from '../../../../base/common/errors.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { isDefined } from '../../../../base/common/types.js';
@@ -85,6 +86,7 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 
 	override dispose(): void {
 		super.dispose();
+		this._inputModel = undefined;
 	}
 
 	override get typeId(): string {
@@ -111,21 +113,28 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 
 	override async resolve(): Promise<IMergeEditorInputModel> {
 		if (!this._inputModel) {
-			const inputModel = this._register(await this.mergeEditorModeFactory.createInputModel({
+			if (this.isDisposed()) {
+				throw new CancellationError();
+			}
+
+			const inputModel = await this.mergeEditorModeFactory.createInputModel({
 				base: this.base,
 				input1: this.input1,
 				input2: this.input2,
 				result: this.result,
-			}));
-			this._inputModel = inputModel;
+			});
+			if (this.isDisposed()) {
+				inputModel.dispose();
+				throw new CancellationError();
+			}
+
+			this._inputModel = this._register(inputModel);
 
 			this._register(autorun(reader => {
 				/** @description fire dirty event */
 				inputModel.isDirty.read(reader);
 				this._onDidChangeDirty.fire();
 			}));
-
-			await this._inputModel.model.onInitialized;
 		}
 
 		return this._inputModel;
