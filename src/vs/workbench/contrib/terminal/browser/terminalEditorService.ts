@@ -108,7 +108,7 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 				// An inactive terminal may move without an active editor change.
 				input.setGroup(remainingGroups.find(group => group.activeEditor === input) ?? remainingGroups[0]);
 			}
-			if (e.context === EditorCloseContext.MOVE || remainingGroups.length > 0) {
+			if ((e.context === EditorCloseContext.MOVE && !input.isDisposed()) || remainingGroups.length > 0) {
 				return;
 			}
 			const instanceIndex = this.instances.findIndex(e => e === instance);

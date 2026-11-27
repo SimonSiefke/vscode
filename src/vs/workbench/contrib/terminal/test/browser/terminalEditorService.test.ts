@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual, throws } from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
@@ -184,7 +184,7 @@ suite('Workbench - TerminalEditorService - editor groups', () => {
 				}
 			},
 		};
-		return { instance, rootContext, parents, isDisposed: () => terminalDisposed };
+		return { instance, onDisposed, rootContext, parents, isDisposed: () => terminalDisposed };
 	}
 
 	/** Opens a terminal editor in `group` behind an active file editor, so that it stays inactive. */
@@ -272,6 +272,35 @@ suite('Workbench - TerminalEditorService - editor groups', () => {
 		strictEqual(parents.length, parentCount);
 	});
 
+	test('rebinds to the surviving copy that still displays the terminal', async () => {
+		createTerminalEditorService();
+		const first = parts.activeGroup;
+		const { instance, parents } = createContextTrackedTerminal();
+		const input = store.add(terminalEditorService.getInputFromResource(terminalEditorService.resolveResource(instance)));
+		await first.openEditor(input, { pinned: true });
+		const activeCopy = parts.copyGroup(first, first, GroupDirection.RIGHT);
+		const owner = parts.copyGroup(first, activeCopy, GroupDirection.RIGHT);
+		await first.openEditor(store.add(new TestFileEditorInput(URI.file('/first-survivor'), TEST_EDITOR_ID)), { pinned: true });
+		parts.activateGroup(first);
+		parts.activateGroup(owner);
+		strictEqual(input.group?.id, owner.id);
+		strictEqual(parents.at(-1) === owner.scopedContextKeyService, true);
+		const ownerFile = store.add(new TestFileEditorInput(URI.file('/closing-owner'), TEST_EDITOR_ID));
+		await owner.openEditor(ownerFile, { pinned: true });
+		strictEqual(parts.activeGroup === owner && owner.activeEditor === ownerFile, true);
+		deepStrictEqual(parts.groups.filter(group => group !== owner && group.contains(input, { strictEquals: true }))
+			.map(group => [group.id, group.activeEditor === input]), [[first.id, false], [activeCopy.id, true]]);
+		const parentCount = parents.length;
+
+		await owner.closeEditor(input, { preserveFocus: true });
+
+		strictEqual(owner.contains(input, { strictEquals: true }), false);
+		strictEqual(parts.activeGroup === owner, true);
+		strictEqual(input.group?.id, activeCopy.id);
+		strictEqual(parents.length, parentCount + 1);
+		strictEqual(parents.at(-1) === activeCopy.scopedContextKeyService, true);
+	});
+
 	test('removes a terminal editor once it closes in its last group', async () => {
 		createTerminalEditorService();
 		const group = parts.activeGroup;
@@ -281,6 +310,35 @@ suite('Workbench - TerminalEditorService - editor groups', () => {
 		await group.closeEditor(input);
 
 		deepStrictEqual(terminalEditorService.instances, []);
+	});
+
+	test('releases a disposed terminal when a pending move cannot open it', async () => {
+		createTerminalEditorService();
+		const source = parts.activeGroup;
+		const target = parts.addGroup(source, GroupDirection.RIGHT);
+		const { instance, isDisposed, onDisposed } = createContextTrackedTerminal();
+		const input = store.add(terminalEditorService.getInputFromResource(terminalEditorService.resolveResource(instance)));
+		await source.openEditor(input, { pinned: true });
+		const file = store.add(new TestFileEditorInput(URI.file('/keep-source-open'), TEST_EDITOR_ID));
+		await source.openEditor(file, { pinned: true });
+		strictEqual(input.group?.id, source.id);
+		strictEqual(terminalEditorService.getInputFromResource(instance.resource) === input, true);
+		strictEqual(onDisposed.hasListeners(), true);
+		const closeListeners = store.add(new DisposableStore());
+		const sourceClose = Event.toPromise(Event.filter(source.onDidCloseEditor, event => event.editor === input), closeListeners);
+
+		instance.dispose();
+		strictEqual(isDisposed() && input.isDisposed() && source.contains(input, { strictEquals: true }), true);
+		source.moveEditor(input, target, { inactive: true, preserveFocus: true });
+
+		strictEqual((await sourceClose).context, EditorCloseContext.MOVE);
+		deepStrictEqual({
+			sourceContainsInput: source.contains(input, { strictEquals: true }),
+			targetContainsInput: target.contains(input, { strictEquals: true }),
+			instanceIsManaged: terminalEditorService.getInstanceFromResource(instance.resource) !== undefined,
+			hasSubscriptions: onDisposed.hasListeners(),
+		}, { sourceContainsInput: false, targetContainsInput: false, instanceIsManaged: false, hasSubscriptions: false });
+		throws(() => terminalEditorService.getInputFromResource(instance.resource), /Could not get input from resource/);
 	});
 
 	for (const outcome of ['moves to the panel', 'exits'] as const) {
