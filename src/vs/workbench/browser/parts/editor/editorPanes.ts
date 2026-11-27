@@ -16,7 +16,7 @@ import { IEditorPaneRegistry, IEditorPaneDescriptor } from '../../editor.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 import { EditorPane } from './editorPane.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { IEditorProgressService, LongRunningOperation } from '../../../../platform/progress/common/progress.js';
+import { IEditorProgressService, IOperation, LongRunningOperation } from '../../../../platform/progress/common/progress.js';
 import { IEditorGroupView, DEFAULT_EDITOR_MIN_DIMENSIONS, DEFAULT_EDITOR_MAX_DIMENSIONS, IInternalEditorOpenOptions } from './editor.js';
 import { assertReturnsDefined } from '../../../../base/common/types.js';
 import { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
@@ -84,7 +84,7 @@ export class EditorPanes extends Disposable {
 	get activeEditorPane(): IVisibleEditorPane | null { return this._activeEditorPane as IVisibleEditorPane | null; }
 
 	private readonly editorPanes: EditorPane[] = [];
-	private readonly mapEditorPaneToPendingSetInput = new Map<EditorPane, Promise<void>>();
+	private readonly mapEditorPaneToPendingSetInput = new Map<EditorPane, { promise: Promise<void>; operation: IOperation }>();
 
 	private readonly activeEditorPaneDisposables = this._register(new DisposableStore());
 
@@ -433,8 +433,21 @@ export class EditorPanes extends Disposable {
 			// We have to await a pending `setInput()` call for this
 			// pane before we can call into `setOptions()`, otherwise
 			// we risk calling when the input is not yet fully applied.
-			if (this.mapEditorPaneToPendingSetInput.has(editorPane)) {
-				await this.mapEditorPaneToPendingSetInput.get(editorPane);
+			const pending = this.mapEditorPaneToPendingSetInput.get(editorPane);
+			if (pending) {
+				const isCurrent = () => pending.operation.isCurrent() && this._activeEditorPane === editorPane;
+				try {
+					await pending.promise;
+				} catch (error) {
+					if (isCurrent() && editorPane.input?.matches(editor)) {
+						throw error;
+					}
+				}
+
+				// A forced reload can replace the pending operation while keeping the same input.
+				if (!isCurrent()) {
+					return { changed: false, cancelled: true };
+				}
 			}
 
 			// At this point, the input might have changed, so we check again
@@ -462,7 +475,7 @@ export class EditorPanes extends Disposable {
 
 			// Set the input to the editor pane and keep track of it
 			const pendingSetInput = editorPane.setInput(editor, options, context, operation.token);
-			this.mapEditorPaneToPendingSetInput.set(editorPane, pendingSetInput);
+			this.mapEditorPaneToPendingSetInput.set(editorPane, { promise: pendingSetInput, operation });
 			await pendingSetInput;
 
 			if (!operation.isCurrent()) {
