@@ -62,7 +62,7 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 		this._register(lifecycleService.onWillShutdown(() => this._isShuttingDown = true));
 		this._register(this._editorService.onDidActiveEditorChange(() => {
 			const activeEditor = this._editorService.activeEditor;
-			const instance = activeEditor instanceof TerminalEditorInput ? activeEditor?.terminalInstance : undefined;
+			const instance = activeEditor instanceof TerminalEditorInput && !activeEditor.isDisposed() ? activeEditor.terminalInstance : undefined;
 			const terminalEditorActive = !!instance && activeEditor instanceof TerminalEditorInput;
 			this._terminalEditorActive.set(terminalEditorActive);
 			if (terminalEditorActive) {
@@ -93,7 +93,7 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 
 		// Remove the terminal from the managed instances when the editor closes (e.g. cmd/ctrl+w).
 		// Moving the editor to another group, or its whole group to another window, opens it there
-		// before it closes in the source group, and the terminal stays open, so ignore that.
+		// before it closes in the source group, so keep the terminal managed during the transfer.
 		this._register(this._editorService.onDidCloseEditor(e => {
 			if (!(e.editor instanceof TerminalEditorInput)) {
 				return;

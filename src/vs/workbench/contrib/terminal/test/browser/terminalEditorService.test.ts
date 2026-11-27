@@ -128,6 +128,18 @@ suite('Workbench - TerminalEditorService - editor groups', () => {
 		terminalEditorService = store.add(instantiationService.createInstance(TerminalEditorService));
 	}
 
+	async function createAuxiliaryPart() {
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add(toDisposable(() => container.remove()));
+		const auxiliary = store.add(instantiationService.createInstance(AuxiliaryEditorPartImpl, mainWindow.vscodeWindowId, parts, undefined, 'Auxiliary'));
+		const registration = store.add(parts.registerPart(auxiliary));
+		auxiliary.create(container);
+		auxiliary.layout(1080, 800, 0, 0);
+		await auxiliary.whenReady;
+		return { auxiliary, registration };
+	}
+
 	function createTerminalInstance(instanceId: number): ITerminalInstance {
 		return upcastPartial<ITerminalInstance>({
 			instanceId,
@@ -149,6 +161,30 @@ suite('Workbench - TerminalEditorService - editor groups', () => {
 			focusWhenReady: async () => { },
 			dispose: () => { },
 		});
+	}
+
+	function createContextTrackedTerminal() {
+		const rootContext = instantiationService.get(IContextKeyService);
+		const terminalContext = store.add(rootContext.createScoped(document.createElement('div')));
+		const onDisposed = store.add(new Emitter<ITerminalInstance>());
+		const parents: IContextKeyService[] = [];
+		let terminalDisposed = false;
+		const instance: ITerminalInstance = {
+			...createTerminalInstance(1),
+			onDisposed: onDisposed.event,
+			setParentContextKeyService: parent => {
+				parents.push(parent);
+				terminalContext.updateParent(parent);
+			},
+			dispose: () => {
+				if (!terminalDisposed) {
+					terminalDisposed = true;
+					onDisposed.fire(instance);
+					terminalContext.dispose();
+				}
+			},
+		};
+		return { instance, rootContext, parents, isDisposed: () => terminalDisposed };
 	}
 
 	/** Opens a terminal editor in `group` behind an active file editor, so that it stays inactive. */
@@ -182,20 +218,58 @@ suite('Workbench - TerminalEditorService - editor groups', () => {
 		deepStrictEqual(getState(instance, input), { instances: [1], trackedInput: true, groups: [{ id: target.id, active: true }] });
 	});
 
-	test('keeps an inactive terminal editor tracked and revealable when its group moves away', async () => {
+	test('rebinds an inactive terminal before revealing it after its whole group moves between parts', async () => {
+		const { auxiliary } = await createAuxiliaryPart();
 		createTerminalEditorService();
-		const source = parts.activeGroup;
-		const instance = createTerminalInstance(1);
-		const input = await openInactiveTerminalEditor(source, instance);
+		const source = auxiliary.activeGroup;
+		source.focus();
+		const file = store.add(new TestFileEditorInput(URI.file('/active-in-moved-group'), TEST_EDITOR_ID));
+		const { instance, parents } = createContextTrackedTerminal();
+		const input = store.add(terminalEditorService.getInputFromResource(terminalEditorService.resolveResource(instance)));
+		await source.openEditor(input, { pinned: true });
+		await source.openEditor(file, { pinned: true });
+		strictEqual(source.activeEditor === file, true);
+		strictEqual(input.group?.id, source.id);
+		strictEqual(parents.at(-1) === source.scopedContextKeyService, true);
 
-		// Moving a group to another window copies the group, which shares its editors, and then closes all of its editors
-		const target = parts.copyGroup(source, source, GroupDirection.RIGHT);
-		await source.closeAllEditors({ force: true });
-		parts.removeGroup(source);
-		deepStrictEqual(getState(instance, input), { instances: [1], trackedInput: true, groups: [{ id: target.id, active: false }] });
+		const closeListeners = store.add(new DisposableStore());
+		const close = Event.toPromise(Event.filter(source.onDidCloseEditor, event => event.editor === input), closeListeners);
+		const moved = parts.moveGroup(source, parts.mainPart.activeGroup, GroupDirection.RIGHT);
+		strictEqual((await close).context, EditorCloseContext.UNKNOWN);
+		deepStrictEqual(getState(instance, input), { instances: [1], trackedInput: true, groups: [{ id: moved.id, active: false }] });
+		strictEqual(input.group?.id, moved.id);
+		strictEqual(parents.at(-1) === moved.scopedContextKeyService, true);
 
 		await terminalEditorService.focusInstance(instance);
-		deepStrictEqual(getState(instance, input), { instances: [1], trackedInput: true, groups: [{ id: target.id, active: true }] });
+		deepStrictEqual(getState(instance, input), { instances: [1], trackedInput: true, groups: [{ id: moved.id, active: true }] });
+	});
+
+	test('keeps the live terminal owner when closing an inactive duplicate from a third group', async () => {
+		createTerminalEditorService();
+		const first = parts.activeGroup;
+		const { instance, parents } = createContextTrackedTerminal();
+		const input = store.add(terminalEditorService.getInputFromResource(terminalEditorService.resolveResource(instance)));
+		await first.openEditor(input, { pinned: true });
+		const owner = parts.copyGroup(first, first, GroupDirection.RIGHT);
+		await owner.openEditor(store.add(new TestFileEditorInput(URI.file('/owner'), TEST_EDITOR_ID)), { pinned: true });
+		await owner.openEditor(input, { pinned: true });
+		const closing = parts.copyGroup(owner, owner, GroupDirection.RIGHT);
+		const closingFile = store.add(new TestFileEditorInput(URI.file('/closing'), TEST_EDITOR_ID));
+		await closing.openEditor(closingFile, { pinned: true });
+		parts.activateGroup(owner);
+		strictEqual(input.group?.id, owner.id);
+		strictEqual(parents.at(-1) === owner.scopedContextKeyService, true);
+		deepStrictEqual(parts.groups.filter(group => group.activeEditor === input).map(group => group.id), [first.id, owner.id]);
+		strictEqual(closing.contains(input, { strictEquals: true }), true);
+		strictEqual(closing.activeEditor === closingFile, true);
+		const parentCount = parents.length;
+
+		await closing.closeEditor(input);
+
+		strictEqual(closing.contains(input, { strictEquals: true }), false);
+		strictEqual(input.group?.id, owner.id);
+		strictEqual(parents.at(-1) === owner.scopedContextKeyService, true);
+		strictEqual(parents.length, parentCount);
 	});
 
 	test('removes a terminal editor once it closes in its last group', async () => {
@@ -213,26 +287,7 @@ suite('Workbench - TerminalEditorService - editor groups', () => {
 		test(`does not rebind a shared terminal when it ${outcome}`, async () => {
 			createTerminalEditorService();
 			const source = parts.activeGroup;
-			const rootContext = instantiationService.get(IContextKeyService);
-			const terminalContext = store.add(rootContext.createScoped(document.createElement('div')));
-			const onDisposed = store.add(new Emitter<ITerminalInstance>());
-			const parents: IContextKeyService[] = [];
-			let terminalDisposed = false;
-			const instance: ITerminalInstance = {
-				...createTerminalInstance(1),
-				onDisposed: onDisposed.event,
-				setParentContextKeyService: parent => {
-					parents.push(parent);
-					terminalContext.updateParent(parent);
-				},
-				dispose: () => {
-					if (!terminalDisposed) {
-						terminalDisposed = true;
-						onDisposed.fire(instance);
-						terminalContext.dispose();
-					}
-				},
-			};
+			const { instance, rootContext, parents, isDisposed } = createContextTrackedTerminal();
 			const file = store.add(new TestFileEditorInput(URI.file('/keep-open'), TEST_EDITOR_ID));
 			await source.openEditor(file, { pinned: true });
 			const input = store.add(terminalEditorService.getInputFromResource(terminalEditorService.resolveResource(instance)));
@@ -259,22 +314,45 @@ suite('Workbench - TerminalEditorService - editor groups', () => {
 			strictEqual(copyStillContainedInput, true);
 			strictEqual(copy.activeEditor === file, true);
 			strictEqual(input.isDisposed(), true);
-			strictEqual(terminalDisposed, !movedToPanel);
+			strictEqual(isDisposed(), !movedToPanel);
 			deepStrictEqual(parents.slice(parentCount).map(parent => parent === rootContext), movedToPanel ? [true] : []);
 			deepStrictEqual(terminalEditorService.instances, []);
 		});
 	}
 
+	test('does not rebind an exited terminal when closing its last tab activates a duplicate', async () => {
+		createTerminalEditorService();
+		const source = parts.activeGroup;
+		const { instance, parents } = createContextTrackedTerminal();
+		const input = store.add(terminalEditorService.getInputFromResource(terminalEditorService.resolveResource(instance)));
+		await source.openEditor(input, { pinned: true });
+		const copy = parts.copyGroup(source, source, GroupDirection.RIGHT);
+		const file = store.add(new TestFileEditorInput(URI.file('/keep-duplicate-open'), TEST_EDITOR_ID));
+		await copy.openEditor(file, { pinned: true });
+		await copy.openEditor(input, { pinned: true });
+		parts.activateGroup(source);
+		strictEqual(parts.activeGroup === source, true);
+		strictEqual(source.count, 1);
+		strictEqual(input.group?.id, source.id);
+		strictEqual(copy.activeEditor === input, true);
+		const parentCount = parents.length;
+		const closeListeners = store.add(new DisposableStore());
+		const sourceClose = Event.toPromise(Event.map(Event.filter(source.onDidCloseEditor, event => event.editor === input),
+			() => [parts.activeGroup === copy, copy.activeEditor === input, input.isDisposed()]), closeListeners);
+		const copyClose = Event.toPromise(Event.filter(copy.onDidCloseEditor, event => event.editor === input), closeListeners);
+
+		instance.dispose();
+		const [duringSourceClose] = await Promise.all([sourceClose, copyClose]);
+
+		deepStrictEqual(duringSourceClose, [true, true, true]);
+		strictEqual(copy.activeEditor === file, true);
+		strictEqual(parents.length, parentCount);
+		deepStrictEqual(terminalEditorService.instances, []);
+	});
+
 	test('releases closed terminals and rebinds inactive surviving terminals when the auxiliary part closes', async () => {
 		instantiationService.stub(IConfigurationService, new TestConfigurationService({ 'terminal.integrated.confirmOnKill': 'editor' }));
-		const container = document.createElement('div');
-		document.body.appendChild(container);
-		store.add(toDisposable(() => container.remove()));
-		const auxiliary = store.add(instantiationService.createInstance(AuxiliaryEditorPartImpl, mainWindow.vscodeWindowId, parts, undefined, 'Auxiliary'));
-		const registration = store.add(parts.registerPart(auxiliary));
-		auxiliary.create(container);
-		auxiliary.layout(1080, 800, 0, 0);
-		await auxiliary.whenReady;
+		const { auxiliary, registration } = await createAuxiliaryPart();
 		createTerminalEditorService();
 
 		const main = parts.mainPart.activeGroup;
